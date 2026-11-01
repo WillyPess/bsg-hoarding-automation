@@ -2,7 +2,7 @@
 
 Owner: **Gus** (BSG). Talk to Gus in Portuguese or English as he writes; documents and drawings are in English, sizes in **mm** on drawings.
 
-**Changes in v1.1 (Gus, 2026-11-01):** melamine sizes and tops from offcuts; heights between 2.4 and 3.6 m; kiosk sheets and doors; uprights, anti-tampers and white tape now calculated from joints; external jobs always 2.4 m; rate card kept until Gus says otherwise.
+**Changes in v1.1 (Gus, 2026-11-01):** melamine sizes and tops from offcuts; heights between 2.4 and 3.6 m; kiosk sheets and doors; uprights, anti-tampers and white tape now calculated from joints; weights = all uprights (incl. spares) x weights per upright, no separate +10%; external jobs always 2.4 m, with an extra weight % asked per job; money rounded half a cent up; rate card kept until Gus says otherwise.
 
 ## Goal
 
@@ -45,9 +45,13 @@ Rules below were given or approved by Gus (or his boss). Don't invent new ones; 
 - Copy **BSG's paper form exactly**: same sections (Titan, Board, Timber/Track, Doors & Securities, Tapes, Screws & Stickers, Tools), same rows, BSG CHK / INST CHK columns, "Materials checked by" box. Gus found a custom layout confusing – don't redesign it.
 - **Melamine:** layout sheets **+ 2 spare sheets always** (damage on site).
 - **Tops:** list only **how many tops to cut from offcuts, with their sizes**. Don't count them as new sheets. The person loading the truck decides whether to add new sheets (if a top size isn't in stock, they add one sheet per missing top).
-- **Uprights = number of joints in the job + 10% spare, rounded up.** Both run ends count as joints. External jobs: see §7.
+- **Uprights = number of joints in the job + 10% spare, rounded up.** Both run ends count as joints. Fire-door jobs: only the joints where an upright actually stands (§10). External jobs: see §7.
 - **Anti-tampers = 1 per upright, including the 10% spare uprights.**
-- **White tape (rolls) = total joint length in metres / 25 m per roll, plus 20% spare, rounded up.** Every joint counts: joints between sheets (vertical joints x hoarding height), joints between sheets and tops, corners, run ends and door edges.
+- **Counterweights = all uprights (including the spare uprights) x weights per upright** (§6). No separate +10% spare weights.
+- **White tape (rolls) = total joint length in metres / 25 m per roll, plus 20% spare, rounded up.** Every joint counts:
+  - vertical joints between sheets, corners and both run ends: **full hoarding height** each;
+  - joints between sheets and tops;
+  - the door: **both sides (2 x door height) plus the top (door width)**.
 - **Door set (normal job):** 1 double door = 2 leaves, each **0.8 m wide x 2.4 m high** (1.6 m total opening; form lists 2 doors 2340), deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
 - **Door set (1.2 m kiosk):** leaves are **0.8 m wide x 1.2 m high**; one normal door cut in half makes both leaves, so the form lists **1 door**.
 - Studs scale with run length (14 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
@@ -70,6 +74,7 @@ Rules below were given or approved by Gus (or his boss). Don't invent new ones; 
 
 - Uprights stand **at the joins between sheets, never mid-sheet**, including **one each side of the entry**. The layout marks them with blue ▲.
 - Count = joints (both run ends included) + 10% spare, rounded up (§3). Spare uprights aren't placed on the layout.
+- Fire-door jobs: count only the joints where an upright actually stands, not the track section or the corners (Medibank: 7, plus the 10% spare).
 - Where a corner can't take an upright (fire-door jobs), use `no_corner_uprights`.
 
 ### 6. Counterweights – BSG weight matrix (internal hoardings)
@@ -81,14 +86,16 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Weights / upright | 2 | 3 | 4 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 |
 | Upright centres | 2.4 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 |
 
-**Always send +10% spare weights, rounded up.** (Code: `titan.py`.) **Spare uprights get the full counterweight set** for the job height from the matrix (Gus, 2026-11-01); whether the +10% spare weights still applies on top of that is an open point. No job has gone above 7.2 m; if one does, ask Gus which calculation to use.
+**Weights to send = all uprights, including the 10% spare uprights, x weights per upright from the matrix** (Gus, 2026-11-01). Every spare upright gets the full counterweight set, so there is **no separate +10% spare weights** any more (v1 added 10% to the weights; `titan.py` still does until step D). No job has gone above 7.2 m; if one does, ask Gus which calculation to use.
 
 ### 7. External jobs (wind) – David Jones Lift Area, Gus 2026-11-01
 
 - **External jobs are always 2.4 m high.**
-- Provisional rule: **8 counterweights per upright** and **40% more uprights** (rounded up). Add the 40% first, then the 10% spare uprights (§3) on that total, rounded up. Spare weights as in §6.
+- Provisional rule: **8 counterweights per upright** and **40% more uprights**. Round the 40% up first, then add the 10% spare uprights (§3) on that total, rounded up. DJ Lift: 24 joints → 24 + 10 = 34 → 34 + 4 = **38 uprights** (Gus confirmed 38). Weights = all uprights x 8 (§6): 38 x 8 = 304.
 - The extra uprights aren't placed on the layout; the supervisor decides where.
 - **Extra weight (Gus, 2026-11-01):** before computing counterweights for an external job, ask the user: "This job is external. Add extra weight? If yes, how many percent?" Apply only the percentage the user gives (default 0%), rounded up, and show it as a separate line in the summary and the materials form. **Never pick a percentage automatically.**
+  - Applied **last, on the total weights** (all uprights incl. spares x 8), rounded up. It **adds to** the 8-per-upright rule; it doesn't replace it.
+  - The answer is stored in job.json as `extra_weight_pct` (0 = no extra weight). `run_job.py` **stops and asks** when an external job doesn't have it; it never fills it in. DJ Lift: `"extra_weight_pct": 0`.
 - **Not an official table.** Gus will get the official weights-per-upright and extra-uprights table later; replace this rule when he sends it.
 
 ### 8. Corner shops (two faces + angled return) – first: Shrungaar, Hyperdome
@@ -106,6 +113,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 - Beside a fire door there's no room for uprights + counterweights. In that section use **90 mm steel track on the ceiling and floor** with **90x45 MGP10 timbers at 600 centres**; the melamine still goes full height.
 - The track section stops short of the corner; uprights + counterweights carry on from there.
 - **No uprights in the hoarding corners** (they don't fit).
+- Uprights count = only the joints where an upright actually stands, + 10% spare (§3). Medibank stays 7, plus spares.
 - Don't draw fire-door clearance or track detailing (builders know how).
 - **Every package carries the note:** "track + timbers is a suggestion only; BSG is still learning this method."
 - Old track fixing marks on the ceiling show where it was done before.
@@ -126,6 +134,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | $/lm | 115 | 220 | 280 | 320 | 330 | 450 | **POA** |
 
 - Pricing: lm = **full hoarding run incl. returns**; band = smallest height band ≥ job height; minimum 15 lm (kiosk) / 10 lm (others); add extras; then GST 10%.
+- Money: every line amount and the GST is rounded to the cent, **half a cent rounds up** (Gus, 2026-11-01). E.g. 10.125 lm x $330 = $3,341.25, GST $334.125 → $334.13.
 - Included: 1 set of double doors (2340 x 1600, deadbolt by Pacific Fair + barrel bolt), engineering cert, drawing, up to 6 months on site.
 - Extras: extra double doors $400/set during install, $800 after; passage set $50/set; post-install modification $800 min ($680 for hoardings before 1/10/2025), $100/h; cancellation $200 after 2 pm, $900 after 5 pm/dispatched, full cost if team on site. Scissor lift not included over 4.2 m. Public holiday, oversized transport and **wind-rated = POA** ("price on application": shown as a line with no price, not added to the total).
 - Fire-door track sections: no extra charge for now. Quotes addressed to **GPT – Pacific Fair**. 2.4 m external kiosk hoarding uses the 2.4 m band, not the 1.2 m kiosk rate.
@@ -138,7 +147,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Script | What it does | Run |
 | --- | --- | --- |
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
-| `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. | (library) |
+| `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), external 40% then 10% (24 → 34 → 38), `extra_weight_pct`. | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs. | `sheet.py "$(cat job.json)" <P>_hoarding_sheet.png` |
 | `sheet_corner.py` | Grid sheet for corner jobs. | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
@@ -154,7 +163,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 
 Dependencies: Python 3 with Pillow, openpyxl, reportlab, pypdf; LibreOffice (`soffice`) for xlsx → pdf. DejaVu fonts.
 
-**Rounding:** use integer maths for every "rounded up" count (weights, uprights, sheets). In floating point, 50 x 1.1 = 55.000…01 and 21.6 / 1.2 = 18.000…004, which round up wrongly.
+**Rounding:** use integer maths for every "rounded up" count (weights, uprights, sheets). In floating point, 50 x 1.1 = 55.000…01 and 21.6 / 1.2 = 18.000…004, which round up wrongly. Money is worked out in exact decimal and rounded to the cent, half a cent up (§12).
 
 **Hoarding Planner** (browser tool): https://claude.ai/artifact/J3jGFh4YS9PkZyyuJRK88z – photo tab and floor-plan tab. Exports PNG with optional title block.
 
@@ -201,7 +210,7 @@ All lengths in **metres**. Standard job:
  "entry_note": ", set to use full sheets"}
 ```
 
-Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights`, `weights_per_upright`; fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
+Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights`, `weights_per_upright`, `extra_weight_pct` (the user's answer, §7; required on external jobs from step D); fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
 
 ### Steps
 
@@ -219,7 +228,7 @@ Check the images and the printed summary against the rules above before sending.
 
 ### Reference results (before v1.1)
 
-Uprights below are layout uprights only. Under v1.1 the form adds +10% spare uprights and anti-tampers; recompute these rows after updating `materials.py`.
+Uprights below are layout uprights only, and weights include v1's separate +10%. Under v1.1 the form adds +10% spare uprights (each with its full weight set), drops the separate +10% weights and adds anti-tampers; recompute these rows after updating `materials.py` and `titan.py`.
 
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -233,7 +242,6 @@ Uprights below are layout uprights only. Under v1.1 the form adds +10% spare upr
 ## Open points
 
 - Purpose of the 4 x 2.3 m door studs (Gus to ask his boss).
-- Spare weights: does the +10% spare weights (§6) still apply on top of the full counterweight sets for the spare uprights? Ask Gus before changing `titan.py`.
 - Official external-job table (weights per upright, extra uprights) – Gus to get it.
 - Outside corners on corner jobs: normal joint until the boss says otherwise.
 - Hoardings above 7.2 m: never happened; Gus will give the calculation if one comes up.
