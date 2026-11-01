@@ -51,6 +51,7 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
   - vertical joints between sheets, corners and both run ends: **full hoarding height** each;
   - joints between sheets and tops;
   - the door: **both sides (2 x door height) plus the top (door width)**.
+  - **Behind a switch for now (2026-11-01):** `rules.json` `tape.tape_rule` = `"v1"` (default: 8 rolls per 8.8 m, as before) or `"joints"` (this calculation, `hoarding/tape.py`, step D rule 4). Provisional until Gus checks it against real tape use (`notes/questions-for-gus.md`). Turning it on = change that one value and approve the impact table. The run summary always shows both: `white_tape_rolls` (what the form uses) and `white_tape_joints_rolls`.
 - **Door set (normal job):** 1 double door = 2 leaves, each **0.8 m wide x 2.4 m high** (1.6 m total opening; form lists 2 doors 2340), deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
 - **Door set (1.2 m kiosk):** leaves are **0.8 m wide x 1.2 m high**; one normal door cut in half makes both leaves, so the form lists **1 door**.
 - Studs scale with run length (14 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
