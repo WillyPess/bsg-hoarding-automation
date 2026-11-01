@@ -13,5 +13,10 @@
  "anti_tampers_to_send": 11,
  "weights_per_upright": 7,
  "weights_to_send": 77,
+ "white_tape_rule": "joints",
+ "white_tape_rolls": 5,
+ "white_tape_joints_m": 61.8,
+ "white_tape_joints_rolls": 5,
+ "black_tape_rolls": 1,
  "total_weights_to_send": 77
 }

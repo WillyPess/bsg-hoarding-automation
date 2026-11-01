@@ -70,7 +70,7 @@
  "tape": {
   "roll_length": {"value": 25, "source": "BSG paper form: white tape comes in 25 m rolls; Gus 2026-11-01 (v1.1 §3), confirmed 2026-11-02.", "provisional": false},
   "tape_rule": {"value": "joints", "source": "Switch for the white tape rolls on the form: \"joints\" = total joint length / roll_length + spare (v1.1 §3, hoarding/tape.py), switched on by Gus 2026-11-02 (readings A and B: the door sides and top count as written, also on a full-height door); \"v1\" = materials.white_tape per 8.8 m (Just Cuts), kept to compare.", "provisional": false},
-  "spare": {"value": 1.00, "source": "Gus, 2026-11-02: 100% spare (double), rounded up. They always send almost double because changes on site mean removing tape and applying new; tape is cheap. Was 20% (Gus 2026-11-01).", "provisional": false}
+  "spare": {"value": 1.00, "source": "Gus, 2026-11-02: 100% spare (double), rounded up. They always send almost double because changes on site mean removing tape and applying new; tape is cheap. Was 20% (Gus 2026-11-01). Provisional until Gus's boss confirms it (on his list).", "provisional": true}
  },
 
  "black_tape": {

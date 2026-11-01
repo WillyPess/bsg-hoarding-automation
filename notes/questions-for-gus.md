@@ -8,7 +8,7 @@ After the meeting, each answer becomes a value in `hoarding/rules.json` or a sma
 
 ## 1. White tape: the new joint calculation vs real use
 
-> **Answered (Gus, 2026-11-02):** rolls are 25 m. The team always sends almost double, because changes on site mean removing tape and applying new; tape is cheap, so keep a big margin. **Decision: the joint calculation is switched on with a 100% spare** (`tape.tape_rule = "joints"`, `tape.spare = 1.00`): Bikini 5, FRED 7, David Jones 11, Shrungaar 8, Medibank 6, DJ Lift 6 rolls.
+> **Answered (Gus, 2026-11-02):** rolls are 25 m. The team always sends almost double, because changes on site mean removing tape and applying new; tape is cheap, so keep a big margin. **Decision: the joint calculation is switched on with a 100% spare** (the 100% is provisional until Gus's boss confirms it; it is on his list) (`tape.tape_rule = "joints"`, `tape.spare = 1.00`): Bikini 5, FRED 7, David Jones 11, Shrungaar 8, Medibank 6, DJ Lift 6 rolls.
 
 **Now:** the form still uses v1: **8 rolls per 8.8 m of run**, rounded up. The new v1.1 calculation is in the code behind a switch (`rules.json` `tape.tape_rule`, PR #16). It works like this: total joint length (every vertical joint at full height + the sheets/tops joint + the door: 2 x door height + door width) + 20% spare, divided by 25 m rolls, rounded up.
 
