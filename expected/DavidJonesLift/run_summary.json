@@ -9,6 +9,7 @@
  "extra_uprights": 10,
  "spare_uprights": 4,
  "uprights_to_send": 38,
+ "anti_tampers_to_send": 38,
  "weights_per_upright": 8,
  "weights_to_send": 304,
  "quote_lm": 24.6,
