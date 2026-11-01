@@ -92,7 +92,7 @@ def counts(job):
     from layout_gen import compute, tops_text, tops_to_cut
     import titan
     from rules import RULES
-    from tape import white_tape, rolls_for_job
+    from tape import white_tape, rolls_for_job, black_tape
     c = compute(job)
     joins = titan.joins(job, c)
     up, extra, spare, per, w = titan.for_job(job, joins)
@@ -101,7 +101,8 @@ def counts(job):
            "uprights_at_joins": joins, "extra_uprights": extra, "spare_uprights": spare, "uprights_to_send": up, "anti_tampers_to_send": up,
            "weights_per_upright": per, "weights_to_send": w,
            "white_tape_rule": RULES["tape"]["tape_rule"], "white_tape_rolls": rolls_for_job(job, c),
-           "white_tape_joints_m": white_tape(job, c)["total_mm"] / 1000, "white_tape_joints_rolls": white_tape(job, c)["rolls"]}
+           "white_tape_joints_m": white_tape(job, c)["total_mm"] / 1000, "white_tape_joints_rolls": white_tape(job, c)["rolls"],
+           "black_tape_rolls": black_tape(job, c)}
     if job.get("external"):
         x = titan.extra_weights(job, w)
         out.update(extra_weight_pct=job["extra_weight_pct"], extra_weights=x)
