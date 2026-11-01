@@ -92,6 +92,22 @@ def compute(p):
     return dict(L=L, folds=folds, segs=segs, full=full, bins=bins, door=door, entry=(door_x, dw) if door_x is not None and dw > 0 else None, tfull=tfull, tbins=tbins,
                 sheets=k, tops=kt if TH > E else 0, uprights=ups)
 
+def tops_to_cut(p, c):
+    """Tops to cut from offcuts (v1.1 rule 5, Gus 2026-11-01): [(width_mm, height_mm, count), ...], widest first.
+    One whole 1200 top above every full sheet, one piece of its own width above every cut piece. The piece above
+    the entry is cut from the door sheet (already counted), so it is not listed. Empty when the job has no tops."""
+    if not c["tops"]:
+        return []
+    th = int(round((p["height"] - p.get("sheet_h", RULES["sheet"]["height"])) * 1000))
+    widths = [int(round(SW * 1000))] * len(c["tfull"]) + [int(round(cu["w"] * 1000)) for b in c["tbins"] for cu in b["cuts"]]
+    return [(w, th, widths.count(w)) for w in sorted(set(widths), reverse=True)]
+
+
+def tops_text(p, c):
+    """e.g. "7 x 1200 x 900 + 1 x 400 x 900" ("" without tops)."""
+    return " + ".join(f"{n} x {w} x {h}" for w, h, n in tops_to_cut(p, c))
+
+
 def render(p, out):
     c = compute(p); H = p["height"]; L = c["L"]
     from paths import FB, F as FN

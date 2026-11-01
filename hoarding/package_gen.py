@@ -7,7 +7,7 @@ from PIL import Image as PI
 from pypdf import PdfWriter, PdfReader
 import sys, json, math, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from layout_gen import compute
+from layout_gen import compute, tops_text
 from rules import RULES
 # Usage: package_gen.py job.json  (keys: name, prefix, dir, date, front, return, height, door_offset, door_width, door_height, by, front_ends, entry_note)
 J=json.load(open(sys.argv[1])); D=J["dir"].rstrip("/")+"/"; P=J["prefix"]; N=J["name"]
@@ -83,7 +83,7 @@ def sec_txt(name):
     fs=[f"S{x['sheet']}" for x in c["full"] if x["where"]==name]
     cs=[f"{cu['label']} ({mm(cu['w'])}, at the corner)" for b in c["bins"] for cu in b["cuts"] if cu["where"]==name]
     return name+" "+(", ".join(fs+cs) if fs or cs else "none")
-mel=f"{c['sheets']+SPARE} sheets {mm(SW)} x {mm(SHT)} ({c['sheets']} in the layout + {SPARE} spare in case of damage)"+(f" + {c['tops']} tops {mm(SW)} x {mm(H-SH0)}" if c["tops"] else "")
+mel=f"{c['sheets']+SPARE} sheets {mm(SW)} x {mm(SHT)} ({c['sheets']} in the layout + {SPARE} spare in case of damage)"+(f"; tops cut from offcuts (not new sheets): {tops_text(J, c)}" if c["tops"] else "")
 st=[Paragraph(f"{N}: Hoarding Package",H1),Paragraph(f"BSG · {J['date']} · Prepared by {J.get('by','Gus')}",S),Spacer(1,6),
  Paragraph(f"A {L:g} m L-shaped run of melamine hoarding, {H:g} m high, around the {N} corner shop: a {AN:g} m angled return by the lift, the {SD:g} m side, the corner, the {F:g} m front with a {DW:g} m double-door entry, and a {RR:g} m return. The entry starts {DO:g} m from the corner ({F-DO-DW:g} m from the right end)." if CN else FD_INTRO if FD else U_INTRO if UJ else f"A {L:g} m run of melamine hoarding, {H:g} m high, set {R:g} m out from the {N} shopfront, with a {DW:g} m double-door entry starting {DO:g} m from the left end of the front.",B),Spacer(1,6),
  tbl([["Item","Size"],["Angled return (by the lift)",f"{AN:g} m, angle to suit, keep clear of the lift"],["Side",m(SD)],["Front",m(F)],["Right return",m(RR)],["Total hoarding length",f"{L:g} m ("+" + ".join(f"{f['len']:g}" for f in FA)+")"],["Height",m(H)],["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves"],["Entry position",f"{DO:g} m from the corner ({mm(DO)} to {mm(DO+DW)} along the front)"+J.get("entry_note","")],["Melamine",mel]] if CN else FD_ROWS[:-1]+[["Melamine",mel]] if FD else U_ROWS+[["Melamine",mel]] if UJ else [["Item","Size"],["Shopfront (lease line)",m(F)],["Returns",f"{R:g} m each side"],["Total hoarding length",f"{L:g} m ({R:g} + {F:g} + {R:g})"],["Height",m(H)],["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves"],["Entry position",f"{DO:g} m from the left end of the front ({mm(DO)} to {mm(DO+DW)})"+J.get("entry_note","")],["Melamine",mel]],[60*mm_,120*mm_]),

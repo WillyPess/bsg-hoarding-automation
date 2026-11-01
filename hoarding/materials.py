@@ -19,6 +19,8 @@ M, DS = RULES["materials"], RULES["door_set"]
 fq = lambda name: M["form_quantities"].get(name, "")   # fixed quantity per job on BSG's paper form, blank if none
 SPARE = RULES["sheet"]["spare"]   # always send 2 extra sheets in case of damage (Gus, 2026-10-21)
 sheets = _c["sheets"] + SPARE   # layout sheets + spares
+from layout_gen import tops_text
+TOPS = tops_text(_p, _c)   # tops cut from offcuts, not new sheets (Gus, 2026-11-01); was "+ 8 x 900 Tops"
 tops = _c["tops"]   # one top above every sheet piece, joins aligned (boss, 2026-10-21); was ceil(L/1.2)                                            # 1.2 m wide tops along the whole run
 from titan import joins
 uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
@@ -34,7 +36,7 @@ UTXT = "  +  ".join([f"{UPJ} at joins"] + ([f"{UPX} extra (wind)"] if UPX else [
 TR = _p.get("track")   # fire-door jobs: track + timbers section instead of uprights
 S = [
  ("Titan", [("Uprights", uprights, UTXT if UPX or SPU else ""), ("Counterweights", CW, f"{PER}   Per Upright  x  {uprights} uprights")]),
- ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m (+{SPARE} spare) + {tops} x {top} Tops" if top > 0 else f"{SHT:g}m (+{SPARE} spare)"), ("15mm CD Ply", "", "2.4m – 3.0m")]),
+ ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m (+{SPARE} spare)" + (f"   Tops from offcuts: {TOPS}" if TOPS else "")), ("15mm CD Ply", "", "2.4m – 3.0m")]),
  ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""),
                    ("70 x 45 Door Studs", DS["studs_full_height"] + DS["studs_short"], f"{DS['studs_full_height']} x {H:g}  +  {DS['studs_short']} x {DS['studs_short_length']:g}"),
                    ("90mm track", f"{TR['lengths']} x" if TR else "", "3.0m  (ceiling + floor)" if TR else "3.0m"), ("90 x 45 MGP 10", f"{TR['studs']} x" if TR else "", f"{H:g}  (in the track, 600 centres)" if TR else "")]),
