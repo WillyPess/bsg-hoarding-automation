@@ -51,14 +51,14 @@ The stored PNGs were made on Linux. The hashes in `baseline.json` are still the 
 | Job | Type | Site | Run (m) | H (m) | Sheets (layout+2) | Tops | Uprights | Anti-tampers | Weights | Quote ex GST |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Bikini | standard | Hyperdome | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 11 | 11 x 7 = 77 | – |
-| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 16 | 16 x 7 = 112 | $4,686 |
-| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | $7,656 |
-| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | $7,656 |
-| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 15 | 18 + 2 = 20 | 20 | 20 x 6 = 120 | – |
-| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 9 | 7 + 1 = 8 | 8 | 8 x 6 = 48 | $3,872 |
+| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 12 | 14 + 2 = 16 | 16 | 16 x 7 = 112 | $4,686 |
+| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 20 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | $7,656 |
+| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 20 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | $7,656 |
+| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 16 | 18 + 2 = 20 | 20 | 20 x 6 = 120 | – |
+| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 10 | 7 + 1 = 8 | 8 | 8 x 6 = 48 | $3,872 |
 | DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | $5,412 + wind POA |
 
-Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); weights = all uprights x weights per upright, no separate +10% (rule 2); anti-tampers = uprights sent (rule 3). The other v1.1 rules are listed in CLAUDE.md.
+Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); weights = all uprights x weights per upright, no separate +10% (rule 2); anti-tampers = uprights sent (rule 3); tops = pieces to cut from offcuts (rule 5). The other v1.1 rules are listed in CLAUDE.md.
 
 `FRED` (the first FRED run, 2026-10-20) is included for history only: its outputs come from the legacy scripts, before the spare-sheet, aligned-tops, uprights-at-joins and weight-matrix rules. **FRED_v2 is the fixture** for that job.
 

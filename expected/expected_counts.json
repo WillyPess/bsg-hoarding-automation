@@ -1,5 +1,5 @@
 {
- "_source": "CLAUDE.md reference results, approved by Gus (2026-11-01). FRED (legacy) is not a fixture; use FRED_v2. Updated for v1.1 rules 1 (uprights = joints + 10% spare), 2 (weights = all uprights x per upright) and 3 (anti-tampers = 1 per upright sent), approved 2026-11-01.",
+ "_source": "CLAUDE.md reference results, approved by Gus (2026-11-01). FRED (legacy) is not a fixture; use FRED_v2. Updated for v1.1 rules 1 (uprights = joints + 10% spare), 2 (weights = all uprights x per upright), 3 (anti-tampers = 1 per upright sent) and 5 (tops = pieces to cut from offcuts), approved 2026-11-01.",
  "jobs": {
   "Bikini": {
    "run_m": 10.4,
@@ -16,7 +16,7 @@
    "run_m": 14.2,
    "height_m": 4.5,
    "sheets_to_send": 14,
-   "tops": 11,
+   "tops": 12,
    "spare_uprights": 2,
    "uprights_to_send": 16,
    "anti_tampers_to_send": 16,
@@ -27,7 +27,7 @@
    "run_m": 23.2,
    "height_m": 4.5,
    "sheets_to_send": 21,
-   "tops": 18,
+   "tops": 20,
    "spare_uprights": 3,
    "uprights_to_send": 25,
    "anti_tampers_to_send": 25,
@@ -38,7 +38,7 @@
    "run_m": 23.2,
    "height_m": 4.5,
    "sheets_to_send": 21,
-   "tops": 18,
+   "tops": 20,
    "spare_uprights": 3,
    "uprights_to_send": 25,
    "anti_tampers_to_send": 25,
@@ -49,25 +49,25 @@
    "run_m": 19.5,
    "height_m": 4.0,
    "sheets_to_send": 18,
-   "tops": 15,
+   "tops": 16,
    "spare_uprights": 2,
    "uprights_to_send": 20,
    "anti_tampers_to_send": 20,
    "weights_to_send": 120,
    "quote_ex_gst": null,
-   "tops_note": "15 x 400"
+   "tops_note": "16 x 400"
   },
   "Medibank": {
    "run_m": 12.1,
    "height_m": 4.2,
    "sheets_to_send": 12,
-   "tops": 9,
+   "tops": 10,
    "spare_uprights": 1,
    "uprights_to_send": 8,
    "anti_tampers_to_send": 8,
    "weights_to_send": 48,
    "quote_ex_gst": 3872.0,
-   "tops_note": "9 x 600"
+   "tops_note": "10 x 600"
   },
   "DavidJonesLift": {
    "run_m": 24.6,
