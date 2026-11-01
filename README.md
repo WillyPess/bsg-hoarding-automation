@@ -46,19 +46,19 @@ The lite bundle has no reference PDFs or PNGs, so `expected/<Job>/baseline.json`
 
 | Job | Type | Site | Run (m) | H (m) | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 |---|---|---|---|---|---|---|---|---|---|
-| Bikini | standard | Hyperdome | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 77 | – |
-| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 108 | $4,686 |
-| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 |
-| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 |
-| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 15 | 18 + 2 = 20 | 119 | – |
-| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 9 | 7 + 1 = 8 | 47 | $3,872 |
-| DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 300 | $5,412 + wind POA |
+| Bikini | standard | Hyperdome | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 11 x 7 = 77 | – |
+| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 16 x 7 = 112 | $4,686 |
+| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 25 x 7 = 175 | $7,656 |
+| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 25 x 7 = 175 | $7,656 |
+| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 15 | 18 + 2 = 20 | 20 x 6 = 120 | – |
+| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 9 | 7 + 1 = 8 | 8 x 6 = 48 | $3,872 |
+| DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 x 8 = 304 | $5,412 + wind POA |
 
-Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); the other v1.1 rules are listed in CLAUDE.md.
+Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); weights = all uprights x weights per upright, no separate +10% (rule 2). The other v1.1 rules are listed in CLAUDE.md.
 
 `FRED` (the first FRED run, 2026-10-20) is included for history only: its outputs come from the legacy scripts, before the spare-sheet, aligned-tops, uprights-at-joins and weight-matrix rules. **FRED_v2 is the fixture** for that job.
 
-Good rounding cases for tests: `titan.for_job` (+10% weights rounded up: Bikini 10×7×1.1 = 77, Medibank 7×6×1.1 = 46.2 → 47; +40% uprights: 24×0.4 = 9.6 → 10), quote minimum lm (10 lm, 15 lm kiosk), height bands at the exact limits (4.2 m → $320 band, 2.4 m → $220 band), offcut packing (three 400 pieces from one sheet), and the 2.4 m job (sheet_h 2.4, no tops).
+Good rounding cases for tests: `titan.for_job` (+10% spare uprights rounded up: 14×0.1 = 1.4 → 2, Medibank 7×0.1 = 0.7 → 1; +40% uprights: 24×0.4 = 9.6 → 10, then 34×0.1 = 3.4 → 4 spare = 38; weights are whole numbers, all uprights x weights per upright), quote minimum lm (10 lm, 15 lm kiosk), height bands at the exact limits (4.2 m → $320 band, 2.4 m → $220 band), offcut packing (three 400 pieces from one sheet), and the 2.4 m job (sheet_h 2.4, no tops).
 
 ## Changes made for this handoff (vs the project folder)
 

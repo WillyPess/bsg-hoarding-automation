@@ -10,7 +10,7 @@
  "spare_uprights": 1,
  "uprights_to_send": 8,
  "weights_per_upright": 6,
- "weights_to_send": 47,
+ "weights_to_send": 48,
  "quote_lm": 12.1,
  "quote_rate": 320,
  "quote_ex_gst": 3872.0,

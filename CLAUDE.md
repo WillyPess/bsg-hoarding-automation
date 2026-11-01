@@ -83,7 +83,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Weights / upright | 2 | 3 | 4 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 |
 | Upright centres | 2.4 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 |
 
-**Weights to send = all uprights, including the 10% spare uprights, x weights per upright from the matrix** (Gus, 2026-11-01). Every spare upright gets the full counterweight set, so there is **no separate +10% spare weights** any more (v1 added 10% to the weights; `titan.py` still does until step D). No job has gone above 7.2 m; if one does, ask Gus which calculation to use.
+**Weights to send = all uprights, including the 10% spare uprights, x weights per upright from the matrix** (Gus, 2026-11-01). Every spare upright gets the full counterweight set, so there is **no separate +10% spare weights** any more (v1 added 10% to the weights; removed in step D rule 2). No job has gone above 7.2 m; if one does, ask Gus which calculation to use.
 
 ### 7. External jobs (wind) – David Jones Lift Area, Gus 2026-11-01
 - **External jobs are always 2.4 m high.**
@@ -139,7 +139,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 |---|---|---|
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
-| `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done). **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), `extra_weight_pct`. | (library) |
+| `titan.py` | Weight matrix, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done); weights = all uprights x weights per upright, no separate +10% (rule 2, done). **Needs updating for v1.1:** `extra_weight_pct`. | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs (return/front/return). | `sheet.py '<json in mm>' <P>_hoarding_sheet.png` (front/return/height/door_* ×1000 + "title": "<TITLE>: HOARDING"; passing job.json in metres draws 0.0142 m) |
 | `sheet_corner.py` | Grid sheet for corner jobs (L-plan + unfolded elevation). | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
@@ -237,17 +237,17 @@ Check the images (sheet, layout) before sending, and check the printed summary (
 | `<P>_Hoarding_Package.pdf` | Everything above + build sequence + site checks, one PDF |
 | `<P>_Quotation.pdf` | Pacific Fair only: quote to GPT – Pacific Fair |
 
-### Reference results (v1.1 rule 1 applied, to sanity-check changes)
-Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights still include v1's separate +10%, worked out on the uprights before the spare; the next v1.1 rules change them (full weight set on the spare uprights, no separate +10%) and add anti-tampers, tape and the other changes. Update these rows with each rule.
+### Reference results (v1.1 rules 1–2 applied, to sanity-check changes)
+Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). The next v1.1 rules add anti-tampers, tape and the other changes; update these rows with each rule.
 
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 |---|---|---|---|---|---|---|---|
-| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 77 | – |
-| FRED_v2 (PF) | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 108 | $4,686 |
-| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 each |
-| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 15 x 400 | 18 + 2 = 20 | 119 | – |
-| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 9 x 600 | 7 + 1 = 8 | 47 | $3,872 |
-| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 300 | $5,412 + wind POA |
+| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 11 x 7 = 77 | – |
+| FRED_v2 (PF) | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 16 x 7 = 112 | $4,686 |
+| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 25 x 7 = 175 | $7,656 each |
+| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 15 x 400 | 18 + 2 = 20 | 20 x 6 = 120 | – |
+| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 9 x 600 | 7 + 1 = 8 | 8 x 6 = 48 | $3,872 |
+| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 x 8 = 304 | $5,412 + wind POA |
 
 ## Open points
 - Purpose of the 4 x 2.3 m door studs (Gus to ask his boss).
