@@ -25,7 +25,7 @@ tops = _c["tops"]   # one top above every sheet piece, joins aligned (boss, 2026
 from titan import joins
 uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
 studs = math.ceil(M["studs"] * L / M["per_length"])   # 14 / 8 / 10 per 8.8 m, inferred from Just Cuts
-from tape import rolls_for_job
+from tape import rolls_for_job, black_tape
 tape = rolls_for_job(_p, _c)   # rules.json tape.tape_rule: "v1" = 8 per 8.8 m (default), "joints" = joint length / 25 m + 20%
 SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 m jobs)
 top = round((H - SHT) * 1000)
@@ -47,7 +47,7 @@ S = [
  ("Doors & Securities", [("Doors", DS["doors"], str(DS["leaf_mm"])), ("Digi Lock", "", ""), ("Deadbolt", DS["deadbolt"], ""), ("Padlock", "", ""), ("Barrel Bolt", "", ""),
                          ("Hasp & Staple", "", ""), ("Finger Pull", "", ""), ("T Section", "", ""), ("Hinges", DS["hinges"], ""), ("Metal Plates", DS["metal_plates"], "")]),
  ("Tapes", [("Paintable Tape 50mm", fq("Paintable Tape 50mm"), "25m Rolls"), ("White Tape 50mm", tape, f"{RULES['tape']['roll_length']:g}m Rolls"),
-            ("Black Skirting Tape 100mm", fq("Black Skirting Tape 100mm"), "25m Rolls"),
+            ("Black Skirting Tape 100mm", black_tape(_p, _c), f"{RULES['black_tape']['roll_length']:g}m Rolls"),
             ("Double Sided Tape", fq("Double Sided Tape"), "Rolls"), ("Barrier Tape", fq("Barrier Tape"), "Rolls"), ("Bollards", fq("Bollards"), "")]),
  ("Screws & Stickers", [("40mm Screws", fq("40mm Screws"), "Boxes"), ("Plasterboard Screws", fq("Plasterboard Screws"), "Boxes"), ("White Screw Covers", fq("White Screw Covers"), "Packets"),
                         ("Anti-Tampers", tampers, ""), ("Warning Stickers", fq("Warning Stickers"), ""), ("Installation Certificate", fq("Installation Certificate"), "")]),

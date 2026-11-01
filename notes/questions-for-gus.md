@@ -1,12 +1,14 @@
 # Questions for Gus (2026-11-01)
 
-Open points from v1.1 step D. For each one: what the engine does now, the options, and what changes in the numbers.
+Open points from v1.1 step D. **Answers from Gus on 2026-11-02 are marked at the top of each question.** For each one: what the engine does now, the options, and what changes in the numbers.
 Numbers are from the 7 reference jobs (David Jones Ground and First are the same job, so they show once).
 After the meeting, each answer becomes a value in `hoarding/rules.json` or a small PR, then the impact table is checked and the baseline approved.
 
 ---
 
 ## 1. White tape: the new joint calculation vs real use
+
+> **Answered (Gus, 2026-11-02):** rolls are 25 m. The team always sends almost double, because changes on site mean removing tape and applying new; tape is cheap, so keep a big margin. **Decision: the joint calculation is switched on with a 100% spare** (the 100% is provisional until Gus's boss confirms it; it is on his list) (`tape.tape_rule = "joints"`, `tape.spare = 1.00`): Bikini 5, FRED 7, David Jones 11, Shrungaar 8, Medibank 6, DJ Lift 6 rolls.
 
 **Now:** the form still uses v1: **8 rolls per 8.8 m of run**, rounded up. The new v1.1 calculation is in the code behind a switch (`rules.json` `tape.tape_rule`, PR #16). It works like this: total joint length (every vertical joint at full height + the sheets/tops joint + the door: 2 x door height + door width) + 20% spare, divided by 25 m rolls, rounded up.
 
@@ -33,6 +35,8 @@ The new calculation sends about a third of the v1 rolls.
 
 ## 2. White tape, reading A: are the door sides counted twice?
 
+> **Answered (Gus, 2026-11-02):** a. the door sides count, as written (no code change).
+
 The rule says: "vertical joints between sheets, corners and both run ends at full height" and "the door: both sides (2 x door height) plus the top". The two joints at the edges of the entry are already counted at full height (floor to top). So adding "both sides of the door" again counts 2 x 2.4 m = 4.8 m twice.
 
 **Options:**
@@ -54,6 +58,8 @@ This only matters once question 1 switches to the new calculation.
 
 ## 3. White tape, reading B: does a full-height door have a top joint?
 
+> **Answered (Gus, 2026-11-02):** a. the door top counts even when the door is full height, as written (no code change).
+
 On DJ Lift (2.4 m hoarding), the entry is 2.4 m high, so nothing sits above the door. The rule adds "the top (door width)" = 1.6 m anyway.
 
 **Options:**
@@ -65,6 +71,8 @@ DJ Lift goes **4 → 3 rolls** with b. No other job changes. With reading A as w
 ---
 
 ## 4. The 4 x 2.3 m door studs
+
+> **Pending (2026-11-02):** Gus is asking his boss. No change: 4 x 2.3 m on every job.
 
 **Now:** every job sends door studs = **2 x full height + 4 x 2.3 m** (BSG form, Just Cuts). Nobody knows what the 2.3 m studs are for.
 
@@ -84,6 +92,8 @@ Only the "70 x 45 Door Studs" row on the form changes (now 6 on every job).
 
 ## 5. Official external-job table (wind)
 
+> **Answered (Gus, 2026-11-02):** there is no official external table yet, only the internal matrix. **The provisional rule stays** (8 per upright, +40% uprights). No change.
+
 **Now (provisional, DJ Lift):** **8 counterweights per upright** and **40% more uprights**. Then the 10% spare, then the extra weight % asked per job. DJ Lift: 24 joints → 24 + 10 = 34 → + 4 spare = **38 uprights, 304 counterweights**, 38 anti-tampers.
 
 **Question:** did you get the official table (weights per upright and extra uprights for external hoardings)?
@@ -102,6 +112,8 @@ The table goes into `rules.json` (`external`). If it depends on height or wind z
 
 ## 6. Outside corners on corner jobs
 
+> **Answered (Gus, 2026-11-02), provisional:** a. a normal joint with one upright, as the code does now. Provisional until his boss confirms. No change.
+
 **Now:** an outside corner (Shrungaar) is a normal joint: one upright, tape at full height.
 
 **Question (for the boss):** does an outside corner need anything more, such as a second upright, a corner trim, or extra weights?
@@ -115,6 +127,8 @@ The table goes into `rules.json` (`external`). If it depends on height or wind z
 
 ## 7. Hoardings above 7.2 m
 
+> **Still open (2026-11-02).** No change: the engine stops above 7.2 m.
+
 **Now:** the weight matrix stops at 7.2 m (12 weights per upright, 1.2 m centres). A taller job stops the engine with "above the 7.2 m weight matrix". No job has gone above 7.2 m. The quote is already POA above 6.0 m.
 
 **Question:** if one comes up, which calculation should we use?
@@ -127,6 +141,8 @@ The table goes into `rules.json` (`external`). If it depends on height or wind z
 ---
 
 ## 8. The new Pacific Fair rate card
+
+> **Answered (Gus, 2026-11-02):** the current card (25-26) stays. No change.
 
 **Now:** "BSG Hoarding Rate – Pacific Fair 25-26" (validity ended 30/6/2026). You said on 2026-11-01 to keep using it until there is a new one.
 
@@ -147,3 +163,11 @@ Every quote is lm x $/lm for the height band, plus the extras, plus GST:
 
 - **Studs: 14 per 8.8 m**, rounded up, inferred from Just Cuts (Bikini 17, FRED 23, David Jones 37, Shrungaar 32, Medibank 20, DJ Lift 40).
 - **External jobs always 2.4 m** (v1.1 §7): the new-job form will check this, so tell us if an external job can ever be another height.
+
+---
+
+## 9. Black skirting tape (new, 2026-11-02)
+
+> **Answered (Gus, 2026-11-02), provisional:** black tape is a skirt along the full lineal metres of the job. Rolls are 25 m. **Black tape = full run (returns and entry included) x 2 (100% spare, like the white tape) / 25, rounded up** (`rules.json` `black_tape`).
+
+**Before:** a fixed 1 roll per job (Just Cuts form). **Now:** Bikini 1, FRED 2, David Jones 2, Shrungaar 2, Medibank 1, DJ Lift 2.

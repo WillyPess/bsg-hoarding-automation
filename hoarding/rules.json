@@ -61,16 +61,21 @@
   "studs": {"value": 14, "source": "14 x 70x45 MGP10 studs per 8.8 m, rounded up: inferred from Just Cuts, not formally confirmed (§3).", "provisional": true},
   "white_tape": {"value": 8, "source": "8 rolls of white tape per 8.8 m, rounded up: inferred from Just Cuts (v1). Used while tape.tape_rule is \"v1\"; the v1.1 joint calculation is behind that switch (step D rule 4).", "provisional": true},
   "form_quantities": {"value": {
-    "Black Skirting Tape 100mm": 1, "Barrier Tape": 1, "Bollards": 1,
+    "Barrier Tape": 1, "Bollards": 1,
     "40mm Screws": 1, "White Screw Covers": 1, "Warning Stickers": 6, "Installation Certificate": 1,
     "Ladder": "1 each", "Paint": "1 each", "Roller Kit": 1, "Trolleys": 2, "Broom": 1, "Dustpan": 1, "Spray, Wipes & Rags": 1},
    "source": "Fixed quantities per job on BSG's paper materials form (Just Cuts example, §3). Rows not listed here stay blank on the form.", "provisional": false}
  },
 
  "tape": {
-  "roll_length": {"value": 25, "source": "BSG paper form: white tape comes in 25 m rolls; Gus 2026-11-01 (v1.1 §3).", "provisional": false},
-  "tape_rule": {"value": "v1", "source": "Switch for the white tape rolls on the form (2026-11-01, until Gus confirms the joint calculation against real use): \"v1\" = materials.white_tape per 8.8 m (Just Cuts), \"joints\" = total joint length / roll_length + spare (v1.1 §3, hoarding/tape.py). Turning it on = set \"joints\" here and approve the impact table.", "provisional": true},
-  "spare": {"value": 0.20, "source": "Gus, 2026-11-01 (v1.1 §3): white tape rolls + 20% spare, rounded up. Used when tape_rule is \"joints\".", "provisional": false}
+  "roll_length": {"value": 25, "source": "BSG paper form: white tape comes in 25 m rolls; Gus 2026-11-01 (v1.1 §3), confirmed 2026-11-02.", "provisional": false},
+  "tape_rule": {"value": "joints", "source": "Switch for the white tape rolls on the form: \"joints\" = total joint length / roll_length + spare (v1.1 §3, hoarding/tape.py), switched on by Gus 2026-11-02 (readings A and B: the door sides and top count as written, also on a full-height door); \"v1\" = materials.white_tape per 8.8 m (Just Cuts), kept to compare.", "provisional": false},
+  "spare": {"value": 1.00, "source": "Gus, 2026-11-02: 100% spare (double), rounded up. They always send almost double because changes on site mean removing tape and applying new; tape is cheap. Was 20% (Gus 2026-11-01). Provisional until Gus's boss confirms it (on his list).", "provisional": true}
+ },
+
+ "black_tape": {
+  "roll_length": {"value": 25, "source": "Gus, 2026-11-02: black skirting tape 100 mm comes in 25 m rolls.", "provisional": true},
+  "spare": {"value": 1.00, "source": "Gus, 2026-11-02: black tape = full run lineal metres (returns and entry included) x 2 (100% spare, like the white tape) / roll_length, rounded up. Was a fixed 1 roll per job (Just Cuts form).", "provisional": true}
  },
 
  "money": {

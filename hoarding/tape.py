@@ -1,4 +1,4 @@
-"""White tape (v1.1 rule 4, Gus 2026-11-01): rolls = total joint length / roll length, + 20% spare, rounded up.
+"""White tape (v1.1 rule 4, Gus 2026-11-01): rolls = total joint length / roll length, + spare (100%, Gus 2026-11-02), rounded up.
 
 Every joint counts:
   - vertical joints between sheets, corners and both run ends: full hoarding height each;
@@ -6,8 +6,10 @@ Every joint counts:
   - the door: both sides (2 x door height) plus the top (door width).
 All lengths in whole mm, so the rounding up is exact (no 3.0000000000000004 rolls).
 
-Switch (rules.json tape.tape_rule, provisional until Gus checks it against real use): "v1" = 8 rolls per 8.8 m of run,
-rounded up (the default); "joints" = the calculation above. rolls_for_job() is what the form and summary use."""
+Switch (rules.json tape.tape_rule): "joints" = the calculation above (Gus 2026-11-02); "v1" = 8 rolls per 8.8 m of run,
+rounded up, kept to compare. rolls_for_job() is what the form and summary use.
+
+Black skirting tape (Gus 2026-11-02, provisional): the full run lineal metres x (1 + spare) / roll length, rounded up."""
 import math
 
 from rules import RULES
@@ -70,3 +72,15 @@ def rolls_for_job(job, c, rule=None):
     if rule == "joints":
         return white_tape(job, c)["rolls"]
     raise ValueError(f'rules.json tape.tape_rule must be "v1" or "joints", not {rule!r}')
+
+
+def black_rolls_mm(run_mm):
+    """Black skirting tape rolls for a run length in mm: run x (1 + black_tape.spare) / black_tape.roll_length, rounded up."""
+    B = RULES["black_tape"]
+    spare_pct = int(round(B["spare"] * 100))
+    return -(-run_mm * (100 + spare_pct) // (100 * mm(B["roll_length"])))
+
+
+def black_tape(job, c):
+    """Black skirting tape rolls: along the full lineal metres of the job (the whole run, returns and entry included)."""
+    return black_rolls_mm(mm(c["L"]))

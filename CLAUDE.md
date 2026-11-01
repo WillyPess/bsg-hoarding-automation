@@ -47,11 +47,12 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
 - **Uprights = number of joints in the job + 10% spare, rounded up.** Both run ends count as joints. Fire-door jobs: only the joints where an upright actually stands (§10). External jobs: see §7.
 - **Anti-tampers = 1 per upright, including the 10% spare uprights** (and the extra wind uprights on external jobs; step D rule 3, done). v1 sent 10 per 8.8 m of run.
 - **Counterweights = all uprights (including the spare uprights) x weights per upright** (§6). No separate +10% spare weights.
-- **White tape (rolls) = total joint length in metres / 25 m per roll, plus 20% spare, rounded up.** Every joint counts:
+- **White tape (rolls) = total joint length in metres / 25 m per roll, plus 100% spare, rounded up** (20% until Gus, 2026-11-02). Every joint counts:
   - vertical joints between sheets, corners and both run ends: **full hoarding height** each;
   - joints between sheets and tops;
   - the door: **both sides (2 x door height) plus the top (door width)**.
-  - **Behind a switch for now (2026-11-01):** `rules.json` `tape.tape_rule` = `"v1"` (default: 8 rolls per 8.8 m, as before) or `"joints"` (this calculation, `hoarding/tape.py`, step D rule 4). Provisional until Gus checks it against real tape use (`notes/questions-for-gus.md`). Turning it on = change that one value and approve the impact table. The run summary always shows both: `white_tape_rolls` (what the form uses) and `white_tape_joints_rolls`.
+  - **Switched on (Gus, 2026-11-02):** `rules.json` `tape.tape_rule` = `"joints"` (this calculation, `hoarding/tape.py`, step D rule 4) with a **100% spare** (provisional until Gus's boss confirms it; rolls are 25 m; they always send almost double because changes on site mean removing tape and applying new, and tape is cheap). Readings A and B as written: the door sides count even though the entry joints are full height, and the door top counts even when the door is full height. `"v1"` (8 rolls per 8.8 m) stays in the switch to compare; the run summary shows `white_tape_rolls` (the form) and `white_tape_joints_rolls`.
+- **Black skirting tape (rolls) = full run lineal metres (returns and entry included) x 2 (100% spare, like the white tape) / 25 m per roll, rounded up** (Gus, 2026-11-02, provisional; `rules.json` `black_tape`). v1 sent a fixed 1 roll per job.
 - **Door set (normal job):** 1 double door = 2 leaves, each **0.8 m wide x 2.4 m high** (1.6 m total opening; form lists 2 doors 2340), deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
 - **Door set (1.2 m kiosk):** leaves are **0.8 m wide x 1.2 m high**; one normal door cut in half makes both leaves, so the form lists **1 door**.
 - Studs scale with run length (14 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
@@ -93,11 +94,11 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 - **Extra weight (Gus, 2026-11-01):** before computing counterweights for an external job, ask the user: "This job is external. Add extra weight? If yes, how many percent?" Apply only the percentage the user gives (default 0%), rounded up, and show it as a separate line in the summary and the materials form. **Never pick a percentage automatically.**
   - Applied **last, on the total weights** (all uprights incl. spares x 8), rounded up. It **adds to** the 8-per-upright rule; it doesn't replace it.
   - The answer is stored in job.json as `extra_weight_pct` (0 = no extra weight). `run_job.py` **stops and asks** when an external job doesn't have it; it never fills it in. DJ Lift: `"extra_weight_pct": 0`. Step D rule 8, done: the materials form shows an "Extra Counterweights" row on every external job (also at 0%, so the form shows the question was answered); the summary has `extra_weight_pct`, `extra_weights` and `total_weights_to_send`.
-- **Not an official table.** Gus will get the official weights-per-upright and extra-uprights table later; replace this rule when he sends it.
+- **Not an official table.** Gus, 2026-11-02: there is no official external table yet, only the internal matrix, so this provisional rule stays. Replace it if one ever comes.
 
 ### 8. Corner shops (two faces + angled return) – first: Shrungaar, Hyperdome
 - `faces` listed left to right as seen from the mall (e.g. angled return, side, front with `door_offset` from the corner, right return). Faces without a door get `cut: "left"/"right"` = end for the cut piece (outside corner).
-- Angled return near a lift: angle not important, only keep clear of the lift. Outside corner treated as a normal joint until the boss says otherwise.
+- Angled return near a lift: angle not important, only keep clear of the lift. Outside corner = a normal joint with one upright, as the code does (Gus, 2026-11-02; provisional until his boss confirms).
 - Returns can differ from 1.6 m when the client asks (Shrungaar: 1.2 m).
 
 ### 9. U-shaped / kiosk jobs – first: David Jones Lift Area
@@ -119,7 +120,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 - **For every job, ask Gus where it will be built.**
 - **Pacific Fair** jobs get a quotation (done in the thread "Pacific Fair - Quotations"; Gus collects quotes there). Other sites: no quote process yet.
 - Known sites: Pacific Fair = Medibank, FRED, David Jones Ground/First Level, David Jones Lift Area. Hyperdome = Bikini on the Beach, Shrungaar.
-- **Rate card "BSG Hoarding Rate – Pacific Fair 25-26"**, ex GST per lineal metre. Its printed validity (18/6/2025–30/6/2026) has ended, but **Gus confirmed on 2026-11-01 to keep using it** until he sends a new one:
+- **Rate card "BSG Hoarding Rate – Pacific Fair 25-26"**, ex GST per lineal metre. Its printed validity (18/6/2025–30/6/2026) has ended, but **Gus confirmed on 2026-11-01 to keep using it** until he sends a new one (confirmed again 2026-11-02: the current card stays):
 
 | Height | 1.2 m kiosk | ≤2.4 | ≤3.6 | ≤4.2 | ≤4.8 | ≤6.0 | >6.0 |
 |---|---|---|---|---|---|---|---|
@@ -141,7 +142,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
 | `titan.py` | Weight matrix, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done); weights = all uprights x weights per upright, no separate +10% (rule 2, done). Extra weight on external jobs: `extra_weights` = the user's `extra_weight_pct` of the total weights, rounded up (rule 8, done). | (library) |
-| `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). Anti-tampers = uprights sent (v1.1 rule 3, done). Tops listed as pieces from offcuts (rule 5, done). **Needs updating for v1.1:** tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
+| `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). Anti-tampers = uprights sent (v1.1 rule 3, done). Tops listed as pieces from offcuts (rule 5, done). White tape from joints + black tape from the run (rule 4 and Gus 2026-11-02, done). **Needs updating for v1.1:** kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs (return/front/return). | `sheet.py '<json in mm>' <P>_hoarding_sheet.png` (front/return/height/door_* ×1000 + "title": "<TITLE>: HOARDING"; passing job.json in metres draws 0.0142 m) |
 | `sheet_corner.py` | Grid sheet for corner jobs (L-plan + unfolded elevation). | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
 | `sheet_u.py` | Grid sheet for U-shaped/kiosk jobs. | `sheet_u.py job.json <P>_hoarding_sheet.png` |
@@ -238,22 +239,24 @@ Check the images (sheet, layout) before sending, and check the printed summary (
 | `<P>_Hoarding_Package.pdf` | Everything above + build sequence + site checks, one PDF |
 | `<P>_Quotation.pdf` | Pacific Fair only: quote to GPT – Pacific Fair |
 
-### Reference results (v1.1 rules 1–3 and 5 applied, to sanity-check changes)
-Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). The next v1.1 rules add tape and the other changes; update these rows with each rule.
+### Reference results (v1.1 rules 1–5 and 8 applied, to sanity-check changes)
+Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). White tape = joint length x 2 / 25 m, black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; both spares provisional). The next v1.1 rules (6, 7) change the sheets and the kiosk door; update these rows with each rule.
 
-| Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Anti-tampers | Weights | Quote ex GST |
-|---|---|---|---|---|---|---|---|---|
-| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 11 | 11 x 7 = 77 | – |
-| FRED_v2 (PF) | 14.2 | 4.5 | 12+2 | 12 | 14 + 2 = 16 | 16 | 16 x 7 = 112 | $4,686 |
-| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 20 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | $7,656 each |
-| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 16 x 400 | 18 + 2 = 20 | 20 | 20 x 6 = 120 | – |
-| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 10 x 600 | 7 + 1 = 8 | 8 | 8 x 6 = 48 | $3,872 |
-| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | $5,412 + wind POA |
+| Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Anti-tampers | Weights | White tape | Black tape | Quote ex GST |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 11 | 11 x 7 = 77 | 5 | 1 | – |
+| FRED_v2 (PF) | 14.2 | 4.5 | 12+2 | 12 | 14 + 2 = 16 | 16 | 16 x 7 = 112 | 7 | 2 | $4,686 |
+| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 20 | 22 + 3 = 25 | 25 | 25 x 7 = 175 | 11 | 2 | $7,656 each |
+| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 16 x 400 | 18 + 2 = 20 | 20 | 20 x 6 = 120 | 8 | 2 | – |
+| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 10 x 600 | 7 + 1 = 8 | 8 | 8 x 6 = 48 | 6 | 1 | $3,872 |
+| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | 6 | 2 | $5,412 + wind POA |
 
 ## Open points
-- Purpose of the 4 x 2.3 m door studs (Gus to ask his boss).
-- Official external-job table (weights per upright, extra uprights) – Gus to get it.
-- Outside corners on corner jobs: normal joint until the boss says otherwise.
+- Purpose of the 4 x 2.3 m door studs (pending 2026-11-02: Gus is asking his boss).
+- Official external-job table: none exists yet (Gus, 2026-11-02); the provisional rule stays (§7).
+- Outside corners on corner jobs: normal joint with one upright (Gus, 2026-11-02), provisional until his boss confirms.
+- White tape spare (100%): provisional until Gus's boss confirms it (on his list).
+- Black tape rolls (25 m, x2 spare): provisional (Gus, 2026-11-02).
 - Hoardings above 7.2 m: never happened; Gus will give the calculation if one comes up.
-- New Pacific Fair rate card: Gus will send it when there is one.
+- New Pacific Fair rate card: the current one stays (Gus, 2026-11-02); Gus will send a new one when there is one.
 - No quotation process yet for sites other than Pacific Fair.

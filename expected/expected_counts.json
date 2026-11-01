@@ -1,5 +1,5 @@
 {
- "_source": "CLAUDE.md reference results, approved by Gus (2026-11-01). FRED (legacy) is not a fixture; use FRED_v2. Updated for v1.1 rules 1 (uprights = joints + 10% spare), 2 (weights = all uprights x per upright), 3 (anti-tampers = 1 per upright sent), 5 (tops = pieces to cut from offcuts) and 8 (extra_weight_pct on external jobs), approved 2026-11-01.",
+ "_source": "CLAUDE.md reference results, approved by Gus (2026-11-01). FRED (legacy) is not a fixture; use FRED_v2. Updated for v1.1 rules 1 (uprights = joints + 10% spare), 2 (weights = all uprights x per upright), 3 (anti-tampers = 1 per upright sent), 5 (tops = pieces to cut from offcuts), 8 (extra_weight_pct on external jobs), approved 2026-11-01; white tape from joints x2 and black tape from the run x2 (Gus 2026-11-02), approved 2026-11-02.",
  "jobs": {
   "Bikini": {
    "run_m": 10.4,
@@ -11,6 +11,8 @@
    "anti_tampers_to_send": 11,
    "weights_to_send": 77,
    "total_weights_to_send": 77,
+   "white_tape_rolls": 5,
+   "black_tape_rolls": 1,
    "quote_ex_gst": null
   },
   "FRED_v2": {
@@ -23,6 +25,8 @@
    "anti_tampers_to_send": 16,
    "weights_to_send": 112,
    "total_weights_to_send": 112,
+   "white_tape_rolls": 7,
+   "black_tape_rolls": 2,
    "quote_ex_gst": 4686.0
   },
   "DavidJones": {
@@ -35,6 +39,8 @@
    "anti_tampers_to_send": 25,
    "weights_to_send": 175,
    "total_weights_to_send": 175,
+   "white_tape_rolls": 11,
+   "black_tape_rolls": 2,
    "quote_ex_gst": 7656.0
   },
   "DavidJones1": {
@@ -47,6 +53,8 @@
    "anti_tampers_to_send": 25,
    "weights_to_send": 175,
    "total_weights_to_send": 175,
+   "white_tape_rolls": 11,
+   "black_tape_rolls": 2,
    "quote_ex_gst": 7656.0
   },
   "Shrungaar": {
@@ -59,6 +67,8 @@
    "anti_tampers_to_send": 20,
    "weights_to_send": 120,
    "total_weights_to_send": 120,
+   "white_tape_rolls": 8,
+   "black_tape_rolls": 2,
    "quote_ex_gst": null,
    "tops_note": "16 x 400"
   },
@@ -72,6 +82,8 @@
    "anti_tampers_to_send": 8,
    "weights_to_send": 48,
    "total_weights_to_send": 48,
+   "white_tape_rolls": 6,
+   "black_tape_rolls": 1,
    "quote_ex_gst": 3872.0,
    "tops_note": "10 x 600"
   },
@@ -87,6 +99,8 @@
    "extra_weight_pct": 0,
    "extra_weights": 0,
    "total_weights_to_send": 304,
+   "white_tape_rolls": 6,
+   "black_tape_rolls": 2,
    "quote_ex_gst": 5412.0,
    "uprights_at_joins": 24,
    "extra_uprights": 10,
