@@ -40,12 +40,33 @@ def test_materials_form(job, reference_run):
 
 @pytest.mark.parametrize("job", baseline.JOBS)
 def test_drawings_match_baseline(job, reference_run):
-    """Every PNG (grid sheet, melamine layout, check plans) is pixel-identical to the approved baseline."""
+    """Every PNG (grid sheet, melamine layout, check plans) matches the approved baseline.
+
+    With stored PNGs (expected/<Job>/png/): at most baseline.MAX_PCT % of the pixels may change (tolerant to font
+    rendering on another OS). Without them: the pixel hash in baseline.json must match exactly."""
     _, work = reference_run(job)
-    want, got = baseline.load(job)["png"], baseline.snapshot(work)["png"]
-    assert sorted(got) == sorted(want), f"PNG files differ: expected {sorted(want)}, got {sorted(got)}"
-    changed = [n for n in want if got[n] != want[n]]
-    assert not changed, f"drawings changed: {changed}. " + UPDATE.format(work=work, job=job)
+    got = baseline.snapshot(work)["png"]
+    store = baseline.png_dir(job)
+    if not os.path.isdir(store):
+        want = baseline.load(job)["png"]
+        assert sorted(got) == sorted(want), f"PNG files differ: expected {sorted(want)}, got {sorted(got)}"
+        changed = [n for n in want if got[n] != want[n]]
+        assert not changed, f"drawings changed: {changed}. " + UPDATE.format(work=work, job=job)
+        return
+    want = sorted(n for n in os.listdir(store) if n.endswith(".png"))
+    assert sorted(got) == want, f"PNG files differ: expected {want}, got {sorted(got)}"
+    report, changed = [], []
+    for n in want:
+        mask = os.path.join(work, n[:-4] + "_DIFF.png")
+        pct, raw = baseline.drawing_diff(os.path.join(store, n), os.path.join(work, n), mask)
+        report.append(f"{n}: {pct:.3f} % changed ({raw:.3f} % of pixels not identical)")
+        if pct > baseline.MAX_PCT:
+            changed.append(n)
+        else:
+            os.remove(mask)
+    print("\n".join(report))
+    assert not changed, (f"drawings changed by more than {baseline.MAX_PCT} % of the pixels:\n" + "\n".join(report)
+                         + f"\nChanged pixels are magenta in {work}/*_DIFF.png. " + UPDATE.format(work=work, job=job))
 
 
 def first_difference(a, b):
