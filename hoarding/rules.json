@@ -60,7 +60,6 @@
   "per_length": {"value": 8.8, "source": "Run length the factors below are counted per (Just Cuts job, §3).", "provisional": true},
   "studs": {"value": 14, "source": "14 x 70x45 MGP10 studs per 8.8 m, rounded up: inferred from Just Cuts, not formally confirmed (§3).", "provisional": true},
   "white_tape": {"value": 8, "source": "8 rolls of white tape per 8.8 m, rounded up: inferred from Just Cuts (v1). Replaced in v1.1 by joint length / roll length (step D rule 4).", "provisional": true},
-  "anti_tampers": {"value": 10, "source": "10 anti-tampers per 8.8 m, rounded up: inferred from Just Cuts (v1). Replaced in v1.1 by 1 per upright incl. spares (step D rule 3).", "provisional": true},
   "form_quantities": {"value": {
     "Black Skirting Tape 100mm": 1, "Barrier Tape": 1, "Bollards": 1,
     "40mm Screws": 1, "White Screw Covers": 1, "Warning Stickers": 6, "Installation Certificate": 1,

@@ -24,12 +24,12 @@ from titan import joins
 uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
 studs = math.ceil(M["studs"] * L / M["per_length"])   # 14 / 8 / 10 per 8.8 m, inferred from Just Cuts
 tape = math.ceil(M["white_tape"] * L / M["per_length"])
-tampers = math.ceil(M["anti_tampers"] * L / M["per_length"])
 SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 m jobs)
 top = round((H - SHT) * 1000)
 from titan import for_job
 UPJ = uprights
 uprights, UPX, SPU, PER, CW = for_job({**_p, "height": H}, UPJ)   # joints + extra for wind + 10% spare uprights; weights = all uprights x per upright (Gus, 2026-11-01)
+tampers = uprights   # 1 anti-tamper per upright sent, spares and wind extras included (Gus, 2026-11-01); was ceil(10 x L / 8.8)
 UTXT = "  +  ".join([f"{UPJ} at joins"] + ([f"{UPX} extra (wind)"] if UPX else []) + ([f"{SPU} spare"] if SPU else []))
 TR = _p.get("track")   # fire-door jobs: track + timbers section instead of uprights
 S = [
