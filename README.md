@@ -15,6 +15,17 @@ python3 check_fixtures.py Medibank     # one job
 python3 run_job.py hoarding/Bikini --out /tmp/Bikini   # full pipeline for one job, prints the key counts as JSON
 ```
 
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest                            # 7 reference jobs (counts, materials form, drawings, documents) + rounding traps, ~1 min
+python -m pytest -k Medibank                # one job
+python tests/update_baseline.py Medibank    # approve a changed drawing/document: writes out/Medibank/ and expected/Medibank/baseline.json
+```
+
+The lite bundle has no reference PDFs or PNGs, so `expected/<Job>/baseline.json` pins the outputs checked by eye on 2026-11-01: a hash of the pixels of every PNG and the text of every PDF page. Any change to a drawing or document fails `test_drawings_match_baseline` / `test_documents_match_baseline`. Check the new files by eye, then run `update_baseline.py` and commit the baseline change with the reason. The hashes depend on the pinned Pillow version and the fonts in `fonts/`.
+
 ## Contents
 
 | Path | What |
