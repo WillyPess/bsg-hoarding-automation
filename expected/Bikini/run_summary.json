@@ -7,7 +7,8 @@
  "tops": 8,
  "uprights_at_joins": 10,
  "extra_uprights": 0,
- "uprights_to_send": 10,
+ "spare_uprights": 1,
+ "uprights_to_send": 11,
  "weights_per_upright": 7,
  "weights_to_send": 77
 }

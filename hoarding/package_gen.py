@@ -14,10 +14,11 @@ J=json.load(open(sys.argv[1])); D=J["dir"].rstrip("/")+"/"; P=J["prefix"]; N=J["
 F,R,H,DO,DW,DH=J["front"],J["return"],J["height"],J["door_offset"],J["door_width"],J.get("door_height",RULES["defaults"]["door_height"])
 c=compute(J); L=c["L"]; mm=lambda v:f"{round(v*1000)}"; m=lambda v:f"{v:g} m"
 SW,SH0,SPARE,DS=RULES["sheet"]["width"],RULES["sheet"]["height"],RULES["sheet"]["spare"],RULES["door_set"]   # sheet width, standard sheet height, spare sheets, door set
-from titan import for_job, joins, wind, EXTRA
+from titan import for_job, joins, wind, EXTRA, SPARE as UPSPARE
 UPJ=joins(J,c)   # at the joins between sheets (Gus, 2026-11-01), or set by hand in job.json
-up,UPX,PER,CW=for_job(J,UPJ)   # BSG weight matrix by height, +10% spare (Gus, 2026-11-01); external jobs can add uprights / weights
-XFRAC,WPU=wind(J); SP=round(EXTRA*100)   # external job: extra uprights fraction, weights per upright; spare weights %
+up,UPX,SPU,PER,CW=for_job(J,UPJ)   # uprights to send = joints + extra for wind + 10% spare; BSG weight matrix by height, +10% spare (Gus, 2026-11-01)
+XFRAC,WPU=wind(J); SP=round(EXTRA*100); SUP=round(UPSPARE*100)   # external job: extra uprights fraction, weights per upright; spare weights %, spare uprights %
+SPTXT=f" Plus {SPU} spare upright{'' if SPU==1 else 's'} ({SUP}%), not placed on the layout." if SPU else ""
 WTXT=f"{PER} counterweights each ({'for wind, external site' if WPU else f'weight matrix for {H:g} m'}; {CW} sent, incl. {SP}% spare)"
 XTXT=f" Plus {UPX} extra uprights ({round(XFRAC*100)}% more, for wind on this external site), also with {PER} counterweights each; the supervisor decides where they go." if UPX else ""
 # Corner jobs ("faces" in job.json): angled return by the lift, side, corner, front with the entry, right return
@@ -32,7 +33,7 @@ if UJ:
     U_ROWS=[["Item","Size"],["Left return",m(ULR)],["Left side",m(ULS)],["Front",m(UFR)],["Right side",m(URS)],["Right return",m(URR)],
             ["Total hoarding length",f"{L:g} m ("+" + ".join(f"{f['len']:g}" for f in UF)+")"],["Height",m(H)+(" (external)" if J.get("external") else "")],
             ["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves, on the right side"],["Entry position",f"{UDO:g} m from the front corner ({mm(UDO)} to {mm(UDO+DW)} along the right side)"+J.get("entry_note","")],
-            ["Uprights",f"{up}: {UPJ} at the joints between sheets"+(f" + {UPX} extra for wind ({round(XFRAC*100)}% more)" if UPX else "")+f"; {WTXT}"]]
+            ["Uprights",f"{up}: {UPJ} at the joints between sheets"+(f" + {UPX} extra for wind ({round(XFRAC*100)}% more)" if UPX else "")+(f" + {SPU} spare ({SUP}%)" if SPU else "")+f"; {WTXT}"]]
     U_CHECKS=[f"The sides measure {mm(ULS)} and {mm(URS)} and the front {mm(UFR)}, square at both corners.",f"The returns are {mm(ULR)} and {mm(URR)} back to the building.",
               f"The entry starts {mm(UDO)} from the front corner on the right side, in front of the kiosk entry.",
               "The bollards and parking bays leave room for the uprights and counterweights.",
@@ -50,7 +51,7 @@ if FD:
              ["Right return",f"{RR:g} m from the lease line"],["Total hoarding length",f"{L:g} m ({R:g} + {F:g} + {RR:g})"],["Height",m(H)],
              ["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves"],["Entry position",f"{DO:g} m from the left corner ({mm(DO)} to {mm(DO+DW)}), {F-DO-DW:g} m from the right end"],
              ["Track section",f"First {mm(TRK['len'])} of the left return from the fire door wall: 90 mm track on the ceiling and floor, {TRK['studs']} x 90x45 MGP10 at 600 centres. Suggestion only."],
-             ["Uprights",f"{up}, at the joints between sheets, none in the corners (no room there)"],["Melamine",None]]
+             ["Uprights",f"{up}: {UPJ} at the joints between sheets, none in the corners (no room there)"+(f", plus {SPU} spare ({SUP}%)" if SPU else "")],["Melamine",None]]
     FD_CHECKS=[f"The front measures {mm(F)} and runs parallel to the shopfront.",f"The ceiling is at {mm(H)} along the run and is sound for fixing the track beside the fire door (the old fixing marks show where it went before).",
                f"The entry starts {mm(DO)} from the left corner ({mm(F-DO-DW)} from the right end).",f"The {mm(RR)} right return leaves the walkway centre management requires.",
                "Nothing is fixed to the shopfront; outside the track section the Titan counterweights hold the hoarding."]
@@ -97,7 +98,7 @@ steps=[("Check the truck",f"Before leaving, check the truck against the material
 ("Set out the hoarding limit",f"Mark both ends of the lease line and measure {mm(R)} out from each. Snap the {mm(F)} front line parallel to the shopfront."),
 ("Mark the entry",f"Measure {mm(DO)} from the corner along the front line and mark a {mm(DW)} opening ({mm(DO)} to {mm(DO+DW)}); it ends {mm(F-DO-DW)} from the right end.") if CN else
 ("Mark the entry",f"Measure {mm(DO)} from the left end of the front line and mark a {mm(DW)} opening ({mm(DO)} to {mm(DO+DW)})."),
-("Stand the Titan uprights",f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry, {PER} counterweights on each (weight matrix for {H:g} m; {CW} sent, incl. {SP}% spare). They are marked on the melamine layout." if not UPX else f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry; they are marked on the melamine layout.{XTXT} {CW} counterweights are sent, incl. {SP}% spare."),
+("Stand the Titan uprights",f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry, {PER} counterweights on each (weight matrix for {H:g} m; {CW} sent, incl. {SP}% spare). They are marked on the melamine layout.{SPTXT}" if not UPX else f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry; they are marked on the melamine layout.{XTXT}{SPTXT} {CW} counterweights are sent, incl. {SP}% spare."),
 ("Frame the walls",f"Fix the 70 x 45 MGP 10 studs ({H:g} m) so every melamine joint lands on a stud. Frame the entry with {DS['studs_full_height']} x {H:g} m and {DS['studs_short']} x {DS['studs_short_length']:g} m door studs and a head at {mm(DH)}."),
 (f"Fix the {mm(SHT)} sheets",(lambda x: x[0].upper()+x[1:])("; ".join(sec_txt(n) for n in (["angled return","side","front left","front right","right return"] if CN else ["left return","left side","front","right side left","right side right","right return"] if UJ else ["left return","front left","front right","right return"])))+"."),
 ]+([("Fill above the entry",f"One {mm(DW)} x {mm(c['door']['h'])} piece (S{c['door']['sheet']}) between the door head at {mm(DH)} and {mm(SH0)}.")] if c["door"] else [])+([
@@ -119,7 +120,7 @@ if FD:
         x0+=f_["len"]
     fd={"Set out the hoarding limit":f"From the fire door wall, mark the left return {mm(R)} long, {mm(PU)} left of the shop's side wall. Snap the {mm(F)} front line parallel to the shopfront, {mm(RR)} out from the lease line. The right return runs {mm(RR)} back to the lease line.",
         "Mark the entry":f"Measure {mm(DO)} from the left corner along the front line and mark a {mm(DW)} opening ({mm(DO)} to {mm(DO+DW)}); it ends {mm(F-DO-DW)} from the right end.",
-        "Stand the Titan uprights":f"{up} uprights with {PER} counterweights each (weight matrix for {H:g} m; {CW} sent, incl. {SP}% spare), each one at a joint between two sheets, never in the middle of a sheet, and none in the corners (no room there): "+"; ".join(UPS)+". They are marked on the melamine layout."}
+        "Stand the Titan uprights":f"{UPJ} uprights with {PER} counterweights each (weight matrix for {H:g} m; {CW} sent, incl. {SP}% spare), each one at a joint between two sheets, never in the middle of a sheet, and none in the corners (no room there): "+"; ".join(UPS)+f". They are marked on the melamine layout.{SPTXT}"}
     steps=[(a,fd.get(a,b)) for a,b in steps]
     steps.insert([a for a,b in steps].index("Stand the Titan uprights"),("Fix the tracks and timbers",f"Along the first {mm(TRK['len'])} of the left return from the fire door wall, fix 90 mm track to the ceiling and to the floor. Stand {TRK['studs']} x 90x45 MGP10 timbers ({H:g} m) in the tracks at 600 centres; the melamine is screwed to them. Suggestion only: BSG is still learning this method."))
 st.append(ListFlowable([ListItem(Paragraph(f"<b>{a}.</b> {b}",B)) for a,b in steps],bulletType="1",leftIndent=14))

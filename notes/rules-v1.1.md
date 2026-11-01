@@ -77,6 +77,7 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
 - Uprights stand **at the joins between sheets, never mid-sheet**, including **one each side of the entry**. The layout marks them with blue ▲.
 - Count = joints (both run ends included) + 10% spare, rounded up (§3). Spare uprights aren't placed on the layout.
 - Fire-door jobs: count only the joints where an upright actually stands, not the track section or the corners (Medibank: 7, plus the 10% spare).
+- A hand-set `"uprights"` in job.json counts as the uprights at the joins; the 10% spare goes on top (12 → 14).
 - Where a corner can't take an upright (fire-door jobs), use `no_corner_uprights`.
 
 ### 6. Counterweights – BSG weight matrix (internal hoardings)
@@ -150,7 +151,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | --- | --- | --- |
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
-| `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), external 40% then 10% (24 → 34 → 38), `extra_weight_pct`. | (library) |
+| `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done). **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), `extra_weight_pct`. | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs. | `sheet.py "$(cat job.json)" <P>_hoarding_sheet.png` |
 | `sheet_corner.py` | Grid sheet for corner jobs. | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
@@ -213,7 +214,7 @@ All lengths in **metres**. Standard job:
  "entry_note": ", set to use full sheets"}
 ```
 
-Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights` / `weights_per_upright` (override rules.json for one job), `extra_weight_pct` (the user's answer, §7; required on external jobs from step D); fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
+Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights` / `weights_per_upright` (override rules.json for one job), `extra_weight_pct` (the user's answer, §7; required on external jobs from step D); fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; hand-set `uprights` (uprights at the joins; the 10% spare goes on top, 12 → 14); quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
 
 ### Steps
 
@@ -229,18 +230,18 @@ python3 $H/quotes/quote_gen.py job.json                              # Pacific F
 
 Check the images and the printed summary against the rules above before sending.
 
-### Reference results (before v1.1)
+### Reference results (v1.1 rule 1 applied)
 
-Uprights below are layout uprights only, and weights include v1's separate +10%. Under v1.1 the form adds +10% spare uprights (each with its full weight set), drops the separate +10% weights and adds anti-tampers; recompute these rows after updating `materials.py` and `titan.py`.
+Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights still include v1's separate +10%, worked out on the uprights before the spare; the next v1.1 rules change them (full weight set on the spare uprights, no separate +10%) and add anti-tampers, tape and the other changes. Update these rows with each rule.
 
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 | 77 | – |
-| FRED\_v2 (PF) | 14.2 | 4.5 | 12+2 | 11 | 14 | 108 | $4,686 |
-| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 18 | 22 | 170 | $7,656 each |
-| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 15 x 400 | 18 | 119 | – |
-| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 9 x 600 | 7 | 47 | $3,872 |
-| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24+10 = 34 | 300 | $5,412 + wind POA |
+| Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 77 | – |
+| FRED\_v2 (PF) | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 108 | $4,686 |
+| David Jones Ground / First (PF) | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 each |
+| Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 15 x 400 | 18 + 2 = 20 | 119 | – |
+| Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 9 x 600 | 7 + 1 = 8 | 47 | $3,872 |
+| DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 300 | $5,412 + wind POA |
 
 ## Open points
 

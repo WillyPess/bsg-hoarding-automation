@@ -5,6 +5,7 @@ from rules import RULES
 # (maximum height m, upright centres m, counterweights per upright); none of these need bracing
 MATRIX = [(r["max_height"], r["centres"], r["weights"]) for r in RULES["counterweights"]["matrix"]]
 EXTRA = RULES["counterweights"]["spare"]   # always send 10% more weights as spare (Gus, 2026-11-01)
+SPARE = RULES["uprights"]["spare"]   # 10% spare uprights, rounded up (Gus, 2026-11-01, v1.1)
 
 def row(H):
     """The matrix row for a hoarding height: the first maximum height at or above it."""
@@ -29,10 +30,13 @@ def wind(p):
     return p.get("extra_uprights", ext["extra_uprights"]), p.get("weights_per_upright") or ext["weights_per_upright"]
 
 def for_job(p, joins):
-    """(uprights to send, how many of them are extra, weights per upright, weights to send incl. 10% spare).
-    joins = uprights at the sheet joins. External jobs add uprights and replace the matrix value (wind)."""
+    """(uprights to send, extra for wind, spare, weights per upright, weights to send incl. 10% spare).
+    joins = uprights at the sheet joins, both run ends included. External jobs add the wind uprights first (rounded up),
+    then the 10% spare goes on that total, rounded up: DJ Lift 24 -> 34 -> 38 (Gus, 2026-11-01).
+    The weights are still worked out on the uprights before the spare (v1) until step D rule 2."""
     frac, wpu = wind(p)
     extra = math.ceil(round(joins * frac, 6))
     n = joins + extra
+    spare = math.ceil(round(n * SPARE, 6))
     per = wpu or row(p["height"])[2]
-    return n, extra, per, math.ceil(round(n * per * (1 + EXTRA), 6))
+    return n + spare, extra, spare, per, math.ceil(round(n * per * (1 + EXTRA), 6))

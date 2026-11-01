@@ -32,7 +32,7 @@
  },
 
  "uprights": {
-  "spare": {"value": 0.10, "source": "Gus, 2026-11-01 (v1.1 §3): uprights = joints + 10% spare, rounded up.", "provisional": false, "used_from": "step D rule 1"}
+  "spare": {"value": 0.10, "source": "Gus, 2026-11-01 (v1.1 §3): uprights = joints (both run ends included) + 10% spare, rounded up; on external jobs the 10% goes on the joints + 40% total (24 -> 34 -> 38).", "provisional": false}
  },
 
  "counterweights": {
