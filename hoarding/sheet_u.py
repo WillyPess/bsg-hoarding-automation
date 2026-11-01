@@ -2,7 +2,7 @@
 Usage: sheet_u.py job.json out.png   (job.json "faces": left return, left side, front, right side (door_offset from the front corner), right return)"""
 import sys, json
 from PIL import Image, ImageDraw, ImageFont
-F = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"; FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+from paths import F, FB
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, GREY = (20, 22, 26), (30, 60, 170), (190, 30, 60), (110, 115, 120)
 

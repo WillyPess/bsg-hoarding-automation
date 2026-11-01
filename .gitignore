@@ -8,6 +8,7 @@ __pycache__/
 *.zip
 
 # Generated job outputs (rebuilt by run_job.py; the fixtures live in expected/)
+out/
 hoarding/*/*_hoarding_sheet.png
 hoarding/*/*_melamine_layout.png
 hoarding/*/*_materials.xlsx

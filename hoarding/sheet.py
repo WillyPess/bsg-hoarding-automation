@@ -1,7 +1,7 @@
 """Hoarding sheet in the boss's grid-paper layout: plan (left) + unfolded elevation (right), mm."""
 import sys, json
 from PIL import Image, ImageDraw, ImageFont
-F = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"; FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+from paths import F, FB
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, AMBER = (20, 22, 26), (30, 60, 170), (190, 30, 60), (205, 110, 0)
 

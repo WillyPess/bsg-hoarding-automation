@@ -1,0 +1,5 @@
+# Engine runtime (Python 3.13). Also needs LibreOffice (soffice) for xlsx -> pdf; fonts are in fonts/.
+pillow==13.0.0
+openpyxl==3.1.5
+reportlab==5.1.0
+pypdf==6.21.4

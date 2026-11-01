@@ -2,7 +2,7 @@
 import sys, json, math
 from PIL import Image, ImageDraw, ImageFont
 
-F = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"; FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+from paths import F, FB
 font = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, RED, GREY, AMBER = (25, 28, 32), (215, 25, 28), (110, 116, 122), (200, 110, 0)
 

@@ -1,6 +1,7 @@
 """Medibank Pacific Fair: plan showing the track + timber section on the left return (beside the fire door)."""
 from PIL import Image, ImageDraw, ImageFont
-F = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"; FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+import os, sys; sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))   # hoarding/ (run_job.py also sets PYTHONPATH)
+from paths import F, FB
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, GREEN, AMBER, GREY, WOOD = (20, 22, 26), (30, 60, 170), (190, 30, 60), (20, 140, 60), (205, 110, 0), (120, 120, 120), (150, 100, 40)
 LR, FRONT, RR, STEP, PUSH = 3000, 7200, 1600, 1400, 300   # mm; STEP = lease line in front of the fire door wall; PUSH = left return pushed left of the shop (estimate)

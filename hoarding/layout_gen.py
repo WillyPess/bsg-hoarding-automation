@@ -89,7 +89,7 @@ def compute(p):
 
 def render(p, out):
     c = compute(p); H = p["height"]; L = c["L"]
-    FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"; FN = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    from paths import FB, F as FN
     f = lambda s, b=True: ImageFont.truetype(FB if b else FN, s)
     INK, GREY = (25, 28, 32), (120, 125, 130)
     pal = [(186,214,240),(190,230,200),(250,222,170),(222,200,240),(245,200,200),(200,232,232),(214,234,170),(240,210,230),
