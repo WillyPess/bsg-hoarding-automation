@@ -46,13 +46,15 @@ The lite bundle has no reference PDFs or PNGs, so `expected/<Job>/baseline.json`
 
 | Job | Type | Site | Run (m) | H (m) | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 |---|---|---|---|---|---|---|---|---|---|
-| Bikini | standard | Hyperdome | 10.4 | 4.5 | 9+2 | 8 | 10 | 77 | – |
-| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 11 | 14 | 108 | $4,686 |
-| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 | 170 | $7,656 |
-| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 | 170 | $7,656 |
-| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 15 | 18 | 119 | – |
-| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 9 | 7 | 47 | $3,872 |
-| DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24+10 = 34 | 300 | $5,412 + wind POA |
+| Bikini | standard | Hyperdome | 10.4 | 4.5 | 9+2 | 8 | 10 + 1 = 11 | 77 | – |
+| FRED_v2 | standard | Pacific Fair | 14.2 | 4.5 | 12+2 | 11 | 14 + 2 = 16 | 108 | $4,686 |
+| DavidJones (Ground) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 |
+| DavidJones1 (First) | standard | Pacific Fair | 23.2 | 4.5 | 19+2 | 18 | 22 + 3 = 25 | 170 | $7,656 |
+| Shrungaar | corner | Hyperdome | 19.5 | 4.0 | 16+2 | 15 | 18 + 2 = 20 | 119 | – |
+| Medibank | fire door | Pacific Fair | 12.1 | 4.2 | 10+2 | 9 | 7 + 1 = 8 | 47 | $3,872 |
+| DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 300 | $5,412 + wind POA |
+
+Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); the other v1.1 rules are listed in CLAUDE.md.
 
 `FRED` (the first FRED run, 2026-10-20) is included for history only: its outputs come from the legacy scripts, before the spare-sheet, aligned-tops, uprights-at-joins and weight-matrix rules. **FRED_v2 is the fixture** for that job.
 

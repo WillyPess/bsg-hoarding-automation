@@ -91,10 +91,10 @@ def counts(job):
     from rules import RULES
     c = compute(job)
     joins = titan.joins(job, c)
-    up, extra, per, w = titan.for_job(job, joins)
+    up, extra, spare, per, w = titan.for_job(job, joins)
     out = {"job": os.path.basename(job["dir"]), "run_m": c["L"], "height_m": job["height"],
            "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": c["tops"],
-           "uprights_at_joins": joins, "extra_uprights": extra, "uprights_to_send": up,
+           "uprights_at_joins": joins, "extra_uprights": extra, "spare_uprights": spare, "uprights_to_send": up,
            "weights_per_upright": per, "weights_to_send": w}
     if job.get("site") == "Pacific Fair":
         import quote_gen

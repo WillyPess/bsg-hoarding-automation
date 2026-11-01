@@ -29,10 +29,11 @@ SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 
 top = round((H - SHT) * 1000)
 from titan import for_job, EXTRA
 UPJ = uprights
-uprights, UPX, PER, CW = for_job({**_p, "height": H}, UPJ)   # weight matrix by height + 10% spare (Gus, 2026-11-01); external jobs can add uprights / weights
+uprights, UPX, SPU, PER, CW = for_job({**_p, "height": H}, UPJ)   # joints + extra for wind + 10% spare uprights; weights by the matrix + 10% spare (Gus, 2026-11-01)
+UTXT = "  +  ".join([f"{UPJ} at joins"] + ([f"{UPX} extra (wind)"] if UPX else []) + ([f"{SPU} spare"] if SPU else []))
 TR = _p.get("track")   # fire-door jobs: track + timbers section instead of uprights
 S = [
- ("Titan", [("Uprights", uprights, f"{UPJ} at joins  +  {UPX} extra (wind)" if UPX else ""), ("Counterweights", CW, f"{PER}   Per Upright  (+{round(EXTRA * 100)}% spare)")]),
+ ("Titan", [("Uprights", uprights, UTXT if UPX or SPU else ""), ("Counterweights", CW, f"{PER}   Per Upright  (+{round(EXTRA * 100)}% spare)")]),
  ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m (+{SPARE} spare) + {tops} x {top} Tops" if top > 0 else f"{SHT:g}m (+{SPARE} spare)"), ("15mm CD Ply", "", "2.4m – 3.0m")]),
  ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""),
                    ("70 x 45 Door Studs", DS["studs_full_height"] + DS["studs_short"], f"{DS['studs_full_height']} x {H:g}  +  {DS['studs_short']} x {DS['studs_short_length']:g}"),
