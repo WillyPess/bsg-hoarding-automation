@@ -2,7 +2,7 @@
 Usage: sheet_firedoor.py <Job>/job.json out.png   (job.json: faces, height, door_offset, door_width, shopfront, step, push, right_return, track)"""
 import sys, json
 from PIL import Image, ImageDraw, ImageFont
-F = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"; FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+from paths import F, FB
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, GREEN, AMBER, GREY, WOOD = (20, 22, 26), (30, 60, 170), (190, 30, 60), (20, 140, 60), (205, 110, 0), (120, 120, 120), (150, 100, 40)
 J = json.load(open(sys.argv[1])); k = lambda v: round(v * 1000)

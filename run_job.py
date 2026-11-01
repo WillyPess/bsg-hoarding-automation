@@ -20,10 +20,13 @@ import json, os, shutil, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 H = os.path.join(ROOT, "hoarding")
 PY = sys.executable
+sys.path.insert(0, H)
+from paths import soffice
+ENV = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, [H, os.environ.get("PYTHONPATH")]))}   # job scripts (markup.py, track_plan.py) import paths.py from any folder
 
 
 def sh(args, cwd):
-    r = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    r = subprocess.run(args, cwd=cwd, capture_output=True, text=True, env=ENV)
     if r.returncode:
         sys.stderr.write(r.stdout + r.stderr)
         raise SystemExit(f"FAILED: {' '.join(args)}")
@@ -61,7 +64,7 @@ def run(jobdir):
     log["layout"] = json.loads(sh([PY, f"{H}/layout_gen.py", js, f"{jobdir}/{P}_melamine_layout.png"], jobdir).splitlines()[-1])
     # 3. materials
     log["materials"] = sh([PY, f"{H}/materials.py", f"{jobdir}/{P}_materials.xlsx", jp], jobdir).splitlines()[-1]
-    sh(["soffice", "--headless", "--convert-to", "pdf", "--outdir", jobdir, f"{jobdir}/{P}_materials.xlsx"], jobdir)
+    sh([soffice(), "--headless", "--convert-to", "pdf", "--outdir", jobdir, f"{jobdir}/{P}_materials.xlsx"], jobdir)
     # 4. package
     log["package"] = sh([PY, f"{H}/package_gen.py", jp], jobdir).splitlines()[-1]
     # 5. quotation (Pacific Fair only)
