@@ -6,6 +6,7 @@
  "title": "David Jones - Lift Area",
  "shape": "U",
  "external": true,
+ "extra_weight_pct": 0,
  "faces": [
   {
    "name": "left return",

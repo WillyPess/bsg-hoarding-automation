@@ -1,6 +1,7 @@
 """Titan uprights + counterweights from BSG's weight matrix (Internal Hoardings, Impact Certification Standards; Gus, 2026-11-01).
 The matrix, the spare uprights and the external-job values live in rules.json."""
 import math
+from fractions import Fraction
 from rules import RULES
 # (maximum height m, upright centres m, counterweights per upright); none of these need bracing
 MATRIX = [(r["max_height"], r["centres"], r["weights"]) for r in RULES["counterweights"]["matrix"]]
@@ -34,3 +35,26 @@ def for_job(p, joins):
     spare = math.ceil(round(n * SPARE, 6))
     per = wpu or row(p["height"])[2]
     return n + spare, extra, spare, per, (n + spare) * per
+
+
+QUESTION = "This job is external. Add extra weight? If yes, how many percent?"
+
+
+class ExtraWeightMissing(ValueError):
+    """An external job without extra_weight_pct: ask the user (Gus, 2026-11-01); never fill it in."""
+
+
+def extra_weights(p, weights):
+    """Extra counterweights on an external job (Gus, 2026-11-01): extra_weight_pct from job.json (the user's answer
+    to QUESTION, 0 = none) of the total weights (all uprights incl. spares x per upright), rounded up, in exact maths.
+    It is added on top of the 8-per-upright rule. Internal jobs: 0."""
+    if not p.get("external"):
+        if "extra_weight_pct" in p:
+            raise ValueError("extra_weight_pct is only for external jobs")
+        return 0
+    if "extra_weight_pct" not in p:
+        raise ExtraWeightMissing(f"{QUESTION} Put the answer in job.json as \"extra_weight_pct\" (0 = no extra weight).")
+    pct = Fraction(str(p["extra_weight_pct"]))
+    if pct < 0:
+        raise ValueError(f"extra_weight_pct must be 0 or more, not {p['extra_weight_pct']}")
+    return math.ceil(weights * pct / 100)
