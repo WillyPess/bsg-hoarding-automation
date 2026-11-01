@@ -12,5 +12,6 @@
  "uprights_to_send": 11,
  "anti_tampers_to_send": 11,
  "weights_per_upright": 7,
- "weights_to_send": 77
+ "weights_to_send": 77,
+ "total_weights_to_send": 77
 }

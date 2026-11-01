@@ -13,6 +13,7 @@
  "anti_tampers_to_send": 16,
  "weights_per_upright": 7,
  "weights_to_send": 112,
+ "total_weights_to_send": 112,
  "quote_lm": 14.2,
  "quote_rate": 330,
  "quote_ex_gst": 4686.0,

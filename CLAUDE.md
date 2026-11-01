@@ -91,7 +91,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 - The extra uprights aren't placed on the layout; the supervisor decides where.
 - **Extra weight (Gus, 2026-11-01):** before computing counterweights for an external job, ask the user: "This job is external. Add extra weight? If yes, how many percent?" Apply only the percentage the user gives (default 0%), rounded up, and show it as a separate line in the summary and the materials form. **Never pick a percentage automatically.**
   - Applied **last, on the total weights** (all uprights incl. spares x 8), rounded up. It **adds to** the 8-per-upright rule; it doesn't replace it.
-  - The answer is stored in job.json as `extra_weight_pct` (0 = no extra weight). `run_job.py` **stops and asks** when an external job doesn't have it; it never fills it in. DJ Lift: `"extra_weight_pct": 0`.
+  - The answer is stored in job.json as `extra_weight_pct` (0 = no extra weight). `run_job.py` **stops and asks** when an external job doesn't have it; it never fills it in. DJ Lift: `"extra_weight_pct": 0`. Step D rule 8, done: the materials form shows an "Extra Counterweights" row on every external job (also at 0%, so the form shows the question was answered); the summary has `extra_weight_pct`, `extra_weights` and `total_weights_to_send`.
 - **Not an official table.** Gus will get the official weights-per-upright and extra-uprights table later; replace this rule when he sends it.
 
 ### 8. Corner shops (two faces + angled return) – first: Shrungaar, Hyperdome
@@ -139,7 +139,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 |---|---|---|
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
-| `titan.py` | Weight matrix, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done); weights = all uprights x weights per upright, no separate +10% (rule 2, done). **Needs updating for v1.1:** `extra_weight_pct`. | (library) |
+| `titan.py` | Weight matrix, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done); weights = all uprights x weights per upright, no separate +10% (rule 2, done). Extra weight on external jobs: `extra_weights` = the user's `extra_weight_pct` of the total weights, rounded up (rule 8, done). | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). Anti-tampers = uprights sent (v1.1 rule 3, done). Tops listed as pieces from offcuts (rule 5, done). **Needs updating for v1.1:** tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs (return/front/return). | `sheet.py '<json in mm>' <P>_hoarding_sheet.png` (front/return/height/door_* ×1000 + "title": "<TITLE>: HOARDING"; passing job.json in metres draws 0.0142 m) |
 | `sheet_corner.py` | Grid sheet for corner jobs (L-plan + unfolded elevation). | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
@@ -201,7 +201,7 @@ Optional keys:
 - Photo text: `photo_note` (line added under the photo), `photo_text` (replaces the caption), `photo_h` (photo height in mm on the page), `front_ends`, `by` (default "Gus").
 - **Corner job:** `"faces": [{"name","len","cut"} ..., {"name":"front","len":..,"door_offset":..}]` (see `Shrungaar/job.json`).
 - **U job:** `"shape": "U"`, 5 faces, `"sheet_h": 2.4` for 2.4 m hoardings (see `DavidJonesLift/job.json`).
-- **External:** `"external": true` (the 40% extra uprights and 8 weights per upright come from `rules.json`; `"extra_uprights"` / `"weights_per_upright"` in job.json override them for one job), and `"extra_weight_pct"` (the user's answer, §7; required on external jobs from step D).
+- **External:** `"external": true` (the 40% extra uprights and 8 weights per upright come from `rules.json`; `"extra_uprights"` / `"weights_per_upright"` in job.json override them for one job), and `"extra_weight_pct"` (the user's answer, §7; required on external jobs: `run_job.py` stops and asks without it).
 - **Fire door:** `faces` (3), `"track": {"face","len","studs","lengths"}`, `"no_corner_uprights": true`, `"shopfront"`, `"step"`, `"push"`, `"right_return"` (see `Medibank/job.json`).
 - **Hand-set uprights:** `"uprights": 12` replaces the layout count of uprights at the joins (corners that can't take one); the 10% spare is still added on top (12 → 14).
 - **Quote:** `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines` [{desc, qty, unit, rate (null = POA)}], `price_notes`, `terms_notes`.
