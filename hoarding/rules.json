@@ -1,0 +1,107 @@
+{
+ "_about": "Every adjustable BSG business value the engine uses. Each entry is {value, source, provisional}: source = who decided it and where it is written (CLAUDE.md section), provisional = true when Gus said it may change. Change values here, not in the code. Entries with used_from are not read by the code yet; they come in with that step D rule. Lengths in metres unless the key says _mm.",
+
+ "sheet": {
+  "width": {"value": 1.2, "source": "Melamine sheet width (CLAUDE.md §4).", "provisional": false},
+  "height": {"value": 3.6, "source": "Standard melamine sheet height (§4). 2.4 m jobs set sheet_h: 2.4 in job.json.", "provisional": false},
+  "heights": {"value": [2.4, 3.6], "source": "Gus, 2026-11-01 (v1.1 §4): melamine comes in only two heights.", "provisional": false, "used_from": "step D rule 6"},
+  "spare": {"value": 2, "source": "Gus, 2026-10-21 (§3): always send 2 extra sheets in case of damage on site.", "provisional": false}
+ },
+
+ "defaults": {
+  "return": {"value": 1.6, "source": "§2 default return. Used when drafting job.json; the code always reads return from job.json.", "provisional": false},
+  "door_width": {"value": 1.6, "source": "§2 default entry width. Used when drafting job.json.", "provisional": false},
+  "door_height": {"value": 2.4, "source": "§2 default entry height; used when job.json has no door_height. The grid sheet only dimensions a door height that differs from it (Gus, 2026-10-21).", "provisional": false}
+ },
+
+ "door_set": {
+  "doors": {"value": 2, "source": "BSG paper form / §3: one double door = 2 leaves.", "provisional": false},
+  "leaf_mm": {"value": 2340, "source": "BSG paper form / §3: doors 2340.", "provisional": false},
+  "deadbolt": {"value": 1, "source": "BSG paper form / §3.", "provisional": false},
+  "hinges": {"value": 4, "source": "BSG paper form / §3.", "provisional": false},
+  "metal_plates": {"value": 4, "source": "BSG paper form / §3.", "provisional": false},
+  "studs_full_height": {"value": 2, "source": "BSG paper form / §3: door studs 2 x full height.", "provisional": false},
+  "studs_short": {"value": 4, "source": "BSG paper form / §3: door studs + 4 x 2.3.", "provisional": true},
+  "studs_short_length": {"value": 2.3, "source": "BSG paper form / §3. Purpose of the 2.3 m studs still unknown (Gus to ask his boss).", "provisional": true}
+ },
+
+ "kiosk_door": {
+  "leaf_width": {"value": 0.8, "source": "Gus, 2026-11-01 (v1.1 §3): kiosk leaves 0.8 x 1.2 m.", "provisional": false, "used_from": "step D rule 7"},
+  "leaf_height": {"value": 1.2, "source": "Gus, 2026-11-01 (v1.1 §3).", "provisional": false, "used_from": "step D rule 7"},
+  "doors": {"value": 1, "source": "Gus, 2026-11-01 (v1.1 §3): one normal door cut in half makes both leaves, so the form lists 1 door.", "provisional": false, "used_from": "step D rule 7"}
+ },
+
+ "uprights": {
+  "spare": {"value": 0.10, "source": "Gus, 2026-11-01 (v1.1 §3): uprights = joints + 10% spare, rounded up.", "provisional": false, "used_from": "step D rule 1"}
+ },
+
+ "counterweights": {
+  "matrix": {"value": [
+    {"max_height": 1.2, "centres": 2.4, "weights": 2},
+    {"max_height": 1.8, "centres": 1.2, "weights": 3},
+    {"max_height": 2.4, "centres": 1.2, "weights": 4},
+    {"max_height": 3.0, "centres": 1.2, "weights": 4},
+    {"max_height": 3.6, "centres": 1.2, "weights": 5},
+    {"max_height": 4.2, "centres": 1.2, "weights": 6},
+    {"max_height": 4.8, "centres": 1.2, "weights": 7},
+    {"max_height": 5.4, "centres": 1.2, "weights": 8},
+    {"max_height": 6.0, "centres": 1.2, "weights": 9},
+    {"max_height": 6.6, "centres": 1.2, "weights": 11},
+    {"max_height": 7.2, "centres": 1.2, "weights": 12}],
+   "source": "BSG weight matrix, Internal Hoardings (Impact Certification Standards), Gus 2026-11-01 (§6): weights per upright by height, first row at or above the hoarding height, no bracing.", "provisional": false},
+  "spare": {"value": 0.10, "source": "v1 rule: +10% spare weights, rounded up. Removed by Gus on 2026-11-01 (weights now come from the spare uprights, §6); the code still uses it until step D rule 2.", "provisional": true}
+ },
+
+ "external": {
+  "extra_uprights": {"value": 0.40, "source": "Gus, 2026-11-01, David Jones Lift Area (§7): 40% more uprights on external jobs, rounded up. Not an official table: replace it when Gus sends one. job.json extra_uprights still overrides it for one job.", "provisional": true},
+  "weights_per_upright": {"value": 8, "source": "Gus, 2026-11-01 (§7): 8 counterweights per upright on external jobs instead of the matrix. Not an official table. job.json weights_per_upright still overrides it for one job.", "provisional": true}
+ },
+
+ "materials": {
+  "per_length": {"value": 8.8, "source": "Run length the factors below are counted per (Just Cuts job, §3).", "provisional": true},
+  "studs": {"value": 14, "source": "14 x 70x45 MGP10 studs per 8.8 m, rounded up: inferred from Just Cuts, not formally confirmed (§3).", "provisional": true},
+  "white_tape": {"value": 8, "source": "8 rolls of white tape per 8.8 m, rounded up: inferred from Just Cuts (v1). Replaced in v1.1 by joint length / roll length (step D rule 4).", "provisional": true},
+  "anti_tampers": {"value": 10, "source": "10 anti-tampers per 8.8 m, rounded up: inferred from Just Cuts (v1). Replaced in v1.1 by 1 per upright incl. spares (step D rule 3).", "provisional": true},
+  "form_quantities": {"value": {
+    "Black Skirting Tape 100mm": 1, "Barrier Tape": 1, "Bollards": 1,
+    "40mm Screws": 1, "White Screw Covers": 1, "Warning Stickers": 6, "Installation Certificate": 1,
+    "Ladder": "1 each", "Paint": "1 each", "Roller Kit": 1, "Trolleys": 2, "Broom": 1, "Dustpan": 1, "Spray, Wipes & Rags": 1},
+   "source": "Fixed quantities per job on BSG's paper materials form (Just Cuts example, §3). Rows not listed here stay blank on the form.", "provisional": false}
+ },
+
+ "tape": {
+  "roll_length": {"value": 25, "source": "BSG paper form: white tape comes in 25 m rolls; Gus 2026-11-01 (v1.1 §3).", "provisional": false},
+  "spare": {"value": 0.20, "source": "Gus, 2026-11-01 (v1.1 §3): white tape rolls + 20% spare, rounded up.", "provisional": false, "used_from": "step D rule 4"}
+ },
+
+ "money": {
+  "rounding": {"value": "ROUND_HALF_UP", "source": "Gus, 2026-11-01 (§12): money is rounded to the cent, half a cent up (Python decimal rounding mode).", "provisional": false}
+ },
+
+ "rate_card": {
+  "name": {"value": "BSG Commercial Internal Hoarding Schedule of Rates for GPT - Pacific Fair 25-26", "source": "Rate card BSG Hoarding Rate - Pacific Fair 25-26, effective 18/6/2025-30/6/2026; Gus confirmed on 2026-11-01 to keep using it until he sends a new one (§12). Every rate_card value is provisional for that reason.", "provisional": true},
+  "bands": {"value": [
+    {"max_height": 2.4, "rate": 220, "label": "Up to 2.4 m high"},
+    {"max_height": 3.6, "rate": 280, "label": "Up to 3.6 m high"},
+    {"max_height": 4.2, "rate": 320, "label": "Up to 4.2 m high"},
+    {"max_height": 4.8, "rate": 330, "label": "Up to 4.8 m high"},
+    {"max_height": 6.0, "rate": 450, "label": "Up to 6.0 m high"}],
+   "source": "Rate card 25-26 (§12): $ per lineal metre ex GST, smallest band at or above the job height. Over 6.0 m = POA.", "provisional": true},
+  "kiosk": {"value": {"max_height": 1.2, "rate": 115, "label": "1.2 m high kiosk", "min_lm": 15},
+   "source": "Rate card 25-26 (§12): 1.2 m kiosk $115/lm, 15 lm minimum.", "provisional": true},
+  "min_lm": {"value": 10, "source": "Rate card 25-26 (§12): 10 lm minimum charge for non-kiosk hoardings.", "provisional": true},
+  "gst": {"value": 0.10, "source": "GST 10%, added after extras (§12).", "provisional": false},
+  "extra_doors_during": {"value": 400, "source": "Rate card 25-26 (§12): extra double doors $400/set during installation.", "provisional": true},
+  "extra_doors_after": {"value": 800, "source": "Rate card 25-26 (§12): extra double doors $800/set after installation.", "provisional": true},
+  "passage_set": {"value": 50, "source": "Rate card 25-26 (§12): passage set $50/set.", "provisional": true},
+  "modification_min": {"value": 800, "source": "Rate card 25-26 (§12): post-install modification $800 minimum ($680 for hoardings before 1/10/2025, not used in quotes).", "provisional": true},
+  "modification_hourly": {"value": 100, "source": "Rate card 25-26 (§12): $100/h.", "provisional": true},
+  "cancel_after_2pm": {"value": 200, "source": "Rate card 25-26 (§12): cancellation after 2 pm.", "provisional": true},
+  "cancel_after_5pm": {"value": 900, "source": "Rate card 25-26 (§12): cancellation after 5 pm / dispatched.", "provisional": true},
+  "included_door_mm": {"value": {"height": 2340, "width": 1600}, "source": "Rate card 25-26 (§12): 1 set of double doors 2340 x 1600 included.", "provisional": true},
+  "months_on_site": {"value": 6, "source": "Rate card 25-26 (§12): up to 6 months on site included.", "provisional": true},
+  "scissor_lift_over": {"value": 4.2, "source": "Rate card 25-26 (§12): scissor lift not included over 4.2 m.", "provisional": true},
+  "graphics_waste": {"value": 0.10, "source": "Rate card 25-26 terms: allow 10% waste for graphics.", "provisional": true},
+  "valid_days": {"value": 30, "source": "§12: quotes valid 30 days (job.json valid_days overrides).", "provisional": false}
+ }
+}

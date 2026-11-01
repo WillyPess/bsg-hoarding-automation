@@ -2,8 +2,8 @@
 Usage: python3 quote_gen.py <job.json> [out.pdf]
 Optional job.json keys: quote_no, quote_date, extra_doors, extra_doors_after, passage_sets, kiosk, valid_days, extra_lines [{desc,qty,unit,rate(null=POA)}], price_notes, terms_notes, scope.
 """
-import json, sys, os, math, datetime
-from decimal import Decimal, ROUND_HALF_UP
+import json, sys, os, math, datetime, decimal
+from decimal import Decimal
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -14,16 +14,17 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table, Tab
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))   # hoarding/, for layout_gen
 import layout_gen
+from rules import RULES
 ORANGE = colors.HexColor("#F39200"); GREY = colors.HexColor("#4D4D4D"); LIGHT = colors.HexColor("#F4F4F4")
 
-BANDS = [(2.4, 220.0, "Up to 2.4 m high"), (3.6, 280.0, "Up to 3.6 m high"),
-         (4.2, 320.0, "Up to 4.2 m high"), (4.8, 330.0, "Up to 4.8 m high"),
-         (6.0, 450.0, "Up to 6.0 m high")]
-KIOSK = (1.2, 115.0, "1.2 m high kiosk")
-MIN_LM_KIOSK, MIN_LM = 15.0, 10.0
-GST = 0.10
-DOORS_DURING, DOORS_AFTER, PASSAGE = 400.0, 800.0, 50.0
-RATE_CARD = "BSG Commercial Internal Hoarding Schedule of Rates for GPT - Pacific Fair 25-26"
+RC = RULES["rate_card"]   # BSG Hoarding Rate - Pacific Fair 25-26 (rules.json)
+BANDS = [(b["max_height"], b["rate"], b["label"]) for b in RC["bands"]]
+KIOSK = (RC["kiosk"]["max_height"], RC["kiosk"]["rate"], RC["kiosk"]["label"])
+MIN_LM_KIOSK, MIN_LM = RC["kiosk"]["min_lm"], RC["min_lm"]
+GST = RC["gst"]; GST_PCT = round(GST * 100)
+DOORS_DURING, DOORS_AFTER, PASSAGE = RC["extra_doors_during"], RC["extra_doors_after"], RC["passage_set"]
+RATE_CARD = RC["name"]
+ROUNDING = getattr(decimal, RULES["money"]["rounding"])   # half a cent up (Gus, 2026-11-01)
 
 
 def money(v): return f"${v:,.2f}"
@@ -35,7 +36,7 @@ def cents(*xs):
     v = Decimal(1)
     for x in xs:
         v *= Decimal(str(x))
-    return v.quantize(Decimal("0.01"), ROUND_HALF_UP)
+    return v.quantize(Decimal("0.01"), ROUNDING)
 
 
 def faces(job):
@@ -50,7 +51,7 @@ def band(job):
     for b in BANDS:
         if h <= b[0] + 1e-9:
             return b
-    raise SystemExit(f"Height {h} m is over 6.0 m: price on application (POA), quote by hand.")
+    raise SystemExit(f"Height {h} m is over {BANDS[-1][0]:g} m: price on application (POA), quote by hand.")
 
 
 def compute(job):
@@ -90,7 +91,7 @@ def build(job, out):
     today = datetime.date.today()
     qdate = job.get("quote_date") or today.strftime("%d/%m/%Y")
     d = datetime.datetime.strptime(qdate, "%d/%m/%Y").date()
-    valid = (d + datetime.timedelta(days=job.get("valid_days", 30))).strftime("%d/%m/%Y")
+    valid = (d + datetime.timedelta(days=job.get("valid_days", RC["valid_days"]))).strftime("%d/%m/%Y")
     qno = job.get("quote_no") or f"PF-{job['prefix'].upper()}-{d.strftime('%y%m%d')}"
     title = job.get("title", job["name"])
     h_mm = int(round(job["height"] * 1000))
@@ -140,7 +141,7 @@ def build(job, out):
         rows.append([Paragraph(desc, cell), f"{n:g}", u, "POA" if r is None else money(r),
                      "POA" if a is None else money(a)])
     nl = len(rows)
-    rows += [["", "", "", "Subtotal (ex GST)", money(q["sub"])], ["", "", "", "GST 10%", money(q["gst"])],
+    rows += [["", "", "", "Subtotal (ex GST)", money(q["sub"])], ["", "", "", f"GST {GST_PCT}%", money(q["gst"])],
              ["", "", "", "TOTAL (inc GST)", money(q["total"])]]
     t = Table(rows, colWidths=[88*mm, 14*mm, 12*mm, 32*mm, 34*mm])
     t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "Helvetica", 8.5), ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 8.5),
@@ -168,28 +169,28 @@ def build(job, out):
     else:
         exp.append(f"The run is above the {q['minimum']:g} lm minimum charge, so the actual length is charged.")
     exp += job.get("price_notes", [])
-    exp.append(f"{q['charged']:g} lm x {money(q['rate'])} = {money(q['lines'][0][4])} ex GST, plus GST at 10%.")
+    exp.append(f"{q['charged']:g} lm x {money(q['rate'])} = {money(q['lines'][0][4])} ex GST, plus GST at {GST_PCT}%.")
     S += [Paragraph(e, bullet, bulletText="•") for e in exp]
 
     S.append(Paragraph("4. What is included", h2))
     inc = ["Supply, delivery, installation and removal of the TITAN free-standing hoarding system.",
            "Structural engineering certification to AS4687 (pre-engineered certified hoarding).",
            "16 mm white melamine boards with white taped joints and black skirting tape along the bottom.",
-           "One set of double doors, opening 2340 mm high x 1600 mm wide, with barrel bolt "
+           f"One set of double doors, opening {RC['included_door_mm']['height']} mm high x {RC['included_door_mm']['width']} mm wide, with barrel bolt "
            "(deadbolt lock provided by Pacific Fair).",
            "Free-standing installation: nothing is fixed to the centre's finishes, so there is no damage and "
            "no make-good work when the hoarding is removed.",
            "Hoarding drawing for approval (attached).",
-           "Hoarding on site for up to 6 months before further charges apply."]
+           f"Hoarding on site for up to {RC['months_on_site']} months before further charges apply."]
     S += [Paragraph(e, bullet, bulletText="•") for e in inc]
 
-    ex = [["Additional set of double doors, during installation", "$400.00 per set"],
-          ["Additional set of double doors, after installation", "$800.00 per set"],
-          ["Passage set in lieu of hasp & staple", "$50.00 per set"],
-          ["Post-installation modification (2 men x 4 hrs minimum, materials extra)", "$800.00"],
-          ["General modification rate (minimum 2 installers x 4 hrs)", "$100.00 per hour"],
-          ["Cancellation after 2 pm cut-off", "$200.00"],
-          ["Cancellation after 5 pm (hoarding dispatched)", "$900.00"],
+    ex = [["Additional set of double doors, during installation", f"{money(DOORS_DURING)} per set"],
+          ["Additional set of double doors, after installation", f"{money(DOORS_AFTER)} per set"],
+          ["Passage set in lieu of hasp & staple", f"{money(PASSAGE)} per set"],
+          ["Post-installation modification (2 men x 4 hrs minimum, materials extra)", money(RC["modification_min"])],
+          ["General modification rate (minimum 2 installers x 4 hrs)", f"{money(RC['modification_hourly'])} per hour"],
+          ["Cancellation after 2 pm cut-off", money(RC["cancel_after_2pm"])],
+          ["Cancellation after 5 pm (hoarding dispatched)", money(RC["cancel_after_5pm"])],
           ["Cancellation with the team on site", "Full cost of hoarding"],
           ["Public holiday work, oversized transport, wind-rated hoardings", "POA"]]
     t = Table([[Paragraph(a, cell), b] for a, b in ex], colWidths=[130*mm, 50*mm])
@@ -202,9 +203,9 @@ def build(job, out):
              "All modifications must be done by BSG Commercial to keep the hoarding compliant.",
              "Lost or stolen materials will be charged. The hoarding must not be used as a storage room or "
              "temporary wall; rental charges apply.",
-             "Measurements on the drawing are for hoarding construction only. Allow 10% waste for any graphics, "
+             f"Measurements on the drawing are for hoarding construction only. Allow {round(RC['graphics_waste'] * 100)}% waste for any graphics, "
              "which must use low-residue glue only.",
-             "A scissor lift is not included for hoardings over 4.2 m; Pacific Fair to supply its in-house EWP, "
+             f"A scissor lift is not included for hoardings over {RC['scissor_lift_over']:g} m; Pacific Fair to supply its in-house EWP, "
              "otherwise hire is charged.",
              "Hoardings are for internal shopfront fit-out works only."] + job.get("terms_notes", [])
     S.append(KeepTogether([Paragraph("6. Terms and important information", h2)] +

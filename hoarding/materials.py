@@ -14,33 +14,39 @@ else:
     job = sys.argv[2]; front, ret, H, doff, dw = map(float, sys.argv[3:8])
     _p = {"front": front, "return": ret, "height": H, "door_offset": doff, "door_width": dw}
 _c = compute(_p); L = _c["L"]
-SPARE = 2                       # always send 2 extra sheets in case of damage (Gus, 2026-10-21)
+from rules import RULES
+M, DS = RULES["materials"], RULES["door_set"]
+fq = lambda name: M["form_quantities"].get(name, "")   # fixed quantity per job on BSG's paper form, blank if none
+SPARE = RULES["sheet"]["spare"]   # always send 2 extra sheets in case of damage (Gus, 2026-10-21)
 sheets = _c["sheets"] + SPARE   # layout sheets + spares
 tops = _c["tops"]   # one top above every sheet piece, joins aligned (boss, 2026-10-21); was ceil(L/1.2)                                            # 1.2 m wide tops along the whole run
 from titan import joins
 uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
-studs = math.ceil(14 * L / 8.8)
-tape = math.ceil(8 * L / 8.8)
-tampers = math.ceil(10 * L / 8.8)
-SHT = _p.get("sheet_h", 3.6)   # sheet height (2.4 for 2.4 m jobs)
+studs = math.ceil(M["studs"] * L / M["per_length"])   # 14 / 8 / 10 per 8.8 m, inferred from Just Cuts
+tape = math.ceil(M["white_tape"] * L / M["per_length"])
+tampers = math.ceil(M["anti_tampers"] * L / M["per_length"])
+SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 m jobs)
 top = round((H - SHT) * 1000)
-from titan import for_job
+from titan import for_job, EXTRA
 UPJ = uprights
 uprights, UPX, PER, CW = for_job({**_p, "height": H}, UPJ)   # weight matrix by height + 10% spare (Gus, 2026-11-01); external jobs can add uprights / weights
 TR = _p.get("track")   # fire-door jobs: track + timbers section instead of uprights
 S = [
- ("Titan", [("Uprights", uprights, f"{UPJ} at joins  +  {UPX} extra (wind)" if UPX else ""), ("Counterweights", CW, f"{PER}   Per Upright  (+10% spare)")]),
+ ("Titan", [("Uprights", uprights, f"{UPJ} at joins  +  {UPX} extra (wind)" if UPX else ""), ("Counterweights", CW, f"{PER}   Per Upright  (+{round(EXTRA * 100)}% spare)")]),
  ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m (+{SPARE} spare) + {tops} x {top} Tops" if top > 0 else f"{SHT:g}m (+{SPARE} spare)"), ("15mm CD Ply", "", "2.4m – 3.0m")]),
- ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""), ("70 x 45 Door Studs", 6, f"2 x {H:g}  +  4 x 2.3"),
+ ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""),
+                   ("70 x 45 Door Studs", DS["studs_full_height"] + DS["studs_short"], f"{DS['studs_full_height']} x {H:g}  +  {DS['studs_short']} x {DS['studs_short_length']:g}"),
                    ("90mm track", f"{TR['lengths']} x" if TR else "", "3.0m  (ceiling + floor)" if TR else "3.0m"), ("90 x 45 MGP 10", f"{TR['studs']} x" if TR else "", f"{H:g}  (in the track, 600 centres)" if TR else "")]),
- ("Doors & Securities", [("Doors", 2, "2340"), ("Digi Lock", "", ""), ("Deadbolt", 1, ""), ("Padlock", "", ""), ("Barrel Bolt", "", ""),
-                         ("Hasp & Staple", "", ""), ("Finger Pull", "", ""), ("T Section", "", ""), ("Hinges", 4, ""), ("Metal Plates", 4, "")]),
- ("Tapes", [("Paintable Tape 50mm", "", "25m Rolls"), ("White Tape 50mm", tape, "25m Rolls"), ("Black Skirting Tape 100mm", 1, "25m Rolls"),
-            ("Double Sided Tape", "", "Rolls"), ("Barrier Tape", 1, "Rolls"), ("Bollards", 1, "")]),
- ("Screws & Stickers", [("40mm Screws", 1, "Boxes"), ("Plasterboard Screws", "", "Boxes"), ("White Screw Covers", 1, "Packets"),
-                        ("Anti-Tampers", tampers, ""), ("Warning Stickers", 6, ""), ("Installation Certificate", 1, "")]),
- ("Tools", [("Ladder", "1 each", "3.0m  +  3.6m"), ("Dust Suppression", "", "Rolls – Black/ White"), ("Paint", "1 each", "Litres   Black + White"),
-            ("Roller Kit", 1, ""), ("Roller Pole", "", ""), ("Trolleys", 2, ""), ("Broom", 1, ""), ("Dustpan", 1, ""), ("Spray, Wipes & Rags", 1, "")]),
+ ("Doors & Securities", [("Doors", DS["doors"], str(DS["leaf_mm"])), ("Digi Lock", "", ""), ("Deadbolt", DS["deadbolt"], ""), ("Padlock", "", ""), ("Barrel Bolt", "", ""),
+                         ("Hasp & Staple", "", ""), ("Finger Pull", "", ""), ("T Section", "", ""), ("Hinges", DS["hinges"], ""), ("Metal Plates", DS["metal_plates"], "")]),
+ ("Tapes", [("Paintable Tape 50mm", fq("Paintable Tape 50mm"), "25m Rolls"), ("White Tape 50mm", tape, f"{RULES['tape']['roll_length']:g}m Rolls"),
+            ("Black Skirting Tape 100mm", fq("Black Skirting Tape 100mm"), "25m Rolls"),
+            ("Double Sided Tape", fq("Double Sided Tape"), "Rolls"), ("Barrier Tape", fq("Barrier Tape"), "Rolls"), ("Bollards", fq("Bollards"), "")]),
+ ("Screws & Stickers", [("40mm Screws", fq("40mm Screws"), "Boxes"), ("Plasterboard Screws", fq("Plasterboard Screws"), "Boxes"), ("White Screw Covers", fq("White Screw Covers"), "Packets"),
+                        ("Anti-Tampers", tampers, ""), ("Warning Stickers", fq("Warning Stickers"), ""), ("Installation Certificate", fq("Installation Certificate"), "")]),
+ ("Tools", [("Ladder", fq("Ladder"), "3.0m  +  3.6m"), ("Dust Suppression", fq("Dust Suppression"), "Rolls – Black/ White"), ("Paint", fq("Paint"), "Litres   Black + White"),
+            ("Roller Kit", fq("Roller Kit"), ""), ("Roller Pole", fq("Roller Pole"), ""), ("Trolleys", fq("Trolleys"), ""), ("Broom", fq("Broom"), ""), ("Dustpan", fq("Dustpan"), ""),
+            ("Spray, Wipes & Rags", fq("Spray, Wipes & Rags"), "")]),
 ]
 wb = Workbook(); ws = wb.active; ws.title = "Materials"
 t = Side(style="thin", color="000000"); B = Border(left=t, right=t, top=t, bottom=t)

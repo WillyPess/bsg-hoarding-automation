@@ -3,12 +3,13 @@ Usage: sheet_firedoor.py <Job>/job.json out.png   (job.json: faces, height, door
 import sys, json
 from PIL import Image, ImageDraw, ImageFont
 from paths import F, FB
+from rules import RULES
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, GREEN, AMBER, GREY, WOOD = (20, 22, 26), (30, 60, 170), (190, 30, 60), (20, 140, 60), (205, 110, 0), (120, 120, 120), (150, 100, 40)
 J = json.load(open(sys.argv[1])); k = lambda v: round(v * 1000)
 LR, FRONT, RR = (k(f["len"]) for f in J["faces"])
 SHOP, STEP, PUSH, TRACK, H = k(J["shopfront"]), k(J["step"]), k(J["push"]), k(J["track"]["len"]), k(J["height"])
-DO, DW, DH = k(J["door_offset"]), k(J["door_width"]), k(J.get("door_height", 2.4))
+DO, DW, DH = k(J["door_offset"]), k(J["door_width"]), k(J.get("door_height", RULES["defaults"]["door_height"]))
 W, Hc, G = 2600, 1700, 40
 im = Image.new("RGB", (W, Hc), (252, 252, 250)); d = ImageDraw.Draw(im)
 for x in range(0, W, G): d.line([(x, 0), (x, Hc)], fill=(196, 214, 232) if x % (G * 5) else (160, 186, 214))
