@@ -21,10 +21,14 @@ python3 run_job.py hoarding/Bikini --out /tmp/Bikini   # full pipeline for one j
 pip install -r requirements-dev.txt
 python -m pytest                            # 7 reference jobs (counts, materials form, drawings, documents) + rounding traps, ~1 min
 python -m pytest -k Medibank                # one job
-python tests/update_baseline.py Medibank    # approve a changed drawing/document: writes out/Medibank/ and expected/Medibank/baseline.json
+python tests/update_baseline.py Medibank    # approve a changed drawing/document: writes out/Medibank/, expected/Medibank/baseline.json and png/
 ```
 
-The lite bundle has no reference PDFs or PNGs, so `expected/<Job>/baseline.json` pins the outputs checked by eye on 2026-11-01: a hash of the pixels of every PNG and the text of every PDF page. Any change to a drawing or document fails `test_drawings_match_baseline` / `test_documents_match_baseline`. Check the new files by eye, then run `update_baseline.py` and commit the baseline change with the reason. The hashes depend on the pinned Pillow version and the fonts in `fonts/`.
+The lite bundle has no reference PDFs or PNGs, so the outputs checked by eye on 2026-11-01 are pinned in `expected/<Job>/`: the text of every PDF page (`baseline.json`) and every drawing as a PNG (`png/`). Any change fails `test_drawings_match_baseline` / `test_documents_match_baseline`. Check the new files by eye, then run `update_baseline.py` and commit the change with the reason.
+
+**Drawings across machines.** Windows and Linux render text slightly differently, so drawings are not compared exactly. A pixel counts as changed when no pixel within 1 px of it in the baseline has every colour channel within 24. The test fails above **0.02 %** changed pixels and prints the % for every drawing (`pytest -s`); a failure saves `<name>_DIFF.png` with the changed pixels in magenta. 0.02 % is set to catch the smallest real change measured: the red lease line turned green is 0.05 %. A job without `png/` falls back to the exact pixel hash in `baseline.json`.
+
+The stored PNGs were made on Linux. The hashes in `baseline.json` are still the ones approved on Windows. To store the Windows images instead: `python tests/update_baseline.py --store-pngs` (it stores only PNGs whose hash matches the approved one).
 
 ## Contents
 
