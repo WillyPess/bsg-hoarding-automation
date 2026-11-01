@@ -5,6 +5,7 @@
  "layout_sheets": 9,
  "sheets_to_send": 11,
  "tops": 8,
+ "tops_from_offcuts": "7 x 1200 x 900 + 1 x 400 x 900",
  "uprights_at_joins": 10,
  "extra_uprights": 0,
  "spare_uprights": 1,

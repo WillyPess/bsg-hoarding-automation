@@ -86,14 +86,14 @@ def run(jobdir):
 def counts(job):
     """Key numbers straight from the engine (same code paths as materials.py and quote_gen.py)."""
     sys.path.insert(0, H); sys.path.insert(0, os.path.join(H, "quotes"))
-    from layout_gen import compute, tops_text
+    from layout_gen import compute, tops_text, tops_to_cut
     import titan
     from rules import RULES
     c = compute(job)
     joins = titan.joins(job, c)
     up, extra, spare, per, w = titan.for_job(job, joins)
     out = {"job": os.path.basename(job["dir"]), "run_m": c["L"], "height_m": job["height"],
-           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": c["tops"], "tops_from_offcuts": tops_text(job, c),
+           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": sum(n for _, _, n in tops_to_cut(job, c)), "tops_from_offcuts": tops_text(job, c),
            "uprights_at_joins": joins, "extra_uprights": extra, "spare_uprights": spare, "uprights_to_send": up, "anti_tampers_to_send": up,
            "weights_per_upright": per, "weights_to_send": w}
     if job.get("site") == "Pacific Fair":

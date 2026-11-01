@@ -42,3 +42,10 @@ def test_no_tops_line_without_tops(reference_run):
     summary, work = reference_run("DavidJonesLift")
     assert form("DavidJonesLift", work)[2] == "2.4m (+2 spare)"
     assert summary["tops_from_offcuts"] == ""
+
+
+@pytest.mark.parametrize("name, pieces", [("Bikini", 8), ("FRED_v2", 12), ("DavidJones", 20), ("Shrungaar", 16), ("Medibank", 10), ("DavidJonesLift", 0)])
+def test_summary_tops_is_the_piece_count(name, pieces, reference_run):
+    # approved 2026-11-01: "Tops" = pieces to cut (two pieces from one 1200 top count as two)
+    summary, _ = reference_run(name)
+    assert summary["tops"] == pieces
