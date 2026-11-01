@@ -102,8 +102,8 @@ def counts(job):
         if os.path.exists(qe):
             q.update(json.load(open(qe)))
         r = quote_gen.compute(q)
-        out.update(quote_lm=r["charged"], quote_rate=r["rate"], quote_ex_gst=r["sub"], quote_gst=r["gst"],
-                   quote_total=r["total"], quote_poa_lines=sum(1 for l in r["lines"] if l[4] is None))
+        out.update(quote_lm=r["charged"], quote_rate=r["rate"], quote_ex_gst=float(r["sub"]), quote_gst=float(r["gst"]),   # Decimal -> JSON number
+                   quote_total=float(r["total"]), quote_poa_lines=sum(1 for l in r["lines"] if l[4] is None))
     return out
 
 
