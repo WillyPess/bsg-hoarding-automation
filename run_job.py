@@ -37,6 +37,9 @@ def run(jobdir):
     jobdir = os.path.abspath(jobdir)
     job = json.load(open(os.path.join(jobdir, "job.json")))
     job["dir"] = jobdir
+    if job.get("external") and "extra_weight_pct" not in job:   # Gus, 2026-11-01: ask, never fill it in
+        import titan
+        raise SystemExit(f"{job['prefix']}: {titan.QUESTION} Put the answer in job.json as \"extra_weight_pct\" (0 = no extra weight).")
     P = job["prefix"]
     tmp = tempfile.mkdtemp()
     jp = os.path.join(tmp, "job.json"); json.dump(job, open(jp, "w"))
@@ -96,6 +99,10 @@ def counts(job):
            "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": sum(n for _, _, n in tops_to_cut(job, c)), "tops_from_offcuts": tops_text(job, c),
            "uprights_at_joins": joins, "extra_uprights": extra, "spare_uprights": spare, "uprights_to_send": up, "anti_tampers_to_send": up,
            "weights_per_upright": per, "weights_to_send": w}
+    if job.get("external"):
+        x = titan.extra_weights(job, w)
+        out.update(extra_weight_pct=job["extra_weight_pct"], extra_weights=x)
+    out["total_weights_to_send"] = w + out.get("extra_weights", 0)
     if job.get("site") == "Pacific Fair":
         import quote_gen
         q = dict(job)

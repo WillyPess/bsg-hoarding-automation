@@ -19,7 +19,9 @@ UPJ=joins(J,c)   # at the joins between sheets (Gus, 2026-11-01), or set by hand
 up,UPX,SPU,PER,CW=for_job(J,UPJ)   # uprights to send = joints + extra for wind + 10% spare; weights = all uprights x per upright (BSG weight matrix; Gus, 2026-11-01)
 XFRAC,WPU=wind(J); SUP=round(UPSPARE*100)   # external job: extra uprights fraction, weights per upright; spare uprights %
 SPTXT=f" Plus {SPU} spare upright{'' if SPU==1 else 's'} ({SUP}%), not placed on the layout, {'with its' if SPU==1 else 'each with'} {PER} counterweights." if SPU else ""
-SENT=f" {CW} counterweights are sent ({up} x {PER})."
+from titan import extra_weights
+XW=extra_weights(J,CW)   # external jobs: the user's extra weight % (Gus, 2026-11-01)
+SENT=f" {CW} counterweights are sent ({up} x {PER})."+(f" Plus {XW} extra counterweights ({J['extra_weight_pct']:g}% extra weight asked for this external job), {CW+XW} in all." if XW else "")
 WTXT=f"{PER} counterweights each ({'for wind, external site' if WPU else f'weight matrix for {H:g} m'}; {CW} sent = {up} x {PER}, spares included)"
 XTXT=f" Plus {UPX} extra uprights ({round(XFRAC*100)}% more, for wind on this external site), also with {PER} counterweights each; the supervisor decides where they go." if UPX else ""
 # Corner jobs ("faces" in job.json): angled return by the lift, side, corner, front with the entry, right return
