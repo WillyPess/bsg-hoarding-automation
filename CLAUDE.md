@@ -1,6 +1,8 @@
-# BSG Automation – v1 (2026-11-01)
+# BSG Automation – v1.1 (2026-11-01)
 
 Owner: **Gus** (BSG). Talk to Gus in Portuguese or English as he writes; documents and drawings are in English, sizes in **mm** on drawings.
+
+**Changes in v1.1 (Gus, 2026-11-01):** melamine sizes and tops from offcuts; heights between 2.4 and 3.6 m; kiosk sheets and doors; uprights, anti-tampers and white tape now calculated from joints; external jobs always 2.4 m; rate card kept until Gus says otherwise. Source: `notes/rules-v1.1.md`. **The code still follows v1** until each rule is implemented (see `materials.py` below).
 
 ## Goal
 
@@ -38,13 +40,21 @@ Rules below were given or approved by Gus (or his boss). Don't invent new ones; 
 
 ### 3. Materials form
 - Copy **BSG's paper form exactly**: same sections (Titan, Board, Timber/Track, Doors & Securities, Tapes, Screws & Stickers, Tools), same rows, BSG CHK / INST CHK columns, "Materials checked by" box. Gus found a custom layout confusing – don't redesign it.
-- Melamine: layout sheets **+ 2 spare sheets always** (damage on site).
-- Door set is fixed: 2 doors 2340, deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
-- Studs, white tape and anti-tampers scale with run length (14 / 8 / 10 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
+- **Melamine:** layout sheets **+ 2 spare sheets always** (damage on site).
+- **Tops:** list only **how many tops to cut from offcuts, with their sizes**. Don't count them as new sheets. The person loading the truck decides whether to add new sheets (if a top size isn't in stock, they add one sheet per missing top).
+- **Uprights = number of joints in the job + 10% spare, rounded up.** Both run ends count as joints. External jobs: see §7.
+- **Anti-tampers = 1 per upright, including the 10% spare uprights.**
+- **White tape (rolls) = total joint length in metres / 25 m per roll, plus 20% spare, rounded up.** Every joint counts: joints between sheets (vertical joints x hoarding height), joints between sheets and tops, corners, run ends and door edges.
+- **Door set (normal job):** 1 double door = 2 leaves, each **0.8 m wide x 2.4 m high** (1.6 m total opening; form lists 2 doors 2340), deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
+- **Door set (1.2 m kiosk):** leaves are **0.8 m wide x 1.2 m high**; one normal door cut in half makes both leaves, so the form lists **1 door**.
+- Studs scale with run length (14 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
 
 ### 4. Melamine sheet layout
-- Sheets are **1.2 m wide x 3.6 m high** (2.4 m jobs use 2400 x 1200 sheets and no tops – `sheet_h: 2.4`).
-- Above 3.6 m: **tops** (1.2 x 0.9 m stock) up to the hoarding height.
+- Melamine comes in **only two sizes: 2.4 m high x 1.2 m wide, and 3.6 m high x 1.2 m wide.** Sheets are cut or joined to make smaller or taller hoardings.
+- **Height up to 2.4 m:** 2400 x 1200 sheets, no tops (`sheet_h: 2.4`).
+- **Height over 2.4 m up to 3.6 m:** 3600 x 1200 sheets **cut down** to the hoarding height. The cut-off goes to **tops stock**, not waste.
+- **Height over 3.6 m:** 3600 x 1200 sheets plus **tops** up to the hoarding height. Tops are cut from **offcuts of earlier jobs**, not bought as stock.
+- **1.2 m kiosk:** 2400 x 1200 sheets **laid horizontally** (2.4 m long x 1.2 m high), no cut.
 - **Use as many full sheets as possible** (looks better); **push the cut pieces to the corners**. The entry may move off the shop entrance a little to make the front sections whole multiples of 1.2 m.
 - **Combine offcuts** across sections to minimise sheets (e.g. three 400 pieces from one sheet).
 - **Door top = ONE 1600 x 1200 piece** from a sheet turned sideways – never small slices. The top above it (1600 x 900) comes from the same sheet's spare.
@@ -54,6 +64,7 @@ Rules below were given or approved by Gus (or his boss). Don't invent new ones; 
 
 ### 5. Uprights (Titan)
 - Uprights stand **at the joins between sheets, never mid-sheet**, including **one each side of the entry**. The layout marks them with blue ▲.
+- Count = joints (both run ends included) + 10% spare, rounded up (§3). Spare uprights aren't placed on the layout.
 - Where a corner can't take an upright (fire-door jobs), use `no_corner_uprights`.
 
 ### 6. Counterweights – BSG weight matrix (internal hoardings)
@@ -64,12 +75,14 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Weights / upright | 2 | 3 | 4 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 |
 | Upright centres | 2.4 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 | 1.2 |
 
-**Always send +10% spare weights, rounded up.** (Code: `titan.py`.)
+**Always send +10% spare weights, rounded up.** (Code: `titan.py`.) **Spare uprights get the full counterweight set** for the job height from the matrix (Gus, 2026-11-01); whether the +10% spare weights still applies on top of that is an open point. No job has gone above 7.2 m; if one does, ask Gus which calculation to use.
 
 ### 7. External jobs (wind) – David Jones Lift Area, Gus 2026-11-01
-- The matrix is for internal hoardings. Outdoors: **8 counterweights per upright** and **40% more uprights** (rounded up), still +10% spare weights.
+- **External jobs are always 2.4 m high.**
+- The matrix is for internal hoardings. Provisional rule outdoors: **8 counterweights per upright** and **40% more uprights** (rounded up). Add the 40% first, then the 10% spare uprights (§3) on that total, rounded up. Spare weights as in §6.
 - The extra uprights aren't placed on the layout; the supervisor decides where.
-- Probably the rule for every external job – confirm with Gus on the next one.
+- **Extra weight (Gus, 2026-11-01):** before computing counterweights for an external job, ask the user: "This job is external. Add extra weight? If yes, how many percent?" Apply only the percentage the user gives (default 0%), rounded up, and show it as a separate line in the summary and the materials form. **Never pick a percentage automatically.**
+- **Not an official table.** Gus will get the official weights-per-upright and extra-uprights table later; replace this rule when he sends it.
 
 ### 8. Corner shops (two faces + angled return) – first: Shrungaar, Hyperdome
 - `faces` listed left to right as seen from the mall (e.g. angled return, side, front with `door_offset` from the corner, right return). Faces without a door get `cut: "left"/"right"` = end for the cut piece (outside corner).
@@ -94,7 +107,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 - **For every job, ask Gus where it will be built.**
 - **Pacific Fair** jobs get a quotation (done in the thread "Pacific Fair - Quotations"; Gus collects quotes there). Other sites: no quote process yet.
 - Known sites: Pacific Fair = Medibank, FRED, David Jones Ground/First Level, David Jones Lift Area. Hyperdome = Bikini on the Beach, Shrungaar.
-- **Rate card "BSG Hoarding Rate – Pacific Fair 25-26"** (effective 18/6/2025–30/6/2026, still current), ex GST per lineal metre:
+- **Rate card "BSG Hoarding Rate – Pacific Fair 25-26"**, ex GST per lineal metre. Its printed validity (18/6/2025–30/6/2026) has ended, but **Gus confirmed on 2026-11-01 to keep using it** until he sends a new one:
 
 | Height | 1.2 m kiosk | ≤2.4 | ≤3.6 | ≤4.2 | ≤4.8 | ≤6.0 | >6.0 |
 |---|---|---|---|---|---|---|---|
@@ -114,7 +127,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 |---|---|---|
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. | (library) |
-| `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). | `materials.py <P>_materials.xlsx job.json` |
+| `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs (return/front/return). | `sheet.py '<json in mm>' <P>_hoarding_sheet.png` (front/return/height/door_* ×1000 + "title": "<TITLE>: HOARDING"; passing job.json in metres draws 0.0142 m) |
 | `sheet_corner.py` | Grid sheet for corner jobs (L-plan + unfolded elevation). | `sheet_corner.py job.json <P>_hoarding_sheet.png` |
 | `sheet_u.py` | Grid sheet for U-shaped/kiosk jobs. | `sheet_u.py job.json <P>_hoarding_sheet.png` |
@@ -128,6 +141,8 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | `Medibank/track_plan.py` | One-off plan to check the track section with Gus. | – |
 
 Dependencies: Python 3 with Pillow, openpyxl, reportlab, pypdf; LibreOffice (`soffice`) for xlsx → pdf. DejaVu fonts.
+
+**Rounding:** use integer maths for every "rounded up" count (weights, uprights, sheets). In floating point, 50 x 1.1 = 55.000…01 and 21.6 / 1.2 = 18.000…004, which round up wrongly.
 
 **Hoarding Planner** (browser tool): https://claude.ai/artifact/J3jGFh4YS9PkZyyuJRK88z – photo tab (scale reference, red hoarding lines, crossed door box, hatch, dims, text) and floor-plan tab (mm grid). Exports PNG with optional title block. Useful for marking a photo by hand.
 
@@ -156,9 +171,9 @@ hoarding/<Job>/
 
 ### Inputs from Gus
 1. **Photo** of the shopfront (ideally already marked up by Gus).
-2. **Shopfront width** (front), **height**, **returns** (default 1.6 m), **entry position** (from the left or right end; default entry 1.6 x 2.4 m).
+2. **Shopfront width** (front), **height**, **returns** (default 1.6 m), **entry position** (from the left or right end; default entry 1.6 x 2.4 m; kiosk 1.6 x 1.2 m).
 3. **Job title** (exactly as Gus writes it) and **site** (ask – Pacific Fair needs a quote).
-4. Anything special: corner shop, U-shaped/kiosk, fire door next to it, external (wind), different door height, marks on the photo.
+4. Anything special: corner shop, U-shaped/kiosk, fire door next to it, external (wind; always 2.4 m; ask for the extra weight %, §7), different door height, marks on the photo.
 
 ### job.json
 All lengths in **metres**. Standard job:
@@ -208,7 +223,9 @@ Check the images (sheet, layout) before sending, and check the printed summary (
 | `<P>_Hoarding_Package.pdf` | Everything above + build sequence + site checks, one PDF |
 | `<P>_Quotation.pdf` | Pacific Fair only: quote to GPT – Pacific Fair |
 
-### Reference results (to sanity-check changes)
+### Reference results (before v1.1, to sanity-check changes)
+Uprights below are layout uprights only. Under v1.1 the form adds +10% spare uprights and anti-tampers; recompute these rows after updating `materials.py`.
+
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Weights | Quote ex GST |
 |---|---|---|---|---|---|---|---|
 | Bikini (Hyperdome) | 10.4 | 4.5 | 9+2 | 8 | 10 | 77 | – |
@@ -219,7 +236,10 @@ Check the images (sheet, layout) before sending, and check the printed summary (
 | DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24+10 = 34 | 300 | $5,412 + wind POA |
 
 ## Open points
-- Purpose of the 4 x 2.3 m door studs (Gus to find out).
-- External-job rule (8 weights, +40% uprights) to confirm on the next external job.
+- Purpose of the 4 x 2.3 m door studs (Gus to ask his boss).
+- Spare weights: does the +10% spare weights (§6) still apply on top of the full counterweight sets for the spare uprights? Ask Gus before changing `titan.py`.
+- Official external-job table (weights per upright, extra uprights) – Gus to get it.
 - Outside corners on corner jobs: normal joint until the boss says otherwise.
+- Hoardings above 7.2 m: never happened; Gus will give the calculation if one comes up.
+- New Pacific Fair rate card: Gus will send it when there is one.
 - No quotation process yet for sites other than Pacific Fair.
