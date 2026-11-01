@@ -89,7 +89,7 @@ def counts(job):
     from layout_gen import compute
     import titan
     c = compute(job)
-    joins = job.get("uprights", len(c["uprights"]))
+    joins = titan.joins(job, c)
     up, extra, per, w = titan.for_job(job, joins)
     out = {"job": os.path.basename(job["dir"]), "run_m": c["L"], "height_m": job["height"],
            "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + 2, "tops": c["tops"],

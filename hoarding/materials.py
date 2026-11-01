@@ -17,8 +17,8 @@ _c = compute(_p); L = _c["L"]
 SPARE = 2                       # always send 2 extra sheets in case of damage (Gus, 2026-10-21)
 sheets = _c["sheets"] + SPARE   # layout sheets + spares
 tops = _c["tops"]   # one top above every sheet piece, joins aligned (boss, 2026-10-21); was ceil(L/1.2)                                            # 1.2 m wide tops along the whole run
-uprights = len(_c["uprights"])   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01); was ceil(L/1.2)+1
-if "uprights" in _p: uprights = _p["uprights"]   # set by hand when corners can't take uprights (fire-door jobs, Gus 2026-10-28)
+from titan import joins
+uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
 studs = math.ceil(14 * L / 8.8)
 tape = math.ceil(8 * L / 8.8)
 tampers = math.ceil(10 * L / 8.8)
