@@ -4,7 +4,12 @@ Every joint counts:
   - vertical joints between sheets, corners and both run ends: full hoarding height each;
   - the joint between sheets and tops (along the whole run, when the job has tops);
   - the door: both sides (2 x door height) plus the top (door width).
-All lengths in whole mm, so the rounding up is exact (no 3.0000000000000004 rolls)."""
+All lengths in whole mm, so the rounding up is exact (no 3.0000000000000004 rolls).
+
+Switch (rules.json tape.tape_rule, provisional until Gus checks it against real use): "v1" = 8 rolls per 8.8 m of run,
+rounded up (the default); "joints" = the calculation above. rolls_for_job() is what the form and summary use."""
+import math
+
 from rules import RULES
 
 SW = RULES["sheet"]["width"]
@@ -49,3 +54,19 @@ def white_tape(job, c):
     total = vertical + tops + door
     return {"vertical_joints": len(xs), "vertical_mm": vertical, "tops_mm": tops, "door_mm": door,
             "total_mm": total, "rolls": rolls(total)}
+
+
+def v1_rolls(c):
+    """v1: materials.white_tape rolls per materials.per_length of run, rounded up (Just Cuts), exactly as before."""
+    M = RULES["materials"]
+    return math.ceil(M["white_tape"] * c["L"] / M["per_length"])
+
+
+def rolls_for_job(job, c, rule=None):
+    """White tape rolls for the form, by rules.json tape.tape_rule ("v1" or "joints"), or by `rule` when given."""
+    rule = rule or RULES["tape"]["tape_rule"]
+    if rule == "v1":
+        return v1_rolls(c)
+    if rule == "joints":
+        return white_tape(job, c)["rolls"]
+    raise ValueError(f'rules.json tape.tape_rule must be "v1" or "joints", not {rule!r}')

@@ -25,9 +25,8 @@ tops = _c["tops"]   # one top above every sheet piece, joins aligned (boss, 2026
 from titan import joins
 uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides of the entry (Gus, 2026-11-01), or set by hand in job.json; was ceil(L/1.2)+1
 studs = math.ceil(M["studs"] * L / M["per_length"])   # 14 / 8 / 10 per 8.8 m, inferred from Just Cuts
-from tape import white_tape
-TAPE = white_tape(_p, _c)   # joint length / 25 m rolls + 20% spare (Gus, 2026-11-01); was ceil(8 x L / 8.8)
-tape = TAPE["rolls"]
+from tape import rolls_for_job
+tape = rolls_for_job(_p, _c)   # rules.json tape.tape_rule: "v1" = 8 per 8.8 m (default), "joints" = joint length / 25 m + 20%
 SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 m jobs)
 top = round((H - SHT) * 1000)
 from titan import for_job
