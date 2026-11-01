@@ -1,0 +1,19 @@
+{
+ "job": "FRED_v2",
+ "run_m": 14.2,
+ "height_m": 4.5,
+ "layout_sheets": 12,
+ "sheets_to_send": 14,
+ "tops": 11,
+ "uprights_at_joins": 14,
+ "extra_uprights": 0,
+ "uprights_to_send": 14,
+ "weights_per_upright": 7,
+ "weights_to_send": 108,
+ "quote_lm": 14.2,
+ "quote_rate": 330.0,
+ "quote_ex_gst": 4686.0,
+ "quote_gst": 468.6,
+ "quote_total": 5154.6,
+ "quote_poa_lines": 0
+}

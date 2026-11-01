@@ -1,0 +1,46 @@
+{
+ "name": "Medibank Pacific Fair",
+ "prefix": "Medibank",
+ "dir": "hoarding/Medibank",
+ "date": "28/10/2026",
+ "title": "Medibank - Pacific Fair",
+ "faces": [
+  {
+   "name": "left return",
+   "len": 3.0,
+   "cut": "right"
+  },
+  {
+   "name": "front",
+   "len": 7.5,
+   "door_offset": 4.7
+  },
+  {
+   "name": "right return",
+   "len": 1.6,
+   "cut": "left"
+  }
+ ],
+ "front": 7.5,
+ "return": 3.0,
+ "height": 4.2,
+ "door_offset": 4.7,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "shopfront": 7.2,
+ "step": 1.4,
+ "push": 0.3,
+ "right_return": 1.6,
+ "track": {
+  "face": "left return",
+  "len": 1.4,
+  "studs": 3,
+  "lengths": 2
+ },
+ "entry_note": ", 1200 from the right end",
+ "photo_text": "Gus's markup on the site photo: the blue outline is the hoarding limit on the floor and the crossed box is the entry. The green boxes show the old fixing marks where tracks were used before, beside the fire door.",
+ "photo_h": 225,
+ "no_corner_uprights": true,
+ "site": "Pacific Fair",
+ "quote_date": "01/11/2026"
+}

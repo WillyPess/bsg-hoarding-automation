@@ -1,0 +1,16 @@
+{
+ "name": "David Jones - Ground Level",
+ "prefix": "DavidJones",
+ "dir": "hoarding/DavidJones",
+ "date": "27/10/2026",
+ "title": "David Jones - Ground Level",
+ "front": 20.0,
+ "return": 1.6,
+ "height": 4.5,
+ "door_offset": 12.4,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "entry_note": ", 6000 from the right end",
+ "site": "Pacific Fair",
+ "quote_date": "01/11/2026"
+}

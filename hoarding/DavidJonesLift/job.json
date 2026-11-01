@@ -1,0 +1,50 @@
+{
+ "name": "David Jones - Lift Area",
+ "prefix": "DavidJonesLift",
+ "dir": "hoarding/DavidJonesLift",
+ "date": "01/11/2026",
+ "title": "David Jones - Lift Area",
+ "shape": "U",
+ "external": true,
+ "faces": [
+  {
+   "name": "left return",
+   "len": 1.6,
+   "cut": "right"
+  },
+  {
+   "name": "left side",
+   "len": 5.6,
+   "cut": "right"
+  },
+  {
+   "name": "front",
+   "len": 10.2,
+   "cut": "right"
+  },
+  {
+   "name": "right side",
+   "len": 5.6,
+   "door_offset": 2.8
+  },
+  {
+   "name": "right return",
+   "len": 1.6,
+   "cut": "left"
+  }
+ ],
+ "front": 10.2,
+ "return": 1.6,
+ "height": 2.4,
+ "sheet_h": 2.4,
+ "door_offset": 2.8,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "entry_note": ", with one full 1200 sheet between the entry and the right return",
+ "photo_text": "Gus's markup on the site photo: the red outline is the hoarding limit on the ground around the kiosk. The entry is on the right side, facing the kiosk's own entry.",
+ "photo_h": 88,
+ "site": "Pacific Fair",
+ "extra_uprights": 0.4,
+ "weights_per_upright": 8,
+ "quote_date": "01/11/2026"
+}

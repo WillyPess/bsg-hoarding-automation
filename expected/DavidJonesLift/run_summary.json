@@ -1,0 +1,19 @@
+{
+ "job": "DavidJonesLift",
+ "run_m": 24.6,
+ "height_m": 2.4,
+ "layout_sheets": 20,
+ "sheets_to_send": 22,
+ "tops": 0,
+ "uprights_at_joins": 24,
+ "extra_uprights": 10,
+ "uprights_to_send": 34,
+ "weights_per_upright": 8,
+ "weights_to_send": 300,
+ "quote_lm": 24.6,
+ "quote_rate": 220.0,
+ "quote_ex_gst": 5412.0,
+ "quote_gst": 541.2,
+ "quote_total": 5953.2,
+ "quote_poa_lines": 1
+}

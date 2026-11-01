@@ -1,0 +1,74 @@
+{
+ "_source": "CLAUDE.md reference results, approved by Gus (2026-11-01). FRED (legacy) is not a fixture; use FRED_v2.",
+ "jobs": {
+  "Bikini": {
+   "run_m": 10.4,
+   "height_m": 4.5,
+   "sheets_to_send": 11,
+   "tops": 8,
+   "uprights_to_send": 10,
+   "weights_to_send": 77,
+   "quote_ex_gst": null
+  },
+  "FRED_v2": {
+   "run_m": 14.2,
+   "height_m": 4.5,
+   "sheets_to_send": 14,
+   "tops": 11,
+   "uprights_to_send": 14,
+   "weights_to_send": 108,
+   "quote_ex_gst": 4686.0
+  },
+  "DavidJones": {
+   "run_m": 23.2,
+   "height_m": 4.5,
+   "sheets_to_send": 21,
+   "tops": 18,
+   "uprights_to_send": 22,
+   "weights_to_send": 170,
+   "quote_ex_gst": 7656.0
+  },
+  "DavidJones1": {
+   "run_m": 23.2,
+   "height_m": 4.5,
+   "sheets_to_send": 21,
+   "tops": 18,
+   "uprights_to_send": 22,
+   "weights_to_send": 170,
+   "quote_ex_gst": 7656.0
+  },
+  "Shrungaar": {
+   "run_m": 19.5,
+   "height_m": 4.0,
+   "sheets_to_send": 18,
+   "tops": 15,
+   "uprights_to_send": 18,
+   "weights_to_send": 119,
+   "quote_ex_gst": null,
+   "tops_note": "15 x 400"
+  },
+  "Medibank": {
+   "run_m": 12.1,
+   "height_m": 4.2,
+   "sheets_to_send": 12,
+   "tops": 9,
+   "uprights_to_send": 7,
+   "weights_to_send": 47,
+   "quote_ex_gst": 3872.0,
+   "tops_note": "9 x 600"
+  },
+  "DavidJonesLift": {
+   "run_m": 24.6,
+   "height_m": 2.4,
+   "sheets_to_send": 22,
+   "tops": 0,
+   "uprights_to_send": 34,
+   "weights_to_send": 300,
+   "quote_ex_gst": 5412.0,
+   "uprights_at_joins": 24,
+   "extra_uprights": 10,
+   "weights_per_upright": 8,
+   "quote_poa_lines": 1
+  }
+ }
+}

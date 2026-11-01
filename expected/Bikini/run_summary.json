@@ -1,0 +1,13 @@
+{
+ "job": "Bikini",
+ "run_m": 10.4,
+ "height_m": 4.5,
+ "layout_sheets": 9,
+ "sheets_to_send": 11,
+ "tops": 8,
+ "uprights_at_joins": 10,
+ "extra_uprights": 0,
+ "uprights_to_send": 10,
+ "weights_per_upright": 7,
+ "weights_to_send": 77
+}

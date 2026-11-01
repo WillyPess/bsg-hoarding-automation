@@ -1,0 +1,13 @@
+{
+ "job": "Shrungaar",
+ "run_m": 19.5,
+ "height_m": 4.0,
+ "layout_sheets": 16,
+ "sheets_to_send": 18,
+ "tops": 15,
+ "uprights_at_joins": 18,
+ "extra_uprights": 0,
+ "uprights_to_send": 18,
+ "weights_per_upright": 6,
+ "weights_to_send": 119
+}

@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Original handoff archive: kept next to the repo, untouched, never committed
+*.zip
+
+# Generated job outputs (rebuilt by run_job.py; the fixtures live in expected/)
+hoarding/*/*_hoarding_sheet.png
+hoarding/*/*_melamine_layout.png
+hoarding/*/*_materials.xlsx
+hoarding/*/*_materials.pdf
+hoarding/*/*_Hoarding_Package.pdf
+hoarding/*/*_Quotation.pdf
+hoarding/*/run_summary.json
+hoarding/*/.body.pdf
+hoarding/Medibank/Medibank_track_plan_CHECK.png
+
+# LibreOffice lock files
+.~lock.*

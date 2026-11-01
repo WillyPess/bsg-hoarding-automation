@@ -1,0 +1,38 @@
+{
+ "name": "Shrungaar",
+ "prefix": "Shrungaar",
+ "dir": "hoarding/Shrungaar",
+ "date": "21/10/2026",
+ "title": "Shrungaar - Hyperdome",
+ "corner": true,
+ "faces": [
+  {
+   "name": "angled return",
+   "len": 1.2,
+   "cut": "right"
+  },
+  {
+   "name": "side",
+   "len": 8.5,
+   "cut": "right"
+  },
+  {
+   "name": "front",
+   "len": 8.6,
+   "door_offset": 2.2
+  },
+  {
+   "name": "right return",
+   "len": 1.2,
+   "cut": "left"
+  }
+ ],
+ "front": 8.6,
+ "return": 1.2,
+ "height": 4.0,
+ "door_offset": 2.2,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "entry_note": ", 4800 from the right end, where the shop entry has more room",
+ "site": "Hyperdome"
+}

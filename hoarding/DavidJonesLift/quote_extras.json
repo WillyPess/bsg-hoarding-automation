@@ -1,0 +1,17 @@
+{
+ "scope": "Supply, install and remove a free-standing hoarding around three sides of the kiosk in the outdoor rooftop car park",
+ "extra_lines": [
+  {
+   "desc": "Wind loading for external install: 10 extra uprights (34 in total) and 8 counterweights per upright",
+   "qty": 1,
+   "unit": "item",
+   "rate": null
+  }
+ ],
+ "price_notes": [
+  "This hoarding is outdoors, so it is strengthened against wind with 40% more uprights and 8 counterweights per upright. Wind-rated hoardings are priced on application (POA) under the rate card."
+ ],
+ "terms_notes": [
+  "This is an external hoarding. Prices exclude a certified wind-rated design unless stated."
+ ]
+}

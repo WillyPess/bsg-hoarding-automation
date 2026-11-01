@@ -1,0 +1,15 @@
+{
+ "name": "Bikini on the Beach",
+ "prefix": "Bikini",
+ "dir": "hoarding/Bikini",
+ "date": "20/10/2026",
+ "front": 8.0,
+ "return": 1.2,
+ "height": 4.5,
+ "door_offset": 1.2,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "title": "Bikini on the Beach",
+ "entry_note": ", in front of the shop entry and set to use full sheets",
+ "site": "Hyperdome"
+}

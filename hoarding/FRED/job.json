@@ -1,0 +1,17 @@
+{
+ "name": "FRED",
+ "prefix": "FRED",
+ "dir": "hoarding/FRED",
+ "date": "20/10/2026",
+ "title": "FRED",
+ "front": 11.0,
+ "return": 1.6,
+ "height": 4.5,
+ "door_offset": 4.8,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "entry_note": ", set to use full sheets",
+ "site": "Pacific Fair",
+ "legacy": true,
+ "legacy_note": "Created for the handoff from the known FRED inputs (same site measurements as FRED_v2). The files in expected/FRED were made on 2026-10-20 by the legacy layout_fred.py + package_pdf.py, before the 2-spare-sheet, aligned-tops, uprights-at-joins and weight-matrix rules. Use FRED_v2 as the test fixture."
+}

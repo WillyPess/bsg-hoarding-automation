@@ -1,0 +1,19 @@
+{
+ "job": "Medibank",
+ "run_m": 12.1,
+ "height_m": 4.2,
+ "layout_sheets": 10,
+ "sheets_to_send": 12,
+ "tops": 9,
+ "uprights_at_joins": 7,
+ "extra_uprights": 0,
+ "uprights_to_send": 7,
+ "weights_per_upright": 6,
+ "weights_to_send": 47,
+ "quote_lm": 12.1,
+ "quote_rate": 320.0,
+ "quote_ex_gst": 3872.0,
+ "quote_gst": 387.2,
+ "quote_total": 4259.2,
+ "quote_poa_lines": 0
+}
