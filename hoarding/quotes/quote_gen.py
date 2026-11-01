@@ -3,6 +3,7 @@ Usage: python3 quote_gen.py <job.json> [out.pdf]
 Optional job.json keys: quote_no, quote_date, extra_doors, extra_doors_after, passage_sets, kiosk, valid_days, extra_lines [{desc,qty,unit,rate(null=POA)}], price_notes, terms_notes, scope.
 """
 import json, sys, os, math, datetime
+from decimal import Decimal, ROUND_HALF_UP
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -28,6 +29,15 @@ RATE_CARD = "BSG Commercial Internal Hoarding Schedule of Rates for GPT - Pacifi
 def money(v): return f"${v:,.2f}"
 
 
+def cents(*xs):
+    """Product of the values in exact decimal, rounded to the cent, half a cent up (as for GST).
+    Floats round on their binary value: 10.125 lm x $330 x 10% GST = 334.125 came out as 334.12."""
+    v = Decimal(1)
+    for x in xs:
+        v *= Decimal(str(x))
+    return v.quantize(Decimal("0.01"), ROUND_HALF_UP)
+
+
 def faces(job):
     """Sections and lengths from layout_gen.faces, so the quote charges the run the layout and materials are built from."""
     return [(f["name"].capitalize(), f["len"]) for f in layout_gen.faces(job)]
@@ -50,21 +60,21 @@ def compute(job):
     minimum = MIN_LM_KIOSK if label == KIOSK[2] else MIN_LM
     charged = max(run, minimum)
     lines = [(f"Titan hoarding, 16 mm white melamine with taped joints, {label.lower()}",
-              charged, "lm", rate, round(charged * rate, 2))]
+              charged, "lm", rate, cents(charged, rate))]
     for key, price, text in [("extra_doors", DOORS_DURING, "Additional set of double doors (during installation)"),
                              ("extra_doors_after", DOORS_AFTER, "Additional set of double doors (after installation)"),
                              ("passage_sets", PASSAGE, "Passage set in lieu of hasp & staple")]:
         n = job.get(key, 0)
         if n:
-            lines.append((text, n, "set", price, round(n * price, 2)))
+            lines.append((text, n, "set", price, cents(n, price)))
     for x in job.get("extra_lines", []):
         r = x.get("rate")
         lines.append((x["desc"], x.get("qty", 1), x.get("unit", "item"), r,
-                      None if r is None else round(x.get("qty", 1) * r, 2)))
-    sub = round(sum(l[4] for l in lines if l[4] is not None), 2)
-    gst = round(sub * GST, 2)
+                      None if r is None else cents(x.get("qty", 1), r)))
+    sub = sum((l[4] for l in lines if l[4] is not None), Decimal(0))
+    gst = cents(sub, GST)
     return dict(faces=fs, run=run, band_top=top, rate=rate, label=label, minimum=minimum,
-                charged=charged, lines=lines, sub=sub, gst=gst, total=round(sub + gst, 2))
+                charged=charged, lines=lines, sub=sub, gst=gst, total=sub + gst)
 
 
 def build(job, out):
