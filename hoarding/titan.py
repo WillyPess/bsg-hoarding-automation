@@ -16,6 +16,11 @@ def counterweights(uprights, H):
     per = row(H)[2]
     return per, math.ceil(round(uprights * per * (1 + EXTRA), 6))
 
+def joins(p, c):
+    """Uprights at the sheet joins: one per upright position in the layout (c = layout_gen.compute(p)),
+    or "uprights" in job.json when set by hand (corners that can't take uprights, fire-door jobs, Gus 2026-10-28)."""
+    return p.get("uprights", len(c["uprights"]))
+
 def for_job(p, joins):
     """(uprights to send, how many of them are extra, weights per upright, weights to send incl. 10% spare).
     joins = uprights at the sheet joins. A job can ask for more (external jobs, Gus 2026-11-01, David Jones Lift Area):

@@ -12,8 +12,8 @@ from layout_gen import compute
 J=json.load(open(sys.argv[1])); D=J["dir"].rstrip("/")+"/"; P=J["prefix"]; N=J["name"]
 F,R,H,DO,DW,DH=J["front"],J["return"],J["height"],J["door_offset"],J["door_width"],J.get("door_height",2.4)
 c=compute(J); L=c["L"]; mm=lambda v:f"{round(v*1000)}"; m=lambda v:f"{v:g} m"
-UPJ=len(c["uprights"])   # at the joins between sheets (Gus, 2026-11-01)
-from titan import for_job
+from titan import for_job, joins
+UPJ=joins(J,c)   # at the joins between sheets (Gus, 2026-11-01), or set by hand in job.json
 up,UPX,PER,CW=for_job(J,UPJ)   # BSG weight matrix by height, +10% spare (Gus, 2026-11-01); external jobs can add uprights / weights
 WTXT=f"{PER} counterweights each ({'for wind, external site' if J.get('weights_per_upright') else f'weight matrix for {H:g} m'}; {CW} sent, incl. 10% spare)"
 XTXT=f" Plus {UPX} extra uprights ({round(J.get('extra_uprights',0)*100)}% more, for wind on this external site), also with {PER} counterweights each; the supervisor decides where they go." if UPX else ""
