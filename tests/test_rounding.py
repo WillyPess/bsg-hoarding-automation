@@ -29,7 +29,7 @@ def test_external_extra_uprights_round_up():
 
 
 def quote(**job):
-    return quote_gen.compute({"return": 1.6, **job})
+    return quote_gen.compute({"return": 1.6, "door_offset": 1.0, **job})
 
 
 def test_quote_height_band_at_exact_limits():

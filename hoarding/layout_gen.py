@@ -20,6 +20,9 @@ def faces(p):
     """Wall faces left to right, unfolded. Standard job: return / front / return. Corner jobs list p["faces"]:
     [{"name", "len", "cut": "left"|"right" (end for the cut piece), "door_offset" on the face with the entry}]."""
     if "faces" in p: return p["faces"]
+    if p.get("right_return", p["return"]) != p["return"]:
+        raise ValueError(f'right_return {p["right_return"]} differs from return {p["return"]}: the standard layout, grid sheet and materials form '
+                         'use "return" on both sides. Unequal returns need "faces" (see Medibank/job.json).')
     return [{"name": "left return", "len": p["return"], "cut": "right"},
             {"name": "front", "len": p["front"], "door_offset": p["door_offset"]},
             {"name": "right return", "len": p["return"], "cut": "left"}]

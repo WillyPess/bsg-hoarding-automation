@@ -11,6 +11,8 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Table, Tab
                                 Image, PageBreak, KeepTogether)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HERE))   # hoarding/, for layout_gen
+import layout_gen
 ORANGE = colors.HexColor("#F39200"); GREY = colors.HexColor("#4D4D4D"); LIGHT = colors.HexColor("#F4F4F4")
 
 BANDS = [(2.4, 220.0, "Up to 2.4 m high"), (3.6, 280.0, "Up to 3.6 m high"),
@@ -27,10 +29,8 @@ def money(v): return f"${v:,.2f}"
 
 
 def faces(job):
-    if "faces" in job:
-        return [(f["name"].capitalize(), f["len"]) for f in job["faces"]]
-    r = job["return"]
-    return [("Left return", r), ("Front", job["front"]), ("Right return", job.get("right_return", r))]
+    """Sections and lengths from layout_gen.faces, so the quote charges the run the layout and materials are built from."""
+    return [(f["name"].capitalize(), f["len"]) for f in layout_gen.faces(job)]
 
 
 def band(job):
