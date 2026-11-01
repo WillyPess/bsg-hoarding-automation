@@ -2,6 +2,8 @@
 import sys, json
 from PIL import Image, ImageDraw, ImageFont
 from paths import F, FB
+from rules import RULES
+DH_STD = round(RULES["defaults"]["door_height"] * 1000)   # standard entry height, mm: not dimensioned (Gus, 2026-10-21)
 fnt = lambda s, b=False: ImageFont.truetype(FB if b else F, s)
 INK, BLUE, RED, AMBER = (20, 22, 26), (30, 60, 170), (190, 30, 60), (205, 110, 0)
 
@@ -69,7 +71,7 @@ def render(p, out):
         hdim(a, b, eyb + 60, v, k, above=False)
     hdim(dx0, dx1, dyt - 30, dw, "door_width")
     hdim(xs[1], dx0, eyb - dh * se / 2, doff, "door_offset")   # mid-height of the entry (boss, 2026-10-20)
-    if p.get("show_door_height") or abs(dh - 2400) > 1: vdim(dx1 + 30, dyt, eyb, dh, "door_height", left=False)   # only when not the standard 2400 (Gus, 2026-10-21)
+    if p.get("show_door_height") or abs(dh - DH_STD) > 1: vdim(dx1 + 30, dyt, eyb, dh, "door_height", left=False)   # only when not the standard 2400 (Gus, 2026-10-21)
     if est: t((120, Hc - 60), "* in orange: estimated from the photo, confirm on site", fnt(30, True), AMBER, "lm")
     im.save(out)
 

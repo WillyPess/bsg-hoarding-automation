@@ -33,6 +33,7 @@ The lite bundle has no reference PDFs or PNGs, so `expected/<Job>/baseline.json`
 | `CLAUDE.md` | Full v1 documentation: business rules, scripts, job.json keys, how to reproduce, reference results |
 | `notes/` | Project notes (corner jobs, fire-door jobs, quotation workflow, rate card, history of decisions) |
 | `hoarding/*.py` | The engine. `layout_gen.py` (`compute()` = sheets, cuts, tops, upright positions) is the core; `titan.py` = weight matrix; `materials.py`, `sheet*.py`, `package_gen.py`, `quotes/quote_gen.py` |
+| `hoarding/rules.json` | Every adjustable business value (sizes, spares, weight matrix, external values, defaults, rate card) with its source and whether it's provisional; the engine reads it through `hoarding/rules.py` |
 | `hoarding/legacy/` | `layout.py`, `layout_fred.py`, `package_pdf.py`: old hard-coded scripts (DeOnes / FRED), superseded, kept for history only |
 | `hoarding/<Job>/` | **Inputs** per job: `job.json`, the photo markup (`*_hoarding_markup.jpg`), photo, `quote_extras.json`, job scripts (`Shrungaar/markup.py`, `Medibank/track_plan.py`) |
 | `expected/<Job>/` | **Fixtures**: outputs of the current engine from these inputs (materials xlsx/pdf, package PDF, quotation PDF, sheet + layout PNGs) and `run_summary.json` with the key counts |

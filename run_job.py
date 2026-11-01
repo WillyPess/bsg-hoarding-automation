@@ -88,11 +88,12 @@ def counts(job):
     sys.path.insert(0, H); sys.path.insert(0, os.path.join(H, "quotes"))
     from layout_gen import compute
     import titan
+    from rules import RULES
     c = compute(job)
     joins = titan.joins(job, c)
     up, extra, per, w = titan.for_job(job, joins)
     out = {"job": os.path.basename(job["dir"]), "run_m": c["L"], "height_m": job["height"],
-           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + 2, "tops": c["tops"],
+           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": c["tops"],
            "uprights_at_joins": joins, "extra_uprights": extra, "uprights_to_send": up,
            "weights_per_upright": per, "weights_to_send": w}
     if job.get("site") == "Pacific Fair":

@@ -23,6 +23,8 @@ Everything lives in `/mnt/project-files/hoarding/` (scripts at the top, one fold
 
 Rules below were given or approved by Gus (or his boss). Don't invent new ones; when something isn't covered, ask Gus.
 
+The numbers in these rules (sizes, spares, matrix, external values, defaults, rate card) live in **`hoarding/rules.json`**, each with its source and a `provisional` flag. Change a value there, not in the code, and update this file to match.
+
 ### 1. Photo markup (hoarding limit)
 - Style copied from Gus's Just Cuts example: thin **red lines on the floor** of the photo, in perspective, from the shopfront corners out to the front line = the **hoarding limit**.
 - A **box with a cross** = the **hoarding entry**. It must line up with the shop's own entrance (projected straight out onto the front line). The entry may shift a little to use full sheets (see §4).
@@ -135,6 +137,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Script | What it does | Run |
 |---|---|---|
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
+| `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
 | `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), external 40% then 10% (24 → 34 → 38), `extra_weight_pct`. | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs (return/front/return). | `sheet.py '<json in mm>' <P>_hoarding_sheet.png` (front/return/height/door_* ×1000 + "title": "<TITLE>: HOARDING"; passing job.json in metres draws 0.0142 m) |
@@ -197,7 +200,7 @@ Optional keys:
 - Photo text: `photo_note` (line added under the photo), `photo_text` (replaces the caption), `photo_h` (photo height in mm on the page), `front_ends`, `by` (default "Gus").
 - **Corner job:** `"faces": [{"name","len","cut"} ..., {"name":"front","len":..,"door_offset":..}]` (see `Shrungaar/job.json`).
 - **U job:** `"shape": "U"`, 5 faces, `"sheet_h": 2.4` for 2.4 m hoardings (see `DavidJonesLift/job.json`).
-- **External:** `"external": true, "extra_uprights": 0.4, "weights_per_upright": 8`, and `"extra_weight_pct"` (the user's answer, §7; required on external jobs from step D).
+- **External:** `"external": true` (the 40% extra uprights and 8 weights per upright come from `rules.json`; `"extra_uprights"` / `"weights_per_upright"` in job.json override them for one job), and `"extra_weight_pct"` (the user's answer, §7; required on external jobs from step D).
 - **Fire door:** `faces` (3), `"track": {"face","len","studs","lengths"}`, `"no_corner_uprights": true`, `"shopfront"`, `"step"`, `"push"`, `"right_return"` (see `Medibank/job.json`).
 - **Quote:** `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines` [{desc, qty, unit, rate (null = POA)}], `price_notes`, `terms_notes`.
 

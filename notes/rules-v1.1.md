@@ -23,6 +23,8 @@ Everything lives in `/mnt/project-files/hoarding/` (scripts at the top, one fold
 
 Rules below were given or approved by Gus (or his boss). Don't invent new ones; when something isn't covered, ask Gus.
 
+The numbers in these rules (sizes, spares, matrix, external values, defaults, rate card) live in **`hoarding/rules.json`**, each with its source and a `provisional` flag. Change a value there, not in the code, and update this file to match.
+
 ### 1. Photo markup (hoarding limit)
 
 - Style copied from Gus's Just Cuts example: thin **red lines on the floor** of the photo, in perspective, from the shopfront corners out to the front line = the **hoarding limit**.
@@ -147,6 +149,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 | Script | What it does | Run |
 | --- | --- | --- |
 | `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
+| `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
 | `titan.py` | Weight matrix, +10% spare, external-job overrides (`for_job`). Used by materials + package. **Needs updating for v1.1:** weights from all uprights incl. spares (no separate +10%), external 40% then 10% (24 → 34 → 38), `extra_weight_pct`. | (library) |
 | `materials.py` | Boss's materials form as xlsx (uses `compute` + `titan`). **Needs updating for v1.1:** tops from offcuts, uprights/anti-tampers/tape from joints, kiosk door. | `materials.py <P>_materials.xlsx job.json` |
 | `sheet.py` | Grid sheet (plan + elevation, mm) for standard jobs. | `sheet.py "$(cat job.json)" <P>_hoarding_sheet.png` |
@@ -210,7 +213,7 @@ All lengths in **metres**. Standard job:
  "entry_note": ", set to use full sheets"}
 ```
 
-Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights`, `weights_per_upright`, `extra_weight_pct` (the user's answer, §7; required on external jobs from step D); fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
+Optional keys: `photo_note`, `photo_text`, `photo_h`, `front_ends`, `by`; corner `faces`; U `shape`, `sheet_h`; external `external`, `extra_uprights` / `weights_per_upright` (override rules.json for one job), `extra_weight_pct` (the user's answer, §7; required on external jobs from step D); fire door `faces`, `track`, `no_corner_uprights`, `shopfront`, `step`, `push`, `right_return`; quote `quote_no`, `quote_date`, `valid_days`, `kiosk`, `extra_doors`, `extra_doors_after`, `passage_sets`, `scope`, `extra_lines`, `price_notes`, `terms_notes`.
 
 ### Steps
 
