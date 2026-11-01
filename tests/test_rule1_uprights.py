@@ -41,9 +41,3 @@ def test_fire_door_counts_only_joints_with_an_upright():
     joints = titan.joins(j, layout_gen.compute(j))
     assert joints == 7
     assert titan.for_job(j, joints)[:3] == (8, 0, 1)
-
-
-def test_weights_not_changed_by_rule_1():
-    # Rule 2 moves the weights onto all uprights; until then they are worked out as in v1, before the spare.
-    assert titan.for_job({"height": 4.5}, 10)[4] == 77
-    assert titan.for_job({"height": 2.4, "external": True}, 24)[4] == 300

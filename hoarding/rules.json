@@ -48,8 +48,7 @@
     {"max_height": 6.0, "centres": 1.2, "weights": 9},
     {"max_height": 6.6, "centres": 1.2, "weights": 11},
     {"max_height": 7.2, "centres": 1.2, "weights": 12}],
-   "source": "BSG weight matrix, Internal Hoardings (Impact Certification Standards), Gus 2026-11-01 (§6): weights per upright by height, first row at or above the hoarding height, no bracing.", "provisional": false},
-  "spare": {"value": 0.10, "source": "v1 rule: +10% spare weights, rounded up. Removed by Gus on 2026-11-01 (weights now come from the spare uprights, §6); the code still uses it until step D rule 2.", "provisional": true}
+   "source": "BSG weight matrix, Internal Hoardings (Impact Certification Standards), Gus 2026-11-01 (§6): weights per upright by height, first row at or above the hoarding height, no bracing. Weights to send = all uprights incl. the spare uprights x this value; no separate spare weights (Gus, 2026-11-01).", "provisional": false}
  },
 
  "external": {

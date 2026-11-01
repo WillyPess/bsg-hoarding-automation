@@ -5,13 +5,6 @@ import layout_gen, titan
 from quotes import quote_gen
 
 
-def test_weights_50_x_1_1_is_55():
-    # 10 uprights x 5 weights (3.6 m row) x 1.1 = 55.00000000000001 in floating point
-    assert 10 * 5 * 1.1 > 55
-    assert titan.counterweights(10, 3.6) == (5, 55)
-    assert titan.for_job({"height": 3.6}, 10) == (11, 0, 1, 5, 55)   # + 1 spare upright (rule 1); weights on the 10 until rule 2
-
-
 def test_sheets_21_6_over_1_2_is_18():
     # 21.6 / 1.2 = 18.000000000000004 in floating point
     assert 21.6 / 1.2 > 18
@@ -20,14 +13,9 @@ def test_sheets_21_6_over_1_2_is_18():
     assert (c["sheets"], c["bins"]) == (18, [])
 
 
-def test_weights_spare_rounds_up():
-    # Medibank: 7 uprights x 6 weights x 1.1 = 46.2 -> 47
-    assert titan.counterweights(7, 4.2) == (6, 47)
-
-
 def test_external_extra_uprights_round_up():
-    # DJ Lift: 24 x 0.4 = 9.6 -> 10 extra uprights; 34 x 0.1 = 3.4 -> 4 spare (38); 34 x 8 x 1.1 = 299.2 -> 300 weights
-    assert titan.for_job({"height": 2.4, "extra_uprights": 0.4, "weights_per_upright": 8}, 24) == (38, 10, 4, 8, 300)
+    # DJ Lift: 24 x 0.4 = 9.6 -> 10 extra uprights; 34 x 0.1 = 3.4 -> 4 spare (38); 38 x 8 = 304 weights
+    assert titan.for_job({"height": 2.4, "extra_uprights": 0.4, "weights_per_upright": 8}, 24) == (38, 10, 4, 8, 304)
 
 
 def quote(**job):
