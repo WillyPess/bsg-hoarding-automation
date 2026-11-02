@@ -47,6 +47,14 @@ def test_standard_jobs_keep_1200_wide_sheets():
     assert layout_gen.compute(kiosk())["sheet_w"] == 2.4 and layout_gen.compute(j)["sheet_w"] == 1.2   # no leftover between jobs
 
 
+def test_helpers_do_not_keep_the_kiosk_width():
+    # after a kiosk job, the standalone helpers still count standard 1.2 m sheets (no module state leaks into them)
+    layout_gen.compute(kiosk())
+    assert layout_gen.nfull(21.6) == 18
+    assert layout_gen.ffd([{"x": 0, "w": 1.0}])[0]["left"] == 0.2
+    assert layout_gen.nfull(21.6, 2.4) == 9
+
+
 @pytest.mark.parametrize("height", [1.0, 1.8, 2.4])
 def test_validate_kiosk_only_at_1_2_m(height):
     j = {**kiosk(), "height": height, "door_height": min(1.0, height)}

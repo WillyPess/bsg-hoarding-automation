@@ -60,9 +60,9 @@ def test_vertical_joints_are_the_upright_joints_on_normal_jobs(name):
     assert tape.vertical_joints(j, c) == sorted(round(u * 1000) for u in c["uprights"])
 
 
-V1 = {"Bikini": 10, "FRED_v2": 13, "DavidJones": 22, "DavidJones1": 22, "Shrungaar": 18, "Medibank": 11, "DavidJonesLift": 23, "Bikini_3000": 10, "Bikini_2400": 10}
+V1 = {"Bikini": 10, "FRED_v2": 13, "DavidJones": 22, "DavidJones1": 22, "Shrungaar": 18, "Medibank": 11, "DavidJonesLift": 23, "Bikini_3000": 10, "Bikini_2400": 10, "Kiosk_PF": 9}
 JOINTS = {"Bikini": 5, "FRED_v2": 7, "DavidJones": 11, "DavidJones1": 11, "Shrungaar": 8, "Medibank": 6, "DavidJonesLift": 6,
-          "Bikini_3000": 3, "Bikini_2400": 3}   # rule 6 test jobs: no tops joint below 3.6 m
+          "Bikini_3000": 3, "Bikini_2400": 3, "Kiosk_PF": 1}   # rule 6 test jobs: no tops joint below 3.6 m
 
 
 def test_switch_is_on_with_a_100_percent_spare():

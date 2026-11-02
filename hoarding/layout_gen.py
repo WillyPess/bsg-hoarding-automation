@@ -8,14 +8,18 @@ SW, SH = RULES["sheet"]["width"], RULES["sheet"]["height"]   # sheet width; SH =
 DH = RULES["defaults"]["door_height"]   # entry height when job.json has none
 E = 1e-6
 
-def nfull(x): return int(round(x / SW, 6) // 1)
+def nfull(x, w=None):
+    """Whole sheets of width w (default: the standard sheet width) in a length x."""
+    return int(round(x / (w or RULES["sheet"]["width"]), 6) // 1)
 
-def ffd(rem):
+def ffd(rem, w=None):
+    """First-fit decreasing: cut pieces packed into sheets of width w (default: the standard sheet width)."""
+    w = w or RULES["sheet"]["width"]
     bins = []
     for r in sorted(rem, key=lambda r: -r["w"]):
         for b in bins:
             if b["left"] + E >= r["w"]: b["left"] = round(b["left"] - r["w"], 3); b["cuts"].append(r); break
-        else: bins.append({"left": round(SW - r["w"], 3), "cuts": [r]})
+        else: bins.append({"left": round(w - r["w"], 3), "cuts": [r]})
     return bins
 
 def faces(p):
@@ -72,13 +76,13 @@ def compute(p):
     secs, folds, segs, door_x, L = runs(p)
     full, rem = [], []
     for x0, ln, corner, name in secs:
-        n = nfull(ln); r = round(ln - n * SW, 3)
+        n = nfull(ln, SW); r = round(ln - n * SW, 3)
         xs = x0 + (r if corner == "left" else 0)
         for i in range(n): full.append({"x": round(xs + i * SW, 3), "where": name})
         if r > E: rem.append({"x": round(x0 if corner == "left" else x0 + n * SW, 3), "w": r, "where": name})
     full.sort(key=lambda f: f["x"])
     for i, f in enumerate(full): f["sheet"] = i + 1
-    bins = ffd(rem)
+    bins = ffd(rem, SW)
     k = len(full)
     for b in bins:
         k += 1; b["sheet"] = k
@@ -91,7 +95,7 @@ def compute(p):
     tfull = [{"x": f_["x"]} for f_ in full]
     for i, t_ in enumerate(tfull): t_["label"] = f"T{i + 1}"
     trem = [{"x": cu["x"], "w": cu["w"], "where": cu["where"]} for b in bins for cu in b["cuts"]]
-    tbins = ffd(trem); kt = len(tfull)
+    tbins = ffd(trem, SW); kt = len(tfull)
     for b in tbins:
         kt += 1
         for j, cu in enumerate(b["cuts"]): cu["label"] = f"T{kt}" + ("abcdefgh"[j] if len(b["cuts"]) > 1 else ""); cu["n"] = kt

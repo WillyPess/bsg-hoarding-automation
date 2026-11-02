@@ -236,9 +236,9 @@ python3 $H/quotes/quote_gen.py job.json                              # Pacific F
 
 Check the images and the printed summary against the rules above before sending.
 
-### Reference results (v1.1 rules 1–6 and 8 applied)
+### Reference results (v1.1 rules 1–8 applied)
 
-Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). White tape = joint length x 2 / 25 m, black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; both spares provisional). Sheets by height band (rule 6): the two test jobs pin the 2.4 m and 2.4–3.6 m bands. The next v1.1 rule (7) adds the kiosk; update these rows with each rule.
+Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). White tape = joint length x 2 / 25 m, black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; both spares provisional). Sheets by height band (rule 6): the two test jobs pin the 2.4 m and 2.4–3.6 m bands. The 1.2 m kiosk (rule 7) is pinned by the test job Kiosk_PF (quote at the 15 lm minimum x $115). Update these rows with each rule change.
 
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Anti-tampers | Weights | White tape | Black tape | Quote ex GST |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -250,6 +250,7 @@ Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all up
 | DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | 6 | 2 | $5,412 + wind POA |
 | Bikini_3000 (test, 3.0 m) | 10.4 | 3.0 | 9+2, 3600 cut to 3000 (8 cut-offs 1200 x 600 to tops stock) | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
 | Bikini_2400 (test, 2.4 m) | 10.4 | 2.4 | 8+2, 2400 sheets, no door top | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
+| Kiosk_PF (test, kiosk, PF) | 9.2 | 1.2 | 4+2, 2400 x 1200 laid horizontally; 1 door cut in half | 0 | 6 + 1 = 7 | 7 | 7 x 2 = 14 | 1 | 1 | $1,725 (15 lm min x $115) |
 
 ## Open points
 
