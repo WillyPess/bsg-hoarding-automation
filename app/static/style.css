@@ -1,0 +1,15 @@
+/* BSG Hoarding: one small stylesheet, no CDN (PLAN-app.md §2). */
+:root { --ink: #1c1f24; --muted: #6b7178; --line: #d8dce0; --ok: #1e7a3c; --fail: #b3261e; --brand: #1e3caa; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.5 system-ui, "Segoe UI", sans-serif; color: var(--ink); background: #fff; }
+header.top { display: flex; gap: 1.5rem; align-items: center; padding: .75rem 1.25rem; border-bottom: 1px solid var(--line); }
+header.top .brand { font-weight: 700; color: var(--brand); text-decoration: none; }
+nav a { margin-right: 1rem; color: var(--ink); }
+main { max-width: 960px; padding: 1.25rem; }
+footer { padding: 1rem 1.25rem; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--line); }
+.ok { color: var(--ok); font-weight: 600; }
+.fail { color: var(--fail); font-weight: 600; }
+.small { color: var(--muted); font-size: .9rem; }
+@media print { header.top nav, footer { display: none; } }

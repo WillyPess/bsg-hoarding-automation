@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Health · BSG Hoarding{% endblock %}
+{% block content %}
+<h1>Health</h1>
+<p class="{{ 'ok' if ok else 'fail' }}">{{ "Everything is ready." if ok else "Something needs fixing before jobs can run." }}</p>
+<table>
+  <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+  <tbody>
+  {% for c in checks %}
+    <tr><td>{{ c.name }}</td><td class="{{ 'ok' if c.ok else 'fail' }}">{{ "ok" if c.ok else "FAIL" }}</td><td>{{ c.detail }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="small">Model: {{ settings.ai.model }} · Caps: ${{ "%.2f"|format(settings.ai.cap_per_job_usd) }} per job, ${{ "%.2f"|format(settings.ai.cap_per_month_usd) }} per month · <a href="/health.json">JSON</a></p>
+{% endblock %}
