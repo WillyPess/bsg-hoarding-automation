@@ -37,9 +37,10 @@ def run(jobdir):
     jobdir = os.path.abspath(jobdir)
     job = json.load(open(os.path.join(jobdir, "job.json")))
     job["dir"] = jobdir
-    if job.get("external") and "extra_weight_pct" not in job:   # Gus, 2026-11-01: ask, never fill it in
-        import titan
-        raise SystemExit(f"{job['prefix']}: {titan.QUESTION} Put the answer in job.json as \"extra_weight_pct\" (0 = no extra weight).")
+    import validate   # inputs checked before anything is written (external jobs: asks the extra weight question, never fills it in)
+    problems = validate.check(job)
+    if problems:
+        raise SystemExit(f"{job.get('prefix', jobdir)}: job.json can't run:\n" + "\n".join(f"  - {p}" for p in problems))
     P = job["prefix"]
     tmp = tempfile.mkdtemp()
     jp = os.path.join(tmp, "job.json"); json.dump(job, open(jp, "w"))
