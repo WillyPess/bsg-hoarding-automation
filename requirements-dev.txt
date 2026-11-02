@@ -1,2 +1,3 @@
 -r requirements.txt
 pytest==9.2.0
+httpx2==2.16.0   # FastAPI TestClient (app tests); starlette 1.10 uses httpx2, plain httpx is deprecated
