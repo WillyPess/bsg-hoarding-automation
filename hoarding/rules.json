@@ -26,9 +26,13 @@
  },
 
  "kiosk_door": {
-  "leaf_width": {"value": 0.8, "source": "Gus, 2026-11-01 (v1.1 §3): kiosk leaves 0.8 x 1.2 m.", "provisional": false, "used_from": "step D rule 7"},
-  "leaf_height": {"value": 1.2, "source": "Gus, 2026-11-01 (v1.1 §3).", "provisional": false, "used_from": "step D rule 7"},
-  "doors": {"value": 1, "source": "Gus, 2026-11-01 (v1.1 §3): one normal door cut in half makes both leaves, so the form lists 1 door.", "provisional": false, "used_from": "step D rule 7"}
+  "leaf_width": {"value": 0.8, "source": "Gus, 2026-11-01 (v1.1 §3): kiosk leaves 0.8 x 1.2 m.", "provisional": false},
+  "leaf_height": {"value": 1.2, "source": "Gus, 2026-11-01 (v1.1 §3). Also the kiosk entry height default (jobs.normalize).", "provisional": false},
+  "doors": {"value": 1, "source": "Gus, 2026-11-01 (v1.1 §3): one normal door cut in half makes both leaves, so the form lists 1 door.", "provisional": false}
+ },
+
+ "kiosk": {
+  "height": {"value": 1.2, "source": "Gus, 2026-11-01 (v1.1 §4): the 1.2 m kiosk, 2400 x 1200 sheets laid horizontally, no cut. 2026-11-02: \"kiosk\": true only at exactly this height (any other: ask Gus); a job at this height without it gets a warning (it changes the rate).", "provisional": false}
  },
 
  "uprights": {

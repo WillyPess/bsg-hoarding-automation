@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 import baseline, layout_gen, tape
 
-ROLLS = {"Bikini": 1, "FRED_v2": 2, "DavidJones": 2, "DavidJones1": 2, "Shrungaar": 2, "Medibank": 1, "DavidJonesLift": 2, "Bikini_3000": 1, "Bikini_2400": 1}
+ROLLS = {"Bikini": 1, "FRED_v2": 2, "DavidJones": 2, "DavidJones1": 2, "Shrungaar": 2, "Medibank": 1, "DavidJonesLift": 2, "Bikini_3000": 1, "Bikini_2400": 1, "Kiosk_PF": 1}
 
 
 def job(name):

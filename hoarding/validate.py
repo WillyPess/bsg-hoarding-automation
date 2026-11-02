@@ -80,6 +80,10 @@ def check(job):
     if H is not None and dh is not None and dh > H + E:
         out.append(Problem("door_height", f"the entry ({dh:g} m) can't be taller than the hoarding ({H:g} m)"))
 
+    # 1.2 m kiosk (§4, Gus 2026-11-02): "kiosk": true only at exactly the kiosk height
+    KH = RULES["kiosk"]["height"]
+    if job.get("kiosk") and H is not None and abs(H - KH) > E:
+        out.append(Problem("height", f"a kiosk (\"kiosk\": true) is {KH:g} m high, not {H:g} m: ask Gus how to build and price this one"))
     # external jobs (§7)
     if job.get("external"):
         if H is not None and abs(H - 2.4) > E:

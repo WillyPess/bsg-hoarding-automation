@@ -59,8 +59,9 @@ The stored PNGs were made on Linux. The hashes in `baseline.json` are still the 
 | DavidJonesLift | U / kiosk, external | Pacific Fair | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | 6 | 2 | $5,412 + wind POA |
 | Bikini_3000 | test (rule 6) | Hyperdome | 10.4 | 3.0 | 9+2, cut to 3000 | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
 | Bikini_2400 | test (rule 6) | Hyperdome | 10.4 | 2.4 | 8+2, 2400 sheets | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
+| Kiosk_PF | test (rule 7), kiosk | Pacific Fair | 9.2 | 1.2 | 4+2, laid horizontally | 0 | 6 + 1 = 7 | 7 | 7 x 2 = 14 | 1 | 1 | $1,725 (15 lm min) |
 
-Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); weights = all uprights x weights per upright, no separate +10% (rule 2); anti-tampers = uprights sent (rule 3); tops = pieces to cut from offcuts (rule 5); sheets by height band, cut down below 3.6 m (rule 6, test jobs Bikini_3000 / Bikini_2400); white tape = joint length x 2 / 25 m and black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; spares provisional). The other v1.1 rules are listed in CLAUDE.md.
+Uprights = joints (+ 40% for wind on external jobs) + 10% spare (v1.1 rule 1); weights = all uprights x weights per upright, no separate +10% (rule 2); anti-tampers = uprights sent (rule 3); tops = pieces to cut from offcuts (rule 5); sheets by height band, cut down below 3.6 m (rule 6, test jobs Bikini_3000 / Bikini_2400); 1.2 m kiosk with sheets laid horizontally and one door cut in half (rule 7, test job Kiosk_PF); white tape = joint length x 2 / 25 m and black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; spares provisional). The other v1.1 rules are listed in CLAUDE.md.
 
 `FRED` (the first FRED run, 2026-10-20) is included for history only: its outputs come from the legacy scripts, before the spare-sheet, aligned-tops, uprights-at-joins and weight-matrix rules. **FRED_v2 is the fixture** for that job.
 
