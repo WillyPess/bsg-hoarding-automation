@@ -1,8 +1,8 @@
 """App settings (PLAN-app.md §7, §8.7, §9).
 
 The data folder comes from BSG_DATA (default C:\\BSG\\data on Windows, ~/BSG/data elsewhere). It holds config.toml:
-server address and AI settings, no secrets (the API key comes from ANTHROPIC_API_KEY, the session key from
-secret.key in a later PR). The first load creates the folder and writes a config.toml with the defaults, so Gus
+server address and AI settings, no secrets (the API key comes from ANTHROPIC_API_KEY; sessions live in
+bsg.sqlite and need no key). The first load creates the folder and writes a config.toml with the defaults, so Gus
 can see and edit every setting. Unknown keys and bad values are refused, so a typo can't be silently ignored."""
 import ipaddress, os, tomllib
 from dataclasses import dataclass, field

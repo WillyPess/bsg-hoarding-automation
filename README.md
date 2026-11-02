@@ -37,8 +37,13 @@ The app around the engine is being built step by step from `PLAN-app.md` (§11).
 ```bash
 pip install -r requirements.txt
 python -m app --check     # settings + health checks (data folder, config.toml, rules.json, LibreOffice, fonts)
-python -m app             # serves http://127.0.0.1:8000 (this PC only); the health page is /health
+python -m app.users add gus --role estimator     # asks for the password twice (at least 10 characters)
+python -m app.users add boss --role manager
+python -m app.users list                         # set-password <name> gives a new password and ends that user's sessions
+python -m app             # serves http://127.0.0.1:8000 (this PC only); log in, then the health page is /health
 ```
+
+Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins in 15 minutes, logins are refused for 15 minutes (on this PC that applies to both users, since both come from 127.0.0.1).
 
 The data folder is `C:\BSG\data` on Windows (`~/BSG/data` elsewhere), or `BSG_DATA` when set. The first start writes `config.toml` there with every setting and its default (server address, AI model and cost caps); no secrets go in it. The AI reviewer stays off until it is built.
 

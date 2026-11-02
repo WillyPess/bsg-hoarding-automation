@@ -9,10 +9,17 @@
 <body>
   <header class="top">
     <a class="brand" href="/">BSG Hoarding</a>
+    {% if user %}
     <nav>
       <a href="/">Home</a>
       <a href="/health">Health</a>
     </nav>
+    <form method="post" action="/logout" class="who">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <span>{{ user.name }} ({{ user.role }})</span>
+      <button type="submit">Log out</button>
+    </form>
+    {% endif %}
   </header>
   <main>
     {% block content %}{% endblock %}

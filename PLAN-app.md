@@ -100,7 +100,6 @@ A data folder **outside the repo: `C:\BSG\data`** (set by `BSG_DATA`):
 C:\BSG\data\
   bsg.sqlite                      jobs, runs, flags, escalations, approvals, ai_calls, users, audit
   config.toml                     AI settings: model ID, caps, effort, on/off (§8.7); no secrets
-  secret.key                      session signing key, made on first start
   jobs/<Job>/
     job.json                      current inputs (draft)
     <P>_photo.jpg / <P>_hoarding_markup.jpg
@@ -233,7 +232,7 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 
 - **v1 (Windows PC):** the app listens on `127.0.0.1:8000` only.
 - **Users:** two, Gus (estimator) and his boss (manager), each created with `python -m app.users add <name> --role ...`. Password hashes (scrypt) are in SQLite.
-- **Sessions and forms:** a signed session cookie, a CSRF token on every form, a login rate limit and a logout.
+- **Sessions and forms:** server-side sessions (the cookie holds only a random id; the database keeps its hash, so logout ends a session at once and there is no signing key to keep), a CSRF token on every form, a login rate limit and a logout (built in step 2).
 - **Start:** `start-bsg.bat` (activates the venv, runs `python -m app`, opens the browser), optionally run at login by a scheduled task.
 - **Later, Cloudflare Tunnel:**
   - `cloudflared` points a hostname at `127.0.0.1:8000`, so no router ports are opened.

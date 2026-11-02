@@ -12,4 +12,10 @@ th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--
 .ok { color: var(--ok); font-weight: 600; }
 .fail { color: var(--fail); font-weight: 600; }
 .small { color: var(--muted); font-size: .9rem; }
-@media print { header.top nav, footer { display: none; } }
+form.who { margin-left: auto; display: flex; gap: .75rem; align-items: center; }
+form.login { display: grid; gap: .75rem; max-width: 22rem; }
+form.login label { display: grid; gap: .25rem; }
+input, button { font: inherit; padding: .4rem .6rem; }
+button { cursor: pointer; }
+code { background: #f2f4f6; padding: .1rem .3rem; }
+@media print { header.top nav, form.who, footer { display: none; } }
