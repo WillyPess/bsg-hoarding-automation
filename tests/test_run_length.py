@@ -1,5 +1,6 @@
 """The quote charges the same run length that the layout, grid sheet and materials form are built from."""
 import json, os
+from pathlib import Path
 
 import pytest
 
@@ -10,7 +11,7 @@ STANDARD = {"front": 7.0, "return": 1.6, "height": 4.5, "door_offset": 2.4, "doo
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("name", baseline.JOBS)

@@ -11,6 +11,7 @@ For each job it
 Exit code 0 = all passed.
 """
 import json, os, re, sys, tempfile, shutil, glob
+from pathlib import Path
 from PIL import Image, ImageChops
 import openpyxl
 from pypdf import PdfReader
@@ -19,7 +20,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import run_job
 
-EXP = json.load(open(os.path.join(ROOT, "expected", "expected_counts.json")))["jobs"]
+EXP = json.loads(Path(os.path.join(ROOT, "expected", "expected_counts.json")).read_text(encoding="utf-8"))["jobs"]
 
 
 def cells(p):
@@ -36,7 +37,7 @@ def pdf_text(p):
 def check(job):
     fails = []
     src = os.path.join(ROOT, "hoarding", job)
-    J = json.load(open(os.path.join(src, "job.json"))); P = J["prefix"]
+    J = json.loads(Path(os.path.join(src, "job.json")).read_text(encoding="utf-8")); P = J["prefix"]
     work = os.path.join(tempfile.mkdtemp(), job); shutil.copytree(src, work)
     s = run_job.run(work)
     for k, v in EXP[job].items():

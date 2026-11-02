@@ -7,6 +7,7 @@ between sheets and tops; the door: both sides (2 x door height) plus the top (do
 Readings A and B (Gus 2026-11-02): the door sides and the door top count as written, also on a full-height door.
 The switch stays: tape.tape_rule = "joints" (now) or "v1" (8 rolls per 8.8 m). The joints numbers are always in the summary."""
 import json, os
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -15,7 +16,7 @@ import baseline, layout_gen, tape
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 def test_bikini_by_hand():

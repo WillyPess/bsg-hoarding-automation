@@ -13,6 +13,7 @@ holds on the machine that made it. When expected/<Job>/png/ holds the approved P
 with a tolerance instead (drawing_diff); the hash is only used for jobs without stored PNGs.
 """
 import hashlib, json, os, shutil, sys
+from pathlib import Path
 
 from PIL import Image, ImageChops
 
@@ -21,7 +22,7 @@ sys.path.insert(0, ROOT)
 import run_job
 from check_fixtures import pdf_text
 
-JOBS = list(json.load(open(os.path.join(ROOT, "expected", "expected_counts.json")))["jobs"])
+JOBS = list(json.loads(Path(os.path.join(ROOT, "expected", "expected_counts.json")).read_text(encoding="utf-8"))["jobs"])
 
 
 def path(job):

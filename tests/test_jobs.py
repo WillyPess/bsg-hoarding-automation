@@ -4,6 +4,7 @@ normalize turns the new-job form's inputs (as Gus gives them: entry from either 
 It is checked by rebuilding every reference job.json from those inputs. warnings lists what the reviewer must know,
 each with the rule it comes from; it never changes a number."""
 import copy, json, os
+from pathlib import Path
 
 import pytest
 
@@ -12,13 +13,13 @@ from rules import RULES
 
 
 def ref(name):
-    j = json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    j = json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
     j.pop("dir")
     return j
 
 
 def summary(name):
-    return json.load(open(os.path.join(baseline.ROOT, "expected", name, "run_summary.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "expected", name, "run_summary.json")).read_text(encoding="utf-8"))
 
 
 def without(d, *keys):
@@ -114,7 +115,7 @@ def rules_of(ws):
 
 
 def leaf(path):
-    d = json.load(open(os.path.join(baseline.ROOT, "hoarding", "rules.json")))
+    d = json.loads(Path(os.path.join(baseline.ROOT, "hoarding", "rules.json")).read_text(encoding="utf-8"))
     for k in path.split("."):
         d = d[k]
     return d

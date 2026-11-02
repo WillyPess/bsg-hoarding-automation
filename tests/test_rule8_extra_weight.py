@@ -2,6 +2,7 @@
 The answer is job.json extra_weight_pct (0 = none). It is applied last, on the total weights (all uprights x 8),
 rounded up, and shown as a separate line. It is never picked automatically: run_job stops and asks when it is missing."""
 import json, os, shutil
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -40,13 +41,14 @@ def copy_dj_lift(tmp_path, **change):
     work = str(tmp_path / "DavidJonesLift")
     shutil.copytree(os.path.join(baseline.ROOT, "hoarding", "DavidJonesLift"), work)
     p = os.path.join(work, "job.json")
-    j = json.load(open(p))
+    j = json.loads(Path(p).read_text(encoding="utf-8"))
     for k, v in change.items():
         if v is None:
             j.pop(k, None)
         else:
             j[k] = v
-    json.dump(j, open(p, "w"))
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(j, f)
     return work
 
 
@@ -56,7 +58,7 @@ def test_run_job_stops_and_asks_without_filling_it_in(tmp_path):
     with pytest.raises(SystemExit, match="This job is external. Add extra weight"):
         run_job.run(work)
     assert sorted(os.listdir(work)) == before                              # no outputs written
-    assert "extra_weight_pct" not in json.load(open(os.path.join(work, "job.json")))   # never filled in
+    assert "extra_weight_pct" not in json.loads(Path(os.path.join(work, "job.json")).read_text(encoding="utf-8"))   # never filled in
 
 
 def titan_rows(xlsx):

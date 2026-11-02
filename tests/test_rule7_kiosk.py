@@ -7,6 +7,7 @@
   - a 1.2 m job without "kiosk": true gets a warning asking whether it is a kiosk (it changes the rate);
   - Pacific Fair quote: $115/lm, 15 lm minimum."""
 import json, os, shutil
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -16,7 +17,7 @@ from check_fixtures import pdf_text
 
 
 def kiosk():
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", "Kiosk_PF", "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", "Kiosk_PF", "job.json")).read_text(encoding="utf-8"))
 
 
 def test_sheets_laid_horizontally():
@@ -41,7 +42,7 @@ def test_tape_joints():
 
 
 def test_standard_jobs_keep_1200_wide_sheets():
-    j = json.load(open(os.path.join(baseline.ROOT, "hoarding", "Bikini", "job.json")))
+    j = json.loads(Path(os.path.join(baseline.ROOT, "hoarding", "Bikini", "job.json")).read_text(encoding="utf-8"))
     c = layout_gen.compute(j)
     assert (c["kiosk"], c["sheet_w"]) == (False, 1.2)
     assert layout_gen.compute(kiosk())["sheet_w"] == 2.4 and layout_gen.compute(j)["sheet_w"] == 1.2   # no leftover between jobs
