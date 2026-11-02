@@ -2,7 +2,7 @@
 
 A web app around the existing engine. Gus or his boss enters a job and uploads the photo. An AI reviewer checks the inputs, the engine computes everything, and the AI reviewer checks the outputs. A person answers every flag, approves the run, and downloads the package and quote PDFs.
 
-**Plan only; nothing is built yet.** v0 of this plan (2026-11-01) had no AI. This version adds the AI reviewer (§8) and records your answers to the v0 questions (§13).
+**Plan only; nothing is built yet.** v0 of this plan (2026-11-01) had no AI. This version adds the AI reviewer (§8) and records your answers to the v0 questions (§13) and to the v1 questions (§14, 2026-11-02).
 
 ## 1. Principles
 
@@ -35,7 +35,7 @@ A web app around the existing engine. Gus or his boss enters a job and uploads t
 
 - **Two logins in v1: Gus and his boss.** Each has their own name and password, so the history shows who did what.
 - **Roles:** `estimator` (Gus) and `manager` (the boss). In v1, both can create jobs, answer flags, run the engine and approve. The role is recorded with every action. Escalations (§8.4) can be addressed to either person.
-- Whether some actions should be manager-only (e.g. approving, or answering "outside the rules" cases) is a question for you (§14).
+- **Decided (2026-11-02):** in v1 both users can do everything; the history records who did what. Roles are revisited after the pilot (§14).
 
 ## 4. Screens
 
@@ -67,7 +67,7 @@ A web app around the existing engine. Gus or his boss enters a job and uploads t
                       │                     · Not sure, I'll ask → escalation; a safety flag stays open
                       ▼  (no open safety flag)
                  engine run ──failed──▶ error shown; out-of-rules cases → escalation
-                      │ done
+                      │ done (starts by itself)
                       ▼
                AI output review ──flags──▶ answered the same way (a "Yes" goes back to the form)
                       │  (no open safety flag)
@@ -75,7 +75,7 @@ A web app around the existing engine. Gus or his boss enters a job and uploads t
                    approve ──▶ run locked, final files downloadable
 ```
 
-- The AI input review runs automatically after each successful save (and can be re-run by hand). The engine run and the AI output review are started by the user; the output review starts by itself after a run only if the user turned that on in settings.
+- The AI input review runs automatically after each successful save (and can be re-run by hand). The engine run is started by the user. **The AI output review starts by itself after every engine run** (decided 2026-11-02, §14).
 - If the AI is unavailable or over its cost cap, the flow continues without it, and the job shows "AI review not done" (§8.8).
 
 ## 6. The new-job form
@@ -212,15 +212,14 @@ All of these live in `config.toml`, are shown on the AI usage screen, and are re
 - **Effort set explicitly:** the model's default effort is `medium`, and the plan starts there for reviews. Raising it is a measured decision, not a default.
 - **Refusals:**
   - A response with `stop_reason: "refusal"` is recorded as "AI review not done". It never blocks the job, and it is never treated as an empty review.
-  - The API's **refusal fallback** (`fallbacks: "default"`) is turned **on** by default: if the pinned model declines, the API retries the call on another model.
-  - The model that actually served each call is recorded with the flags.
-  - `config.toml` can turn the fallback off if you want strictly one model.
+  - **No refusal fallback: strictly one model** (decided 2026-11-02, §14). The API's fallback is a beta feature, and one pinned model keeps the reviews predictable and matching the recorded tests. A refusal is recorded and shown as "AI review not done".
+  - The model ID from each response is recorded with the call, and the app checks that it is the pinned one.
 - **Timeouts and retries:** the SDK's retries (429 and 5xx); a call that still fails is "AI review not done".
 - **The API key** comes from `ANTHROPIC_API_KEY` (§7) and is never written to logs, reviews or the history.
 
 ### 8.8 Cost caps and when the AI is unavailable
 
-- **A cap per job and a cap per month**, in `config.toml`. Proposed: $3 per job and $60 per month (USD, the API's billing currency); to confirm (§14).
+- **A cap per job and a cap per month**, in `config.toml`: **$1 per job and $60 per month** to start (USD, the API's billing currency; decided 2026-11-02, §14). The per-job cap covers all the job's AI calls over its life. With the output review after every run, it fits about two or three review rounds; after that, calls show "AI review not done (job cap reached)". During the pilot, the AI usage screen shows how many jobs hit the cap, and the cap is raised if many do.
 - **For scale:** at Opus 5.5 prices ($4 / $20 per million input / output tokens), an input review with one photo and the cached rules should cost about $0.10–0.20 (most of it the written answer and thinking, at $20 per million output tokens), and an output review with the drawings and the package around $0.20–0.40.
 - **Before each call**, the app estimates the input tokens (token counting) and checks both caps. **After each call** it records the real token use and cost in `ai_calls`.
 - **Over a cap, the AI is unavailable, or a refusal:** the call is skipped or recorded as "AI review not done". **The app still works:** validate, the engine, the warnings and approval are unchanged. The review page says clearly that the AI review was not done, and why.
@@ -292,7 +291,7 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 
 **AI reviewer (each its own PR):**
 9. **AI client layer:**
-   - the config (pinned model, effort, fallback on/off);
+   - the config (pinned model, effort; no fallback);
    - the fake client and recordings;
    - the network block in tests;
    - token estimate + caps + the `ai_calls` ledger;
@@ -326,9 +325,11 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 3. **Drafts:** downloadable, with **"DRAFT - not approved" on every page**.
 4. **The boss:** gets **his own login in v1**.
 
-## 14. Questions for you before building
+## 14. Answers to the v1 questions (2026-11-02)
 
-1. **Cost caps:** $3 per job and $60 per month to start?
-2. **Manager-only actions:** should approving, or answering escalations, be limited to the boss? In v1 both users can do everything.
-3. **Output review:** should it start by itself after each engine run, or only when the user asks? (Each run costs about $0.20–0.40.)
-4. **Refusal fallback:** keep it on (another model answers if Opus 5.5 declines, and the model is recorded), or strictly one model?
+1. **Cost caps:** **$1 per job and $60 per month** to start. Watch the AI usage screen during the pilot and raise the per-job cap if many jobs hit it (§8.8).
+2. **Roles:** in v1 **both users can do everything**; the history records who did what. Roles are revisited after the pilot (§3).
+3. **Output review:** **starts by itself after every engine run** (§5).
+4. **Refusal fallback:** **off, strictly one model.** It's a beta feature, and one pinned model keeps the reviews predictable and matching the recorded tests. A refusal shows "AI review not done" (§8.7).
+
+The plan was approved on 2026-11-02. The app core (§11, steps 1-8) starts after this PR is merged.
