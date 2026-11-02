@@ -27,7 +27,7 @@ def vertical_joints(job, c):
     piece or of the entry. On fire-door jobs this includes the joints without an upright (track section, corners)."""
     xs = {0, mm(c["L"])} | {mm(f) for f in c["folds"]}
     for s in c["full"]:
-        xs |= {mm(s["x"]), mm(s["x"] + SW)}
+        xs |= {mm(s["x"]), mm(s["x"] + c["sheet_w"])}   # 2.4 m on a kiosk (sheets laid horizontally)
     for b in c["bins"]:
         for p in b["cuts"]:
             xs |= {mm(p["x"]), mm(p["x"] + p["w"])}

@@ -15,7 +15,7 @@ else:
     _p = {"front": front, "return": ret, "height": H, "door_offset": doff, "door_width": dw}
 _c = compute(_p); L = _c["L"]
 from rules import RULES
-M, DS = RULES["materials"], RULES["door_set"]
+M, DS, KD = RULES["materials"], RULES["door_set"], RULES["kiosk_door"]
 fq = lambda name: M["form_quantities"].get(name, "")   # fixed quantity per job on BSG's paper form, blank if none
 SPARE = RULES["sheet"]["spare"]   # always send 2 extra sheets in case of damage (Gus, 2026-10-21)
 sheets = _c["sheets"] + SPARE   # layout sheets + spares
@@ -42,11 +42,11 @@ TR = _p.get("track")   # fire-door jobs: track + timbers section instead of upri
 S = [
  ("Titan", [("Uprights", uprights, UTXT if UPX or SPU else ""), ("Counterweights", CW, f"{PER}   Per Upright  x  {uprights} uprights")]
           + ([("Extra Counterweights", XW, f"{_p['extra_weight_pct']:g}% extra weight on {CW} (asked for this external job)")] if _p.get("external") else [])),
- ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m" + (f" cut to {_c['panel_h']:g}{'' if _c['panel_h'] % 1 else '.0'}m" if CUTS else "") + f" (+{SPARE} spare)" + (f"   Tops from offcuts: {TOPS}" if TOPS else "") + (f"   Cut-offs to tops stock: {CUTS}" if CUTS else "")), ("15mm CD Ply", "", "2.4m – 3.0m")]),
+ ("Board", [("16mm Melamine", f"{sheets} x", (f"{_c['sheet_w']:g}m laid horizontally" if _c["kiosk"] else f"{SHT:g}m") + (f" cut to {_c['panel_h']:g}{'' if _c['panel_h'] % 1 else '.0'}m" if CUTS else "") + f" (+{SPARE} spare)" + (f"   Tops from offcuts: {TOPS}" if TOPS else "") + (f"   Cut-offs to tops stock: {CUTS}" if CUTS else "")), ("15mm CD Ply", "", "2.4m – 3.0m")]),
  ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""),
                    ("70 x 45 Door Studs", DS["studs_full_height"] + DS["studs_short"], f"{DS['studs_full_height']} x {H:g}  +  {DS['studs_short']} x {DS['studs_short_length']:g}"),
                    ("90mm track", f"{TR['lengths']} x" if TR else "", "3.0m  (ceiling + floor)" if TR else "3.0m"), ("90 x 45 MGP 10", f"{TR['studs']} x" if TR else "", f"{H:g}  (in the track, 600 centres)" if TR else "")]),
- ("Doors & Securities", [("Doors", DS["doors"], str(DS["leaf_mm"])), ("Digi Lock", "", ""), ("Deadbolt", DS["deadbolt"], ""), ("Padlock", "", ""), ("Barrel Bolt", "", ""),
+ ("Doors & Securities", [(("Doors", KD["doors"], f"{DS['leaf_mm']} cut in half: 2 leaves {round(KD['leaf_width'] * 1000)} x {round(KD['leaf_height'] * 1000)}") if _c["kiosk"] else ("Doors", DS["doors"], str(DS["leaf_mm"]))), ("Digi Lock", "", ""), ("Deadbolt", DS["deadbolt"], ""), ("Padlock", "", ""), ("Barrel Bolt", "", ""),
                          ("Hasp & Staple", "", ""), ("Finger Pull", "", ""), ("T Section", "", ""), ("Hinges", DS["hinges"], ""), ("Metal Plates", DS["metal_plates"], "")]),
  ("Tapes", [("Paintable Tape 50mm", fq("Paintable Tape 50mm"), "25m Rolls"), ("White Tape 50mm", tape, f"{RULES['tape']['roll_length']:g}m Rolls"),
             ("Black Skirting Tape 100mm", black_tape(_p, _c), f"{RULES['black_tape']['roll_length']:g}m Rolls"),

@@ -58,7 +58,7 @@ def normalize(inputs, jobs_dir=None):
     job = {k: v for k, v in inputs.items() if k in PASS}
     job.setdefault("name", inputs.get("title"))
     job.setdefault("door_width", D["door_width"])
-    job.setdefault("door_height", D["door_height"])
+    job.setdefault("door_height", RULES["kiosk_door"]["leaf_height"] if inputs.get("kiosk") else D["door_height"])   # kiosk entry 1.6 x 1.2
     if kind == "standard":
         job.setdefault("return", D["return"])
         job["door_offset"] = _offset_from_left(job["front"], job["door_width"], inputs.get("entry_from"), inputs.get("entry_offset"))
@@ -122,7 +122,11 @@ def warnings(job, summary):
     # provisional rules every job uses
     w("materials.studs", f"Studs: {M['studs']} per {M['per_length']:g} m of run, inferred from Just Cuts, not formally confirmed.")
     ds = R["door_set"]
-    w("door_set.studs_short_length", f"Door studs: {ds['studs_short']} x {ds['studs_short_length']:g} m, purpose still unknown (Gus is asking his boss).")
+    w("door_set.studs_short_length", f"Door studs: {ds['studs_short']} x {ds['studs_short_length']:g} m, purpose still unknown (Gus is asking his boss)."
+      + (f" On this {job['height']:g} m kiosk the {ds['studs_short_length']:g} m studs may not be needed at all." if job.get("kiosk") else ""))
+    KH = R["kiosk"]["height"]
+    if not job.get("kiosk") and abs(job.get("height", 0) - KH) < 1e-9:
+        w("CLAUDE.md §12", f"This job is {KH:g} m high but not marked as a kiosk: is it a kiosk? A kiosk uses sheets laid horizontally and the kiosk rate (\"kiosk\": true).")
     if R["tape"]["tape_rule"] == "joints":
         w("tape.spare", f"White tape: joint length + {R['tape']['spare']:.0%} spare; the spare is provisional until Gus's boss confirms it.")
     else:

@@ -53,15 +53,20 @@ def cut_offs(c):
     """Cut-offs to tops stock when the sheets are cut down to the hoarding height: [(width_mm, height_mm, count)].
     One per stock sheet stood up in the run (full sheets and offcut-bin sheets); the door sheet is turned, so none."""
     n = len(c["full"]) + len(c["bins"])
-    return [(round(SW * 1000), round(c["cut_off"] * 1000), n)] if c["cut_off"] > E and n else []
+    return [(round(c["sheet_w"] * 1000), round(c["cut_off"] * 1000), n)] if c["cut_off"] > E and n else []
 
 def cut_offs_text(c):
     """e.g. "8 x 1200 x 600" ("" when the sheets are not cut down)."""
     return " + ".join(f"{n} x {w} x {h}" for w, h, n in cut_offs(c))
 
 def compute(p):
-    global SH
-    SH = p.get("sheet_h") or sheet_for(p["height"])   # by height band (rule 6); job.json sheet_h still overrides
+    global SH, SW
+    K = bool(p.get("kiosk"))
+    if K:   # 1.2 m kiosk (rule 7): 2400 x 1200 sheets laid horizontally, 2.4 m along the run x 1.2 m high, no cut
+        SW, SH = min(RULES["sheet"]["heights"]), RULES["sheet"]["width"]
+    else:
+        SW = RULES["sheet"]["width"]
+        SH = p.get("sheet_h") or sheet_for(p["height"])   # by height band (rule 6); job.json sheet_h still overrides
     PH = round(min(p["height"], SH), 3)               # panel height: sheets cut down to the hoarding height below 3.6 m
     dw = p["door_width"]
     secs, folds, segs, door_x, L = runs(p)
@@ -107,7 +112,7 @@ def compute(p):
             x0 += f_["len"]
         ups = [u for u in ups if not (x0 - E <= u <= x0 + p["track"]["len"] + E)]
     return dict(L=L, folds=folds, segs=segs, full=full, bins=bins, door=door, entry=(door_x, dw) if door_x is not None and dw > 0 else None, tfull=tfull, tbins=tbins,
-                sheets=k, tops=kt if TH > E else 0, uprights=ups, sheet_h=SH, panel_h=PH, cut_off=round(SH - PH, 3))
+                sheets=k, tops=kt if TH > E else 0, uprights=ups, sheet_h=SH, panel_h=PH, cut_off=round(SH - PH, 3), sheet_w=SW, kiosk=K)
 
 def tops_to_cut(p, c):
     """Tops to cut from offcuts (v1.1 rule 5, Gus 2026-11-01): [(width_mm, height_mm, count), ...], widest first.
@@ -116,7 +121,7 @@ def tops_to_cut(p, c):
     if not c["tops"]:
         return []
     th = int(round((p["height"] - c["sheet_h"]) * 1000))
-    widths = [int(round(SW * 1000))] * len(c["tfull"]) + [int(round(cu["w"] * 1000)) for b in c["tbins"] for cu in b["cuts"]]
+    widths = [int(round(c["sheet_w"] * 1000))] * len(c["tfull"]) + [int(round(cu["w"] * 1000)) for b in c["tbins"] for cu in b["cuts"]]
     return [(w, th, widths.count(w)) for w in sorted(set(widths), reverse=True)]
 
 
@@ -136,7 +141,7 @@ def render(p, out):
     W, Hc = 2400, 1900; im = Image.new("RGB", (W, Hc), "white"); d = ImageDraw.Draw(im)
     def t(xy, s, ft, fill=INK, a="mm"): d.text(xy, s, font=ft, fill=fill, anchor=a)
     mm = lambda v: f"{round(v * 1000):d}"
-    tops_txt = f" + {c['tops']} tops {SW:g} x {H - SH:.1f} m" if c["tops"] else (f" cut to {c['panel_h']:g}{'' if c['panel_h'] % 1 else '.0'} m" if c["cut_off"] > E else "")
+    tops_txt = f" + {c['tops']} tops {SW:g} x {H - SH:.1f} m" if c["tops"] else (f" cut to {c['panel_h']:g}{'' if c['panel_h'] % 1 else '.0'} m" if c["cut_off"] > E else "") + (" laid horizontally" if c["kiosk"] else "")
     PH = c["panel_h"]
     t((80, 60), f"{p['title'].upper()}: MELAMINE LAYOUT ({c['sheets']} sheets {SW:g} x {SH:g} m{tops_txt})", f(40), INK, "lm")
     t((80, 110), f"Sizes in mm. Same colour and number = cut from the same sheet. " + (", ".join(f"{fc['name']} {mm(fc['len'])}" for fc in faces(p)) if "faces" in p else f"Front {mm(p['front'])}, returns {mm(p['return'])}") + f", height {mm(H)}.", f(26, False), GREY, "lm")
