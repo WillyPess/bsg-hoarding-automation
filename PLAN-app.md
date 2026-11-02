@@ -67,7 +67,7 @@ A web app around the existing engine. Gus or his boss enters a job and uploads t
                       │                     · Not sure, I'll ask → escalation; a safety flag stays open
                       ▼  (no open safety flag)
                  engine run ──failed──▶ error shown; out-of-rules cases → escalation
-                      │ done
+                      │ done (starts by itself)
                       ▼
                AI output review ──flags──▶ answered the same way (a "Yes" goes back to the form)
                       │  (no open safety flag)
