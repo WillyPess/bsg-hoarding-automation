@@ -4,7 +4,7 @@
  "sheet": {
   "width": {"value": 1.2, "source": "Melamine sheet width (CLAUDE.md §4).", "provisional": false},
   "height": {"value": 3.6, "source": "Standard melamine sheet height (§4). 2.4 m jobs set sheet_h: 2.4 in job.json.", "provisional": false},
-  "heights": {"value": [2.4, 3.6], "source": "Gus, 2026-11-01 (v1.1 §4): melamine comes in only two heights.", "provisional": false, "used_from": "step D rule 6"},
+  "heights": {"value": [2.4, 3.6], "source": "Gus, 2026-11-01 (v1.1 §4): melamine comes in only two heights. layout_gen.sheet_for picks the smallest at or above the hoarding height (cut down to it, cut-offs to tops stock), else the tallest + tops (step D rule 6).", "provisional": false},
   "spare": {"value": 2, "source": "Gus, 2026-10-21 (§3): always send 2 extra sheets in case of damage on site.", "provisional": false}
  },
 

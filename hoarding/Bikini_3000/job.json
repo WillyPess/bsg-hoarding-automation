@@ -1,0 +1,16 @@
+{
+ "name": "Bikini on the Beach 3.0 m (test)",
+ "prefix": "Bikini_3000",
+ "dir": "hoarding/Bikini_3000",
+ "date": "20/10/2026",
+ "front": 8.0,
+ "return": 1.2,
+ "height": 3.0,
+ "door_offset": 1.2,
+ "door_width": 1.6,
+ "door_height": 2.4,
+ "title": "Bikini on the Beach 3.0 m (test)",
+ "entry_note": ", in front of the shop entry and set to use full sheets",
+ "site": "Hyperdome",
+ "photo_note": "Test job for v1.1 rule 6 (sheets by height band): Bikini on the Beach at 3.0 m. Not a real job."
+}

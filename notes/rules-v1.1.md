@@ -66,6 +66,7 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
 - **Height up to 2.4 m:** 2400 x 1200 sheets, no tops (`sheet_h: 2.4`).
 - **Height over 2.4 m up to 3.6 m:** 3600 x 1200 sheets **cut down** to the hoarding height. The cut-off goes to **tops stock**, not waste.
 - **Height over 3.6 m:** 3600 x 1200 sheets plus **tops** up to the hoarding height. Tops are cut from **offcuts of earlier jobs**, not bought as stock.
+- **Step D rule 6, done:** the engine picks the sheet from the height (`layout_gen.sheet_for`, `rules.json` `sheet.heights`); `sheet_h` in job.json is no longer needed but still overrides it. Cut down: the layout, form and package say "3600 cut to 3000" and list the cut-offs to tops stock (e.g. 8 x 1200 x 600); the door-top piece is (height − door height) high. Test jobs `Bikini_3000` and `Bikini_2400` pin both bands.
 - **1.2 m kiosk:** 2400 x 1200 sheets **laid horizontally** (2.4 m long x 1.2 m high), no cut.
 - **Use as many full sheets as possible** (looks better); **push the cut pieces to the corners**. The entry may move off the shop entrance a little to make the front sections whole multiples of 1.2 m.
 - **Combine offcuts** across sections to minimise sheets (e.g. three 400 pieces from one sheet).
@@ -151,7 +152,7 @@ By hoarding height (first row ≥ height), per upright, no bracing:
 
 | Script | What it does | Run |
 | --- | --- | --- |
-| `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions. CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
+| `layout_gen.py` | **Core engine.** `compute(job)` works out sections, full sheets, offcut bins, door top, tops and upright positions; `sheet_for(height)` picks the 2400 or 3600 sheet and `cut_offs(c)` lists the cut-offs to tops stock (rule 6). CLI draws the melamine layout + cutting plan PNG and prints a JSON summary. | `layout_gen.py "$(cat job.json)" <P>_melamine_layout.png` |
 | `rules.json` / `rules.py` | Every adjustable business value with its source and `provisional` flag; `rules.py` loads the values as `RULES`. Entries with `used_from` are not read yet (step D). | (data) |
 | `validate.py` | Input checks before the engine runs: `check(job)` -> list of `Problem(field, message)` (required fields per job type, positive lengths, height within the weight matrix, entry inside its face, door not taller than the hoarding, external jobs 2.4 m + the extra weight question, faces and track). Checks only, never computes a quantity. `run_job.py` refuses a job with problems before writing anything. | (library) |
 | `titan.py` | Weight matrix, external-job overrides (`for_job`). Used by materials + package. Uprights to send = joints + extra for wind + 10% spare (v1.1 rule 1, done); weights = all uprights x weights per upright, no separate +10% (rule 2, done). Extra weight on external jobs: `extra_weights` = the user's `extra_weight_pct` of the total weights, rounded up (rule 8, done). | (library) |
@@ -234,9 +235,9 @@ python3 $H/quotes/quote_gen.py job.json                              # Pacific F
 
 Check the images and the printed summary against the rules above before sending.
 
-### Reference results (v1.1 rules 1–5 and 8 applied)
+### Reference results (v1.1 rules 1–6 and 8 applied)
 
-Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). White tape = joint length x 2 / 25 m, black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; both spares provisional). The next v1.1 rules (6, 7) change the sheets and the kiosk door; update these rows with each rule.
+Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all uprights x weights per upright, no separate +10% (rule 2). Anti-tampers = 1 per upright sent (rule 3). Tops = pieces to cut from offcuts (rule 5). White tape = joint length x 2 / 25 m, black tape = run x 2 / 25 m (rule 4, Gus 2026-11-02; both spares provisional). Sheets by height band (rule 6): the two test jobs pin the 2.4 m and 2.4–3.6 m bands. The next v1.1 rule (7) adds the kiosk; update these rows with each rule.
 
 | Job | Run (m) | H | Sheets (layout+2) | Tops | Uprights | Anti-tampers | Weights | White tape | Black tape | Quote ex GST |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -246,6 +247,8 @@ Uprights = joints (+ extra for wind) + 10% spare (v1.1 rule 1). Weights = all up
 | Shrungaar (corner, Hyperdome) | 19.5 | 4.0 | 16+2 | 16 x 400 | 18 + 2 = 20 | 20 | 20 x 6 = 120 | 8 | 2 | – |
 | Medibank (fire door, PF) | 12.1 | 4.2 | 10+2 | 10 x 600 | 7 + 1 = 8 | 8 | 8 x 6 = 48 | 6 | 1 | $3,872 |
 | DJ Lift Area (U, external, PF) | 24.6 | 2.4 | 20+2 | 0 | 24 + 10 + 4 = 38 | 38 | 38 x 8 = 304 | 6 | 2 | $5,412 + wind POA |
+| Bikini_3000 (test, 3.0 m) | 10.4 | 3.0 | 9+2, 3600 cut to 3000 (8 cut-offs 1200 x 600 to tops stock) | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
+| Bikini_2400 (test, 2.4 m) | 10.4 | 2.4 | 8+2, 2400 sheets, no door top | 0 | 10 + 1 = 11 | 11 | 11 x 4 = 44 | 3 | 1 | – |
 
 ## Open points
 
