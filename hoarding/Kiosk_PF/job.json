@@ -1,0 +1,19 @@
+{
+ "name": "Kiosk 1.2 m (test)",
+ "prefix": "Kiosk_PF",
+ "dir": "hoarding/Kiosk_PF",
+ "date": "02/11/2026",
+ "title": "Kiosk 1.2 m (test)",
+ "site": "Pacific Fair",
+ "kiosk": true,
+ "front": 6.0,
+ "return": 1.6,
+ "height": 1.2,
+ "door_offset": 2.4,
+ "door_width": 1.6,
+ "door_height": 1.2,
+ "entry_note": ", one full sheet from the left end",
+ "photo_text": "Test job for v1.1 rule 7 (1.2 m kiosk): not a real job. The photo is from the David Jones Lift Area job.",
+ "photo_h": 88,
+ "quote_date": "02/11/2026"
+}
