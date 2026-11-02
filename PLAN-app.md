@@ -232,12 +232,13 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 
 - **v1 (Windows PC):** the app listens on `127.0.0.1:8000` only.
 - **Users:** two, Gus (estimator) and his boss (manager), each created with `python -m app.users add <name> --role ...`. Password hashes (scrypt) are in SQLite.
-- **Sessions and forms:** server-side sessions (the cookie holds only a random id; the database keeps its hash, so logout ends a session at once and there is no signing key to keep), a CSRF token on every form, a login rate limit and a logout (built in step 2).
+- **Sessions and forms:** server-side sessions (the cookie holds only a random id; the database keeps its hash, so logout ends a session at once and there is no signing key to keep), a CSRF token on every form, a login rate limit (5 failures per name, 20 per address, in 15 minutes) and a logout (built in step 2).
 - **Start:** `start-bsg.bat` (activates the venv, runs `python -m app`, opens the browser), optionally run at login by a scheduled task.
 - **Later, Cloudflare Tunnel:**
   - `cloudflared` points a hostname at `127.0.0.1:8000`, so no router ports are opened.
   - **Cloudflare Access** (email one-time code for Gus and his boss) sits in front, as a second lock before the app's login.
   - Cookies become `Secure`.
+  - **The client address must come from Cloudflare's header, not the socket.** `cloudflared` connects to the app from 127.0.0.1, so every visitor would look like this PC. The login rate limit counts failures per address (20 in 15 minutes; 5 per name), so this step must read the client address from Cloudflare's client-IP header, and trust it only on requests that come through the tunnel.
   - This is its own PR, after v1 works locally.
 
 ## 10. Testing

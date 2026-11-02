@@ -234,6 +234,11 @@ def test_csrf_token_belongs_to_the_session(app_and_settings):
 
 # --- rate limit -------------------------------------------------------------------------------------------------------
 
+def test_limits():
+    # decided 2026-11-03: 5 failures per name, 20 per address (both users come from 127.0.0.1 on this PC)
+    assert (auth.MAX_FAILURES, auth.MAX_FAILURES_PER_ADDRESS, auth.LOCKOUT) == (5, 20, 15 * 60)
+
+
 def test_rate_limit_after_5_failures(anon):
     for _ in range(auth.MAX_FAILURES):
         assert H.login(anon, "gus", "wrong password!!").status_code == 401
@@ -241,10 +246,24 @@ def test_rate_limit_after_5_failures(anon):
     assert r.status_code == 429 and "Too many" in r.text
 
 
+def test_one_persons_typos_dont_lock_the_other_out(anon):
+    for _ in range(auth.MAX_FAILURES):
+        H.login(anon, "gus", "wrong password!!")
+    assert H.login(anon, "gus").status_code == 429                   # gus waits 15 minutes
+    assert H.login(anon, "boss").status_code == 303                  # the boss, from the same 127.0.0.1, still gets in
+
+
 def test_rate_limit_counts_unknown_names_from_the_same_address(anon):
-    for i in range(auth.MAX_FAILURES):
-        H.login(anon, f"nobody{i}", "wrong password!!")
+    # guessing many names: 4 tries each (under the per-name limit), but 20 from one address lock that address
+    for i in range(auth.MAX_FAILURES_PER_ADDRESS):
+        assert H.login(anon, f"nobody{i // 4}", "wrong password!!").status_code == 401
     assert H.login(anon, "boss").status_code == 429
+
+
+def test_address_limit_is_not_reached_at_19(anon):
+    for i in range(auth.MAX_FAILURES_PER_ADDRESS - 1):
+        H.login(anon, f"nobody{i // 4}", "wrong password!!")
+    assert H.login(anon, "boss").status_code == 303
 
 
 def test_rate_limit_lifts_after_the_lockout(anon, monkeypatch):

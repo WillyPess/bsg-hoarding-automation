@@ -6,9 +6,12 @@
 - CSRF: every form carries csrf_token. Logged in: the session's own token. On the login page (no session yet): a
   token also set in the bsg_csrf cookie (double submit). A POST without the right token is refused (403) before
   the route runs; the check is a dependency on the whole app, so a new form can't forget it.
-- Rate limit: after MAX_FAILURES failed logins for one name, or from one address, within LOCKOUT, logins are
-  refused (429) until LOCKOUT has passed. On this PC every request comes from 127.0.0.1, so the address limit
-  locks both users; that is the price of stopping someone guessing many names."""
+- Rate limit: after MAX_FAILURES (5) failed logins for one name, or MAX_FAILURES_PER_ADDRESS (20) from one address,
+  within LOCKOUT (15 minutes), logins for that name, or from that address, are refused (429) until LOCKOUT has
+  passed. On this PC both users come from 127.0.0.1, so the address limit is set high enough that one person's
+  typos (5) lock only their own name; 20 still stops someone guessing many names (decided 2026-11-03).
+  Behind Cloudflare Tunnel, cloudflared also connects from 127.0.0.1: that step must take the client address
+  from Cloudflare's header instead of the socket (PLAN-app.md §9)."""
 import base64, hashlib, hmac, secrets, time
 from urllib.parse import quote
 
@@ -19,7 +22,8 @@ from app.users import User
 
 IDLE_TIMEOUT = 12 * 3600
 MAX_AGE = 7 * 24 * 3600
-MAX_FAILURES = 5
+MAX_FAILURES = 5                  # per name
+MAX_FAILURES_PER_ADDRESS = 20     # per address (both users share 127.0.0.1 on this PC)
 LOCKOUT = 15 * 60
 SESSION_COOKIE = "bsg_session"
 CSRF_COOKIE = "bsg_csrf"
@@ -104,7 +108,7 @@ def _failures(conn, column, value, t):
 
 def locked(conn, name, ip):
     t = now()
-    return _failures(conn, "name", name, t) >= MAX_FAILURES or _failures(conn, "ip", ip, t) >= MAX_FAILURES
+    return _failures(conn, "name", name, t) >= MAX_FAILURES or _failures(conn, "ip", ip, t) >= MAX_FAILURES_PER_ADDRESS
 
 
 def record_attempt(conn, name, ip, ok):
@@ -113,6 +117,8 @@ def record_attempt(conn, name, ip, ok):
 
 
 def client_ip(request):
+    """The socket address. Correct while the app is reached on this PC only; the Cloudflare Tunnel step must
+    replace it with Cloudflare's client-address header (cloudflared connects from 127.0.0.1), PLAN-app.md §9."""
     return request.client.host if request.client else "unknown"
 
 
