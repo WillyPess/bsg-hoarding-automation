@@ -62,6 +62,7 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
 - **Height up to 2.4 m:** 2400 x 1200 sheets, no tops (`sheet_h: 2.4`).
 - **Height over 2.4 m up to 3.6 m:** 3600 x 1200 sheets **cut down** to the hoarding height. The cut-off goes to **tops stock**, not waste.
 - **Height over 3.6 m:** 3600 x 1200 sheets plus **tops** up to the hoarding height. Tops are cut from **offcuts of earlier jobs**, not bought as stock.
+- **Step D rule 6, done:** the engine picks the sheet from the height (`layout_gen.sheet_for`, `rules.json` `sheet.heights`); `sheet_h` in job.json is no longer needed but still overrides it. Cut down: the layout, form and package say "3600 cut to 3000" and list the cut-offs to tops stock (e.g. 8 x 1200 x 600); the door-top piece is (height − door height) high. Test jobs `Bikini_3000` and `Bikini_2400` pin both bands.
 - **1.2 m kiosk:** 2400 x 1200 sheets **laid horizontally** (2.4 m long x 1.2 m high), no cut.
 - **Use as many full sheets as possible** (looks better); **push the cut pieces to the corners**. The entry may move off the shop entrance a little to make the front sections whole multiples of 1.2 m.
 - **Combine offcuts** across sections to minimise sheets (e.g. three 400 pieces from one sheet).
@@ -204,7 +205,7 @@ All lengths in **metres**. Standard job:
 Optional keys:
 - Photo text: `photo_note` (line added under the photo), `photo_text` (replaces the caption), `photo_h` (photo height in mm on the page), `front_ends`, `by` (default "Gus").
 - **Corner job:** `"faces": [{"name","len","cut"} ..., {"name":"front","len":..,"door_offset":..}]` (see `Shrungaar/job.json`).
-- **U job:** `"shape": "U"`, 5 faces, `"sheet_h": 2.4` for 2.4 m hoardings (see `DavidJonesLift/job.json`).
+- **U job:** `"shape": "U"`, 5 faces, `"sheet_h"` optional (the engine picks 2400 sheets for 2.4 m hoardings, rule 6) (see `DavidJonesLift/job.json`).
 - **External:** `"external": true` (the 40% extra uprights and 8 weights per upright come from `rules.json`; `"extra_uprights"` / `"weights_per_upright"` in job.json override them for one job), and `"extra_weight_pct"` (the user's answer, §7; required on external jobs: `run_job.py` stops and asks without it).
 - **Fire door:** `faces` (3), `"track": {"face","len","studs","lengths"}`, `"no_corner_uprights": true`, `"shopfront"`, `"step"`, `"push"`, `"right_return"` (see `Medibank/job.json`).
 - **Hand-set uprights:** `"uprights": 12` replaces the layout count of uprights at the joins (corners that can't take one); the 10% spare is still added on top (12 → 14).

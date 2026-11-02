@@ -90,7 +90,7 @@ def run(jobdir):
 def counts(job):
     """Key numbers straight from the engine (same code paths as materials.py and quote_gen.py)."""
     sys.path.insert(0, H); sys.path.insert(0, os.path.join(H, "quotes"))
-    from layout_gen import compute, tops_text, tops_to_cut
+    from layout_gen import compute, tops_text, tops_to_cut, cut_offs_text
     import titan
     from rules import RULES
     from tape import white_tape, rolls_for_job, black_tape
@@ -98,7 +98,8 @@ def counts(job):
     joins = titan.joins(job, c)
     up, extra, spare, per, w = titan.for_job(job, joins)
     out = {"job": os.path.basename(job["dir"]), "run_m": c["L"], "height_m": job["height"],
-           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "tops": sum(n for _, _, n in tops_to_cut(job, c)), "tops_from_offcuts": tops_text(job, c),
+           "layout_sheets": c["sheets"], "sheets_to_send": c["sheets"] + RULES["sheet"]["spare"], "sheet_h": c["sheet_h"], "cut_offs_to_tops_stock": cut_offs_text(c),
+           "tops": sum(n for _, _, n in tops_to_cut(job, c)), "tops_from_offcuts": tops_text(job, c),
            "uprights_at_joins": joins, "extra_uprights": extra, "spare_uprights": spare, "uprights_to_send": up, "anti_tampers_to_send": up,
            "weights_per_upright": per, "weights_to_send": w,
            "white_tape_rule": RULES["tape"]["tape_rule"], "white_tape_rolls": rolls_for_job(job, c),

@@ -46,7 +46,7 @@ def rolls(total_mm):
 
 def white_tape(job, c):
     H = mm(job["height"])
-    sheet_h = mm(job.get("sheet_h", RULES["sheet"]["height"]))
+    sheet_h = mm(c["sheet_h"])   # stock sheet height by height band (rule 6)
     xs = vertical_joints(job, c)
     vertical = len(xs) * H
     tops = mm(c["L"]) if H > sheet_h and c["tops"] else 0

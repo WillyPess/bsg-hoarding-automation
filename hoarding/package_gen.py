@@ -7,7 +7,7 @@ from PIL import Image as PI
 from pypdf import PdfWriter, PdfReader
 import sys, json, math, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from layout_gen import compute, tops_text
+from layout_gen import compute, tops_text, cut_offs_text
 from rules import RULES
 # Usage: package_gen.py job.json  (keys: name, prefix, dir, date, front, return, height, door_offset, door_width, door_height, by, front_ends, entry_note)
 J=json.load(open(sys.argv[1])); D=J["dir"].rstrip("/")+"/"; P=J["prefix"]; N=J["name"]
@@ -27,7 +27,7 @@ XTXT=f" Plus {UPX} extra uprights ({round(XFRAC*100)}% more, for wind on this ex
 # Corner jobs ("faces" in job.json): angled return by the lift, side, corner, front with the entry, right return
 UJ=J.get("shape")=="U"   # U-shaped run round three sides of a kiosk (David Jones Lift Area, 2026-11-01)
 CN="faces" in J and "track" not in J and not UJ
-SHT=J.get("sheet_h",SH0)   # sheet height: 2.4 for 2.4 m jobs
+SHT,PH=c["sheet_h"],c["panel_h"]   # stock sheet height by height band (rule 6) and the height the sheets are cut to
 U_INTRO=U_ROWS=U_CHECKS=None
 if UJ:
     UF=J["faces"]; ULR,ULS,UFR,URS,URR=[f["len"] for f in UF]; UDO=UF[3]["door_offset"]
@@ -79,13 +79,13 @@ def tbl(rows,widths):
 cuts_txt=" ".join(f"S{b['sheet']} gives "+" and ".join(f"the {mm(cu['w'])} strip for the {cu['where']}" for cu in b["cuts"])+"." for b in c["bins"])
 door_txt=(f" S{c['door']['sheet']} is turned sideways and cut to one {mm(DW)} x {mm(c['door']['h'])} piece above the entry."+(f" <b>Note:</b> instead of cutting S{c['door']['sheet']}, the door-top pieces can be cut in the factory from a spare sheet and sent to the job." )) if c["door"] else ""
 nt=len(c["tfull"]); tcut=" ".join(f"T{nt+i+1} is cut "+" + ".join(mm(cu['w']) for cu in b["cuts"])+"." for i,b in enumerate(c["tbins"]))
-tops_txt=(f"Each top is the same width as the sheet below it, so every join is one straight line from floor to top. Tops T1 to T{nt} go in whole. {tcut}"+(f" Above the entry goes one {mm(DW)} x {mm(H-SH0)} piece cut from S{c['door']['top_sheet']}." if c["door"] and c["door"].get("top_h") else "")) if c["tops"] else ""
+tops_txt=(f"Each top is the same width as the sheet below it, so every join is one straight line from floor to top. Tops T1 to T{nt} go in whole. {tcut}"+(f" Above the entry goes one {mm(DW)} x {mm(H-SHT)} piece cut from S{c['door']['top_sheet']}." if c["door"] and c["door"].get("top_h") else "")) if c["tops"] else ""
 precut=", ".join([f"S{b['sheet']}" for b in c["bins"]]+([f"S{c['door']['sheet']}"] if c["door"] else [])+[f"T{nt+i+1}" for i in range(len(c["tbins"]))])
 def sec_txt(name):
     fs=[f"S{x['sheet']}" for x in c["full"] if x["where"]==name]
     cs=[f"{cu['label']} ({mm(cu['w'])}, at the corner)" for b in c["bins"] for cu in b["cuts"] if cu["where"]==name]
     return name+" "+(", ".join(fs+cs) if fs or cs else "none")
-mel=f"{c['sheets']+SPARE} sheets {mm(SW)} x {mm(SHT)} ({c['sheets']} in the layout + {SPARE} spare in case of damage)"+(f"; tops cut from offcuts (not new sheets): {tops_text(J, c)}" if c["tops"] else "")
+mel=f"{c['sheets']+SPARE} sheets {mm(SW)} x {mm(SHT)}"+(f" cut to {mm(PH)}" if c["cut_off"] else "")+f" ({c['sheets']} in the layout + {SPARE} spare in case of damage)"+(f"; cut-offs to tops stock: {cut_offs_text(c)}" if c["cut_off"] else "")+(f"; tops cut from offcuts (not new sheets): {tops_text(J, c)}" if c["tops"] else "")
 st=[Paragraph(f"{N}: Hoarding Package",H1),Paragraph(f"BSG · {J['date']} · Prepared by {J.get('by','Gus')}",S),Spacer(1,6),
  Paragraph(f"A {L:g} m L-shaped run of melamine hoarding, {H:g} m high, around the {N} corner shop: a {AN:g} m angled return by the lift, the {SD:g} m side, the corner, the {F:g} m front with a {DW:g} m double-door entry, and a {RR:g} m return. The entry starts {DO:g} m from the corner ({F-DO-DW:g} m from the right end)." if CN else FD_INTRO if FD else U_INTRO if UJ else f"A {L:g} m run of melamine hoarding, {H:g} m high, set {R:g} m out from the {N} shopfront, with a {DW:g} m double-door entry starting {DO:g} m from the left end of the front.",B),Spacer(1,6),
  tbl([["Item","Size"],["Angled return (by the lift)",f"{AN:g} m, angle to suit, keep clear of the lift"],["Side",m(SD)],["Front",m(F)],["Right return",m(RR)],["Total hoarding length",f"{L:g} m ("+" + ".join(f"{f['len']:g}" for f in FA)+")"],["Height",m(H)],["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves"],["Entry position",f"{DO:g} m from the corner ({mm(DO)} to {mm(DO+DW)} along the front)"+J.get("entry_note","")],["Melamine",mel]] if CN else FD_ROWS[:-1]+[["Melamine",mel]] if FD else U_ROWS+[["Melamine",mel]] if UJ else [["Item","Size"],["Shopfront (lease line)",m(F)],["Returns",f"{R:g} m each side"],["Total hoarding length",f"{L:g} m ({R:g} + {F:g} + {R:g})"],["Height",m(H)],["Hoarding entry",f"{DW:g} m wide x {DH:g} m high, 2 leaves"],["Entry position",f"{DO:g} m from the left end of the front ({mm(DO)} to {mm(DO+DW)})"+J.get("entry_note","")],["Melamine",mel]],[60*mm_,120*mm_]),
@@ -103,9 +103,9 @@ steps=[("Check the truck",f"Before leaving, check the truck against the material
 ("Mark the entry",f"Measure {mm(DO)} from the left end of the front line and mark a {mm(DW)} opening ({mm(DO)} to {mm(DO+DW)})."),
 ("Stand the Titan uprights",f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry, {PER} counterweights on each (weight matrix for {H:g} m). They are marked on the melamine layout.{SPTXT}{SENT}" if not UPX else f"{UPJ} uprights, each one at a joint between two sheets (never in the middle of a sheet), including one each side of the entry; they are marked on the melamine layout.{XTXT}{SPTXT}{SENT}"),
 ("Frame the walls",f"Fix the 70 x 45 MGP 10 studs ({H:g} m) so every melamine joint lands on a stud. Frame the entry with {DS['studs_full_height']} x {H:g} m and {DS['studs_short']} x {DS['studs_short_length']:g} m door studs and a head at {mm(DH)}."),
-(f"Fix the {mm(SHT)} sheets",(lambda x: x[0].upper()+x[1:])("; ".join(sec_txt(n) for n in (["angled return","side","front left","front right","right return"] if CN else ["left return","left side","front","right side left","right side right","right return"] if UJ else ["left return","front left","front right","right return"])))+"."),
-]+([("Fill above the entry",f"One {mm(DW)} x {mm(c['door']['h'])} piece (S{c['door']['sheet']}) between the door head at {mm(DH)} and {mm(SH0)}.")] if c["door"] else [])+([
-("Fix the tops",f"{mm(H-SH0)} tops from {mm(SH0)} to {mm(H)} along the whole run. {tops_txt}")] if c["tops"] else [])+[
+(f"Fix the {mm(PH)} sheets ({mm(SHT)} cut down)" if c["cut_off"] else f"Fix the {mm(SHT)} sheets",(lambda x: x[0].upper()+x[1:])("; ".join(sec_txt(n) for n in (["angled return","side","front left","front right","right return"] if CN else ["left return","left side","front","right side left","right side right","right return"] if UJ else ["left return","front left","front right","right return"])))+"."),
+]+([("Fill above the entry",f"One {mm(DW)} x {mm(c['door']['h'])} piece (S{c['door']['sheet']}) between the door head at {mm(DH)} and {mm(PH)}.")] if c["door"] else [])+([
+("Fix the tops",f"{mm(H-SHT)} tops from {mm(SHT)} to {mm(H)} along the whole run. {tops_txt}")] if c["tops"] else [])+[
 ("Hang the doors",f"{('One','Two','Three','Four')[DS['doors']-1]} {DS['leaf_mm']} leaves on {DS['hinges']} hinges, metal plates and deadbolt. Check they close and lock."),
 ("Finish",f"White tape on every vertical joint, black skirting tape along the base, screw covers, anti-tampers, {RULES['materials']['form_quantities']['Warning Stickers']} warning stickers, paint touch-ups."),
 ("Hand over","Clean up, remove the barrier, photograph each side, complete the installation certificate and sign INST CHK.")]

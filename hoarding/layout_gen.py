@@ -43,9 +43,26 @@ def runs(p):
         x = round(x + ln, 3); folds.append(x)
     return secs, folds[:-1], segs, door_x, x
 
+def sheet_for(H):
+    """Stock sheet height for a hoarding height (v1.1 §4, Gus 2026-11-01): the smallest of rules.json sheet.heights at or
+    above it (2.4 m and below: 2400 sheets; up to 3.6 m: 3600 sheets cut down), else the tallest (3600 sheets + tops)."""
+    hs = sorted(RULES["sheet"]["heights"])
+    return next((h for h in hs if H <= h + E), hs[-1])
+
+def cut_offs(c):
+    """Cut-offs to tops stock when the sheets are cut down to the hoarding height: [(width_mm, height_mm, count)].
+    One per stock sheet stood up in the run (full sheets and offcut-bin sheets); the door sheet is turned, so none."""
+    n = len(c["full"]) + len(c["bins"])
+    return [(round(SW * 1000), round(c["cut_off"] * 1000), n)] if c["cut_off"] > E and n else []
+
+def cut_offs_text(c):
+    """e.g. "8 x 1200 x 600" ("" when the sheets are not cut down)."""
+    return " + ".join(f"{n} x {w} x {h}" for w, h, n in cut_offs(c))
+
 def compute(p):
     global SH
-    SH = p.get("sheet_h", RULES["sheet"]["height"])   # 2.4 m jobs (e.g. external, David Jones Lift Area) use 2400 x 1200 sheets, no tops
+    SH = p.get("sheet_h") or sheet_for(p["height"])   # by height band (rule 6); job.json sheet_h still overrides
+    PH = round(min(p["height"], SH), 3)               # panel height: sheets cut down to the hoarding height below 3.6 m
     dw = p["door_width"]
     secs, folds, segs, door_x, L = runs(p)
     full, rem = [], []
@@ -62,8 +79,8 @@ def compute(p):
         k += 1; b["sheet"] = k
         for j, c in enumerate(b["cuts"]): c["sheet"] = k; c["label"] = f"S{k}" + ("abcdefgh"[j] if len(b["cuts"]) > 1 else "")
     door = None
-    if dw > 0 and SH - p.get("door_height", DH) > E:
-        k += 1; door = {"sheet": k, "x": door_x, "w": dw, "h": round(SH - p.get("door_height", DH), 3)}
+    if dw > 0 and PH - p.get("door_height", DH) > E:
+        k += 1; door = {"sheet": k, "x": door_x, "w": dw, "h": round(PH - p.get("door_height", DH), 3)}
     # tops: one above every sheet piece, same width, so every join runs in one line from floor to top (boss, 2026-10-21)
     TH = round(p["height"] - SH, 3)
     tfull = [{"x": f_["x"]} for f_ in full]
@@ -90,7 +107,7 @@ def compute(p):
             x0 += f_["len"]
         ups = [u for u in ups if not (x0 - E <= u <= x0 + p["track"]["len"] + E)]
     return dict(L=L, folds=folds, segs=segs, full=full, bins=bins, door=door, entry=(door_x, dw) if door_x is not None and dw > 0 else None, tfull=tfull, tbins=tbins,
-                sheets=k, tops=kt if TH > E else 0, uprights=ups)
+                sheets=k, tops=kt if TH > E else 0, uprights=ups, sheet_h=SH, panel_h=PH, cut_off=round(SH - PH, 3))
 
 def tops_to_cut(p, c):
     """Tops to cut from offcuts (v1.1 rule 5, Gus 2026-11-01): [(width_mm, height_mm, count), ...], widest first.
@@ -98,7 +115,7 @@ def tops_to_cut(p, c):
     the entry is cut from the door sheet (already counted), so it is not listed. Empty when the job has no tops."""
     if not c["tops"]:
         return []
-    th = int(round((p["height"] - p.get("sheet_h", RULES["sheet"]["height"])) * 1000))
+    th = int(round((p["height"] - c["sheet_h"]) * 1000))
     widths = [int(round(SW * 1000))] * len(c["tfull"]) + [int(round(cu["w"] * 1000)) for b in c["tbins"] for cu in b["cuts"]]
     return [(w, th, widths.count(w)) for w in sorted(set(widths), reverse=True)]
 
@@ -119,10 +136,11 @@ def render(p, out):
     W, Hc = 2400, 1900; im = Image.new("RGB", (W, Hc), "white"); d = ImageDraw.Draw(im)
     def t(xy, s, ft, fill=INK, a="mm"): d.text(xy, s, font=ft, fill=fill, anchor=a)
     mm = lambda v: f"{round(v * 1000):d}"
-    tops_txt = f" + {c['tops']} tops {SW:g} x {H - SH:.1f} m" if c["tops"] else ""
+    tops_txt = f" + {c['tops']} tops {SW:g} x {H - SH:.1f} m" if c["tops"] else (f" cut to {c['panel_h']:g}{'' if c['panel_h'] % 1 else '.0'} m" if c["cut_off"] > E else "")
+    PH = c["panel_h"]
     t((80, 60), f"{p['title'].upper()}: MELAMINE LAYOUT ({c['sheets']} sheets {SW:g} x {SH:g} m{tops_txt})", f(40), INK, "lm")
     t((80, 110), f"Sizes in mm. Same colour and number = cut from the same sheet. " + (", ".join(f"{fc['name']} {mm(fc['len'])}" for fc in faces(p)) if "faces" in p else f"Front {mm(p['front'])}, returns {mm(p['return'])}") + f", height {mm(H)}.", f(26, False), GREY, "lm")
-    s = min(150, 2050 / L); X0 = 110; Yb = min(880, 240 + H * s); y36 = Yb - SH * s; yT = Yb - H * s; dh = p.get("door_height", DH); yD = Yb - dh * s
+    s = min(150, 2050 / L); X0 = 110; Yb = min(880, 240 + H * s); y36 = Yb - PH * s; yT = Yb - H * s; dh = p.get("door_height", DH); yD = Yb - dh * s
     t((80, 170), "ELEVATION (returns unfolded, seen from the mall)", f(28), GREY, "lm")
     def piece(x, w, y0, y1, fill, label, fs=None):
         a = (X0 + x * s, y0); b = (X0 + (x + w) * s, y1)
@@ -166,7 +184,7 @@ def render(p, out):
         if b - a > E: hd(a, b, y, l)
     hd(0, L, y + 70, mm(L))
     xr = X0 + L * s + 25
-    for ya, yb, l in ([(yT, y36, mm(H - SH))] if c["tops"] else []) + [(y36, Yb, mm(SH))]:
+    for ya, yb, l in ([(yT, y36, mm(H - SH))] if c["tops"] else []) + [(y36, Yb, mm(PH))]:
         d.line([(xr, ya), (xr, yb)], fill=INK, width=2); [d.line([(xr - 12, yy), (xr + 12, yy)], fill=INK, width=2) for yy in (ya, yb)]
         t((xr + 12, (ya + yb) / 2), l, f(22), INK, "lm")
     # cutting plan
@@ -182,17 +200,19 @@ def render(p, out):
             if l: t(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), l, f(16), INK)
         t((x0 + w / 2, Y0 - 20), f"S{i}", f(24), INK)
         for k, line in enumerate(note): t((x0 + w / 2, Y0 + h + 24 + k * (24 if gap > 160 else 20)), line, f(nf, False), INK)
-    for fs_ in c["full"]: sheet(fs_["sheet"], [(0, SW, 0, SH, col(fs_["sheet"]), "full")], ["full", fs_["where"]])
+    CO = c["cut_off"]   # cut down to the hoarding height: the cut-off (top of the sheet) goes to tops stock
+    cutoff = [(0, SW, 0, CO, (225, 225, 225), "cut-off" if CO * cs >= 30 else "")] if CO > E else []
+    for fs_ in c["full"]: sheet(fs_["sheet"], cutoff + [(0, SW, CO, PH, col(fs_["sheet"]), "full")], ["full", fs_["where"]])
     for b in c["bins"]:
         cuts, x, note = [], 0, []
         for cu in b["cuts"]:
-            cuts.append((x, cu["w"], 0, SH, col(b["sheet"]), mm(cu["w"]) if cu["w"] * cs >= 40 else "")); x += cu["w"]
+            cuts.append((x, cu["w"], CO, PH, col(b["sheet"]), mm(cu["w"]) if cu["w"] * cs >= 40 else "")); x += cu["w"]
             note.append(f"{mm(cu['w'])} {short(cu['where'])}")
-        if b["left"] > E: cuts.append((x, b["left"], 0, SH, None, "")); note.append(f"({mm(b['left'])} spare)")
-        sheet(b["sheet"], cuts, note)
+        if b["left"] > E: cuts.append((x, b["left"], CO, PH, None, "")); note.append(f"({mm(b['left'])} spare)")
+        sheet(b["sheet"], cutoff + cuts, note)
     if dr:
         th = dr.get("top_h", 0) if dr.get("top_sheet") == dr["sheet"] else 0
-        cuts = [(0, SW, SH - dr["w"], dr["w"], col(dr["sheet"]), "door")]
+        cuts = [(0, dr["h"], SH - dr["w"], dr["w"], col(dr["sheet"]), "door")]   # the sheet turned: door_w long x h wide
         note = [f"{mm(dr['w'])} x {mm(dr['h'])} door top"] if gap > 160 else ["door top", f"{mm(dr['w'])} x {mm(dr['h'])}"]
         if th: cuts.append((0, th, SH - 2 * dr["w"], dr["w"], col(dr["sheet"]), "top")); note += [f"{mm(dr['w'])} x {mm(th)} entry top"] if gap > 160 else ["entry top", f"{mm(dr['w'])} x {mm(th)}"]
         sp = round(SH - dr["w"] * (2 if th else 1), 3)
@@ -203,6 +223,9 @@ def render(p, out):
         msg = f"Each top is the same width as the sheet below it, so every join runs in one line. T1 to T{nt} are full {mm(SW)} x {mm(H - SH)}." + "".join(f" T{nt + i + 1} is cut {x}." for i, x in enumerate(cut))
         if dr and dr.get("top_h"): msg += f" Above the entry: {mm(dr['w'])} x {mm(dr['top_h'])} from S{dr['top_sheet']}."
         t((80, Hc - 40), msg, f(21, False), GREY, "lm")
+    elif CO > E:
+        (cw, ch, cn), = cut_offs(c)
+        t((80, Hc - 40), f"Sheets cut down from {mm(SH)} to {mm(PH)}: the {cn} cut-offs ({cw} x {ch}) go to tops stock, not waste.", f(21, False), GREY, "lm")
     spare = f"Send {RULES['sheet']['spare']} extra sheets in case of damage."
     if dr: t((80, Hc - 85), f"Note: instead of cutting S{dr['sheet']}, the door-top pieces can be cut from a spare factory sheet and sent to the job. {spare}", f(21, True), INK, "lm")
     else: t((80, Hc - 85), spare, f(21, True), INK, "lm")

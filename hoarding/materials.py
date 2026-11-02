@@ -27,7 +27,9 @@ uprights = joins(_p, _c)   # one at every joint between sheets, incl. both sides
 studs = math.ceil(M["studs"] * L / M["per_length"])   # 14 / 8 / 10 per 8.8 m, inferred from Just Cuts
 from tape import rolls_for_job, black_tape
 tape = rolls_for_job(_p, _c)   # rules.json tape.tape_rule: "v1" = 8 per 8.8 m (default), "joints" = joint length / 25 m + 20%
-SHT = _p.get("sheet_h", RULES["sheet"]["height"])   # sheet height (2.4 for 2.4 m jobs)
+SHT = _c["sheet_h"]   # stock sheet height by height band (rule 6): 2.4 or 3.6
+from layout_gen import cut_offs_text
+CUTS = cut_offs_text(_c)   # sheets cut down to the hoarding height: cut-offs to tops stock (Gus, 2026-11-01)
 top = round((H - SHT) * 1000)
 from titan import for_job
 UPJ = uprights
@@ -40,7 +42,7 @@ TR = _p.get("track")   # fire-door jobs: track + timbers section instead of upri
 S = [
  ("Titan", [("Uprights", uprights, UTXT if UPX or SPU else ""), ("Counterweights", CW, f"{PER}   Per Upright  x  {uprights} uprights")]
           + ([("Extra Counterweights", XW, f"{_p['extra_weight_pct']:g}% extra weight on {CW} (asked for this external job)")] if _p.get("external") else [])),
- ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m (+{SPARE} spare)" + (f"   Tops from offcuts: {TOPS}" if TOPS else "")), ("15mm CD Ply", "", "2.4m – 3.0m")]),
+ ("Board", [("16mm Melamine", f"{sheets} x", f"{SHT:g}m" + (f" cut to {_c['panel_h']:g}{'' if _c['panel_h'] % 1 else '.0'}m" if CUTS else "") + f" (+{SPARE} spare)" + (f"   Tops from offcuts: {TOPS}" if TOPS else "") + (f"   Cut-offs to tops stock: {CUTS}" if CUTS else "")), ("15mm CD Ply", "", "2.4m – 3.0m")]),
  ("Timber/Track", [("70 x 45 MGP 10", f"{studs} x", f"{H:g}"), ("70 x 45 Topplate", "", ""),
                    ("70 x 45 Door Studs", DS["studs_full_height"] + DS["studs_short"], f"{DS['studs_full_height']} x {H:g}  +  {DS['studs_short']} x {DS['studs_short_length']:g}"),
                    ("90mm track", f"{TR['lengths']} x" if TR else "", "3.0m  (ceiling + floor)" if TR else "3.0m"), ("90 x 45 MGP 10", f"{TR['studs']} x" if TR else "", f"{H:g}  (in the track, 600 centres)" if TR else "")]),
