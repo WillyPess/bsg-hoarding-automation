@@ -7,7 +7,7 @@
   <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
   <tbody>
   {% for c in checks %}
-    <tr><td>{{ c.name }}</td><td class="{{ 'ok' if c.ok else 'fail' }}">{{ "ok" if c.ok else "FAIL" }}</td><td>{{ c.detail }}</td></tr>
+    <tr><td>{{ c.name }}</td><td class="{{ c.level }}">{{ {"ok": "ok", "warn": "WARN", "fail": "FAIL"}[c.level] }}</td><td>{{ c.detail }}</td></tr>
   {% endfor %}
   </tbody>
 </table>

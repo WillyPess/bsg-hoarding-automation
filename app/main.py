@@ -106,7 +106,7 @@ def create_app(settings=None):
     def health_json():
         cs, ok = report()
         return JSONResponse({"status": "ok" if ok else "failing",
-                             "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in cs],
+                             "checks": [{"name": c.name, "ok": c.ok, "level": c.level, "detail": c.detail} for c in cs],
                              "data_dir": str(settings.data_dir), "model": settings.ai.model, "ai_enabled": settings.ai.enabled},
                             status_code=200 if ok else 503)
 

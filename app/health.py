@@ -1,10 +1,18 @@
 """Health checks for the health page and `python -m app --check`: can the app and the engine work on this PC?
-Each check is (name, ok, detail). Nothing here computes a hoarding quantity."""
-import os, sys, tempfile
-from dataclasses import dataclass
+Each check is (name, ok, detail, level): level "ok", "warn" (shown, but the app still works: e.g. no recent backup)
+or "fail" (ok is False). Nothing here computes a hoarding quantity."""
+import os, sys, tempfile, time
+from dataclasses import dataclass, field
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOARDING = os.path.join(ROOT, "hoarding")
+
+
+BACKUP_MAX_AGE = 2 * 86400   # the health page warns when the last backup is older (PLAN-app.md §7)
+
+
+def now():
+    return time.time()
 
 
 @dataclass(frozen=True)
@@ -12,6 +20,11 @@ class Check:
     name: str
     ok: bool
     detail: str
+    level: str = field(default="")
+
+    def __post_init__(self):
+        if not self.level:
+            object.__setattr__(self, "level", "ok" if self.ok else "fail")
 
 
 def _engine_path():
@@ -54,4 +67,19 @@ def checks(settings):
     out.append(Check("LibreOffice", bool(lo), lo or "not found: the materials PDF needs LibreOffice (set SOFFICE or install it)"))
     missing = [p for p in font_paths() if not os.path.exists(p)]
     out.append(Check("Fonts", not missing, "DejaVu fonts found" if not missing else "missing: " + ", ".join(missing)))
+    out.append(backup_check(settings))
     return out
+
+
+def backup_check(settings):
+    """A warning, never a failure: the app works without backups, but Gus must see that they are missing."""
+    from app import backup
+    if settings.backup_dir is None:
+        return Check("Backup", True, "No backup folder set: add [backup] folder to config.toml and register the daily task (README).", "warn")
+    last = backup.last_backup(settings)
+    if not last:
+        return Check("Backup", True, f"No backup yet in {settings.backup_dir}: run python -m app.backup, or check the daily task (README).", "warn")
+    when = time.strftime("%Y-%m-%d %H:%M", time.localtime(last["at"]))
+    if now() - last["at"] > BACKUP_MAX_AGE:
+        return Check("Backup", True, f"The last backup is more than 2 days old ({when}, {last['folder']}): check the daily task.", "warn")
+    return Check("Backup", True, f"Last backup {when}: {last['folder']}")
