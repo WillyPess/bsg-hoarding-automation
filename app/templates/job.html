@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} · BSG Hoarding{% endblock %}
+{% block content %}
+<p><a href="/jobs">← Jobs</a></p>
+<div class="bar"><h1>{{ job.title }}</h1>{% if kind == "standard" %}<a class="button" href="/jobs/{{ folder }}/edit">Edit</a>{% endif %}</div>
+<p class="small">{{ folder }} · {{ kind }}{{ " (kiosk)" if job.kiosk }}</p>
+{% include "_inputs.html" %}
+<h2>Warnings</h2>
+{% if warnings %}
+<ul class="warnings-list">{% for w in warnings %}<li>{{ w.message }} <span class="small">({{ w.rule }})</span></li>{% endfor %}</ul>
+{% else %}<p>None.</p>{% endif %}
+<p class="small">From the engine (<code>jobs.warnings</code>). Running the engine comes in a later step.</p>
+<h2>History</h2>
+<table class="list">
+  <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
+  <tbody>
+  {% for h in history %}
+    <tr><td>{{ h.when }}</td><td>{{ h.user or "the app" }}</td><td>{{ h.action }}{% if h.detail.changed %}: {{ h.detail.changed|join(", ") }}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import auth, db, health, settings as S, users
+from app import auth, db, health, pages_jobs, settings as S, users
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SECURITY_HEADERS = {"X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}
@@ -89,9 +89,11 @@ def create_app(settings=None):
 
     # --- pages --------------------------------------------------------------------------------------------------------
 
-    @app.get("/", response_class=HTMLResponse)
-    def home(request: Request):
-        return page(request, "index.html")
+    @app.get("/")
+    def home():
+        return RedirectResponse("/jobs", status_code=303)
+
+    pages_jobs.add_routes(app, page, settings)
 
     def report():
         cs = health.checks(settings)
