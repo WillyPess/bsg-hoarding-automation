@@ -1,5 +1,6 @@
 """A hand-set "uprights" in job.json (corners that can't take uprights, Gus 2026-10-28) reaches every output, not only the materials form."""
 import json, os, shutil
+from pathlib import Path
 
 import baseline, run_job, titan
 from check_fixtures import pdf_text
@@ -11,8 +12,9 @@ def test_package_uses_hand_set_uprights(tmp_path):
     work = str(tmp_path / "Bikini")
     shutil.copytree(os.path.join(baseline.ROOT, "hoarding", "Bikini"), work)
     jp = os.path.join(work, "job.json")
-    job = json.load(open(jp))
-    json.dump({**job, "uprights": 12}, open(jp, "w"))
+    job = json.loads(Path(jp).read_text(encoding="utf-8"))
+    with open(jp, "w", encoding="utf-8") as f:
+        json.dump({**job, "uprights": 12}, f)
 
     s = run_job.run(work)
     assert (s["uprights_at_joins"], s["spare_uprights"], s["uprights_to_send"], s["weights_to_send"]) == (12, 2, 14, 98)

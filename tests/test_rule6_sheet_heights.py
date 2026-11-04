@@ -4,6 +4,7 @@
   - over 3.6 m: 3600 sheets + tops.
 The engine picks the sheet from the height (rules.json sheet.heights); job.json "sheet_h" still overrides it."""
 import json, os, subprocess, sys
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -12,7 +13,7 @@ import baseline, layout_gen, tape
 
 
 def bikini(height, **kw):
-    j = json.load(open(os.path.join(baseline.ROOT, "hoarding", "Bikini", "job.json")))
+    j = json.loads(Path(os.path.join(baseline.ROOT, "hoarding", "Bikini", "job.json")).read_text(encoding="utf-8"))
     j.update(height=height, **kw)
     return j
 

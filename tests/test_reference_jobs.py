@@ -4,6 +4,7 @@ Counts and the materials form are the approved v1 numbers. Drawings (PNG) and do
 with expected/<Job>/baseline.json; if a change is intended, check the new outputs and run tests/update_baseline.py.
 """
 import json, os
+from pathlib import Path
 
 import pytest
 
@@ -11,12 +12,12 @@ import baseline
 from check_fixtures import cells
 
 ROOT = baseline.ROOT
-EXPECTED = json.load(open(os.path.join(ROOT, "expected", "expected_counts.json")))["jobs"]
+EXPECTED = json.loads(Path(os.path.join(ROOT, "expected", "expected_counts.json")).read_text(encoding="utf-8"))["jobs"]
 UPDATE = "If the change is intended, check the new files in {work} and run: python tests/update_baseline.py {job}"
 
 
 def prefix(job):
-    return json.load(open(os.path.join(ROOT, "hoarding", job, "job.json")))["prefix"]
+    return json.loads(Path(os.path.join(ROOT, "hoarding", job, "job.json")).read_text(encoding="utf-8"))["prefix"]
 
 
 @pytest.mark.parametrize("job", baseline.JOBS)

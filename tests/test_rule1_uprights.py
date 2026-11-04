@@ -2,6 +2,7 @@
 External jobs: round the 40% up first, then add the 10% spare on that total, rounded up (DJ Lift 24 -> 34 -> 38).
 Fire-door jobs: only the joints where an upright actually stands (Medibank 7, plus spares)."""
 import json, os
+from pathlib import Path
 
 import pytest
 
@@ -9,7 +10,7 @@ import baseline, layout_gen, titan
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("joints, spare", [(10, 1), (14, 2), (18, 2), (22, 3), (7, 1)])

@@ -3,6 +3,7 @@
 
 Checked on the materials form the pipeline writes for every reference job."""
 import json, os
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -21,7 +22,7 @@ def form_row(xlsx, name):
 
 
 def prefix(job):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", job, "job.json")))["prefix"]
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", job, "job.json")).read_text(encoding="utf-8"))["prefix"]
 
 
 @pytest.mark.parametrize("job", JOBS)

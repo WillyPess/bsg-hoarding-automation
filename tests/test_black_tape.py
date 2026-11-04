@@ -1,6 +1,7 @@
 """Black skirting tape (Gus, 2026-11-02, provisional): a skirt along the full lineal metres of the job (the whole run,
 returns and entry included) x 2 (100% spare, like the white tape) / 25 m rolls, rounded up. v1 sent 1 roll per job."""
 import json, os
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -11,7 +12,7 @@ ROLLS = {"Bikini": 1, "FRED_v2": 2, "DavidJones": 2, "DavidJones1": 2, "Shrungaa
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 def test_rule_values():

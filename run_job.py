@@ -16,6 +16,7 @@ Steps, same as CLAUDE.md "How to reproduce":
 Prints a JSON summary of the key counts at the end (also saved as run_summary.json in the job folder).
 """
 import json, os, shutil, subprocess, sys, tempfile
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 H = os.path.join(ROOT, "hoarding")
@@ -35,7 +36,7 @@ def sh(args, cwd):
 
 def run(jobdir):
     jobdir = os.path.abspath(jobdir)
-    job = json.load(open(os.path.join(jobdir, "job.json")))
+    job = json.loads(Path(os.path.join(jobdir, "job.json")).read_text(encoding="utf-8"))
     job["dir"] = jobdir
     import validate   # inputs checked before anything is written (external jobs: asks the extra weight question, never fills it in)
     problems = validate.check(job)
@@ -43,7 +44,9 @@ def run(jobdir):
         raise SystemExit(f"{job.get('prefix', jobdir)}: job.json can't run:\n" + "\n".join(f"  - {p}" for p in problems))
     P = job["prefix"]
     tmp = tempfile.mkdtemp()
-    jp = os.path.join(tmp, "job.json"); json.dump(job, open(jp, "w"))
+    jp = os.path.join(tmp, "job.json")
+    with open(jp, "w", encoding="utf-8") as f:
+        json.dump(job, f)
     js = json.dumps(job)
     log = {}
     # 0. job-specific scripts
@@ -76,14 +79,17 @@ def run(jobdir):
         q = dict(job)
         qe = os.path.join(jobdir, "quote_extras.json")
         if os.path.exists(qe):
-            q.update(json.load(open(qe)))
-        qp = os.path.join(tmp, "quote.json"); json.dump(q, open(qp, "w"))
+            q.update(json.loads(Path(qe).read_text(encoding="utf-8")))
+        qp = os.path.join(tmp, "quote.json")
+        with open(qp, "w", encoding="utf-8") as f:
+            json.dump(q, f)
         out = os.path.join(jobdir, job.get("quote_file", f"{P}_Quotation.pdf"))
         log["quote"] = sh([PY, f"{H}/quotes/quote_gen.py", qp, out], jobdir).splitlines()[-1]
     shutil.rmtree(tmp)
     summary = counts(job)
     summary["log"] = log
-    json.dump(summary, open(os.path.join(jobdir, "run_summary.json"), "w"), indent=1)
+    with open(os.path.join(jobdir, "run_summary.json"), "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=1)
     return summary
 
 
@@ -114,7 +120,7 @@ def counts(job):
         q = dict(job)
         qe = os.path.join(job["dir"], "quote_extras.json")
         if os.path.exists(qe):
-            q.update(json.load(open(qe)))
+            q.update(json.loads(Path(qe).read_text(encoding="utf-8")))
         r = quote_gen.compute(q)
         out.update(quote_lm=r["charged"], quote_rate=r["rate"], quote_ex_gst=float(r["sub"]), quote_gst=float(r["gst"]),   # Decimal -> JSON number
                    quote_total=float(r["total"]), quote_poa_lines=sum(1 for l in r["lines"] if l[4] is None))

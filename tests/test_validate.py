@@ -1,6 +1,7 @@
 """hoarding/validate.py: check(job) -> list of problems (field + message). Empty list = the job can run.
 Only checks inputs against the rules already in CLAUDE.md / rules.json; it never computes a quantity."""
 import copy, json, os, shutil
+from pathlib import Path
 
 import pytest
 
@@ -8,7 +9,7 @@ import baseline, run_job, titan, validate
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 def fields(problems):
@@ -149,8 +150,9 @@ def test_check_does_not_change_the_job():
 def test_run_job_refuses_an_invalid_job_before_writing(tmp_path):
     work = str(tmp_path / "Bikini")
     shutil.copytree(os.path.join(baseline.ROOT, "hoarding", "Bikini"), work)
-    p = os.path.join(work, "job.json"); j = json.load(open(p)); j["height"] = 0; j["title"] = ""
-    json.dump(j, open(p, "w"))
+    p = os.path.join(work, "job.json"); j = json.loads(Path(p).read_text(encoding="utf-8")); j["height"] = 0; j["title"] = ""
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(j, f)
     before = sorted(os.listdir(work))
     with pytest.raises(SystemExit) as e:
         run_job.run(work)

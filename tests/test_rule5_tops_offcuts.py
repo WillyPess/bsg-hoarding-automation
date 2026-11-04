@@ -2,6 +2,7 @@
 Tops are not counted as new sheets; the person loading the truck adds a sheet per top size not in stock.
 The piece above the entry comes from the door sheet (already in the sheet count), so it is not an offcut top."""
 import json, os
+from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
@@ -10,7 +11,7 @@ import baseline, layout_gen
 
 
 def job(name):
-    return json.load(open(os.path.join(baseline.ROOT, "hoarding", name, "job.json")))
+    return json.loads(Path(os.path.join(baseline.ROOT, "hoarding", name, "job.json")).read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("name, want", [
