@@ -20,7 +20,9 @@ def data(tmp_path):
 
 @pytest.fixture
 def client(data):
-    return TestClient(create_app(S.load(data)))
+    # pages need a login since step 2 (test_app_login.py)
+    import app_helpers as H
+    return H.logged_in(H.make_app(data)[0])
 
 
 # --- settings ---------------------------------------------------------------------------------------------------------
@@ -104,7 +106,7 @@ def test_static_files(client):
 
 def test_no_cdn(client):
     # everything works offline: no stylesheet or script from another site (§2)
-    html = client.get("/").text + client.get("/health").text
+    html = client.get("/").text + client.get("/health").text + client.get("/login").text
     assert not re.search(r'(src|href)="(https?:)?//', html)
 
 
@@ -127,11 +129,10 @@ def test_health_json(client, data):
     assert j["model"] == "claude-opus-5-5" and j["ai_enabled"] is False
 
 
-def test_health_reports_a_failing_check(data, monkeypatch):
-    app = create_app(S.load(data))
+def test_health_reports_a_failing_check(client, monkeypatch):
     from app import health
     monkeypatch.setattr(health, "soffice_path", lambda: None)
-    r = TestClient(app).get("/health.json")
+    r = client.get("/health.json")
     assert r.status_code == 503
     j = r.json()
     assert j["status"] == "failing"
