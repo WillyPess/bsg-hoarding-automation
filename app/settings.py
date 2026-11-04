@@ -31,6 +31,7 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8000
     ai: AISettings = field(default_factory=AISettings)
+    backup_dir: Path | None = None   # [backup] folder; None = not set (the health page warns)
 
     @property
     def config_path(self):
@@ -58,6 +59,12 @@ effort = "medium"
 # Cost caps in USD (decided 2026-11-02): all of one job's AI calls, and each calendar month.
 cap_per_job_usd = 1.0
 cap_per_month_usd = 60.0
+
+# Daily backup of this data folder (python -m app.backup, run by a Windows scheduled task; README).
+# A full path on another drive, e.g. folder = 'D:\\BSG-backups' (single quotes keep the backslashes).
+# Empty = no backups yet: the health page warns until it is set.
+[backup]
+folder = ""
 '''
 
 
@@ -89,10 +96,12 @@ def load(data_dir=None):
         raw = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as e:
         raise ConfigError(f"config.toml ({path}) is not valid TOML: {e}") from None
-    _check_keys(raw, ("server", "ai"), "top level")
+    _check_keys(raw, ("server", "ai", "backup"), "top level")
     srv, ai = raw.get("server", {}), raw.get("ai", {})
     _check_keys(srv, ("host", "port"), "server")
     _check_keys(ai, ("enabled", "model", "effort", "cap_per_job_usd", "cap_per_month_usd"), "ai")
+    bk = raw.get("backup", {})
+    _check_keys(bk, ("folder",), "backup")
 
     host = srv.get("host", "127.0.0.1")
     try:
@@ -114,7 +123,17 @@ def load(data_dir=None):
     effort = ai.get("effort", "medium")
     if effort not in EFFORTS:
         raise ConfigError(f"config.toml: ai.effort must be one of {', '.join(EFFORTS)}, not {effort!r}")
-    return Settings(data_dir=data_dir, host=host, port=port, ai=AISettings(
+    folder = bk.get("folder", "")
+    if not isinstance(folder, str):
+        raise ConfigError(f"config.toml: backup.folder must be a folder path in quotes, not {folder!r}")
+    backup_dir = Path(folder) if folder.strip() else None
+    if backup_dir is not None:
+        if not backup_dir.is_absolute():
+            raise ConfigError(f"config.toml: backup.folder must be a full path (e.g. 'D:\\BSG-backups'), not {folder!r}")
+        b, d = backup_dir.resolve(), data_dir.resolve()
+        if b == d or d in b.parents:
+            raise ConfigError(f"config.toml: backup.folder {folder!r} is inside the data folder; put it on another drive")
+    return Settings(data_dir=data_dir, host=host, port=port, backup_dir=backup_dir, ai=AISettings(
         enabled=enabled, model=model, effort=effort,
         cap_per_job_usd=_number(ai.get("cap_per_job_usd", 1.0), "ai.cap_per_job_usd"),
         cap_per_month_usd=_number(ai.get("cap_per_month_usd", 60.0), "ai.cap_per_month_usd")))

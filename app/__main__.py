@@ -19,7 +19,7 @@ def main(argv=None):
         cs = health.checks(s)
         print(f"BSG Hoarding app: {s.url}")
         for c in cs:
-            print(f"  {'ok  ' if c.ok else 'FAIL'}  {c.name}: {c.detail}")
+            print(f"  {c.level.upper() if c.level != 'ok' else 'ok':<4}  {c.name}: {c.detail}")
         return 0 if all(c.ok for c in cs) else 1
     import uvicorn
     from app.main import create_app

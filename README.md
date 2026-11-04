@@ -32,7 +32,7 @@ The stored PNGs were made on Linux. The hashes in `baseline.json` are still the 
 
 ## Web app (in progress)
 
-The app around the engine is being built step by step from `PLAN-app.md` (§11). Step 1, the skeleton, is in `app/`:
+The app around the engine is being built step by step from `PLAN-app.md` (§11): steps 1-3 (skeleton, users and login, storage) are in `app/`:
 
 ```bash
 pip install -r requirements.txt
@@ -46,6 +46,38 @@ python -m app             # serves http://127.0.0.1:8000 (this PC only); log in,
 Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins for a name in 15 minutes, that name can't log in for 15 minutes; after 20 failed logins from one address (on this PC, both users share 127.0.0.1), that address is locked for 15 minutes. So one person's typos don't lock the other out.
 
 The data folder is `C:\BSG\data` on Windows (`~/BSG/data` elsewhere), or `BSG_DATA` when set. The first start writes `config.toml` there with every setting and its default (server address, AI model and cost caps); no secrets go in it. The AI reviewer stays off until it is built.
+
+### Storage
+
+Everything lives in the data folder (PLAN-app.md §7): `bsg.sqlite` (users, the job and run index, approvals, the AI tables, and the **append-only audit**: the database itself refuses to change or delete an audit entry), `config.toml`, `last_backup.json`, and `jobs/<Job>/` with `job.json`, the photos, `reviews/` and `runs/0001/`, `runs/0002/`, ... Run numbers are never reused. A finished run (it has `engine.json`: engine commit, `rules.json` hash, versions, time taken) can't be written again, and its files are read-only.
+
+If the index ever gets out of step with the folders (e.g. a job folder copied in by hand), rebuild it with the app stopped:
+
+```bash
+python -m app.storage rebuild-index      # jobs and runs from the folders; history (audit, approvals) untouched
+```
+
+### Backups
+
+`python -m app.backup` copies the data folder into the backup folder as `BSG-YYYY-MM-DD_HHMMSS` (the database through SQLite's backup API, so the copy is consistent even while the app runs), deletes backups older than 30 days (only its own `BSG-<date>` folders), and records the time. The health page warns when no backup folder is set or the last backup is more than 2 days old.
+
+1. Set the backup folder, on another drive, in `C:\BSG\data\config.toml` (single quotes keep the backslashes):
+   ```toml
+   [backup]
+   folder = 'D:\BSG-backups'
+   ```
+2. Try it once from the repository folder: `python -m app.backup` should print `Backup done: D:\BSG-backups\BSG-...`.
+3. Register the daily task once, in PowerShell (change `$repo` to where this repository is on the PC, and the time if you like). `-StartWhenAvailable` runs a missed backup as soon as the PC is on again:
+   ```powershell
+   $repo = "C:\BSG\bsg-hoarding-automation"
+   $action   = New-ScheduledTaskAction -Execute "$repo\backup-bsg.bat" -WorkingDirectory $repo
+   $trigger  = New-ScheduledTaskTrigger -Daily -At 12:30
+   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 1)
+   Register-ScheduledTask -TaskName "BSG Hoarding backup" -Action $action -Trigger $trigger -Settings $settings -Description "Daily backup of C:\BSG\data (python -m app.backup)"
+   ```
+   Test it with `Start-ScheduledTask -TaskName "BSG Hoarding backup"`; the health page then shows the time of the last backup, and `backup.log` in the repository folder shows the output.
+
+To restore: stop the app, then copy a `BSG-<date>` folder back as `C:\BSG\data`.
 
 ## Contents
 

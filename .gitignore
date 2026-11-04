@@ -21,3 +21,6 @@ hoarding/Medibank/Medibank_track_plan_CHECK.png
 
 # LibreOffice lock files
 .~lock.*
+
+# Output of the daily backup task (backup-bsg.bat)
+backup.log
