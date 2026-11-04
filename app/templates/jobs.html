@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Jobs · BSG Hoarding{% endblock %}
+{% block content %}
+<div class="tabs"><a class="on" href="/jobs">Jobs</a><a href="/examples">Examples</a></div>
+<div class="bar">
+  <form method="get" action="/jobs" class="search">
+    <input name="q" value="{{ q }}" placeholder="Search title or site" aria-label="Search title or site">
+    <button type="submit">Search</button>{% if q %} <a href="/jobs">Clear</a>{% endif %}
+  </form>
+  <a class="button" href="/jobs/new">New job</a>
+</div>
+{% if rows %}
+<table class="list">
+  <thead><tr><th>Title</th><th>Site</th><th>Type</th><th>Status</th><th>Last run</th><th>Warnings</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr data-job="{{ r.folder }}">
+      <td><a href="/jobs/{{ r.folder }}">{{ r.title }}</a><div class="small">{{ r.folder }}</div></td>
+      <td>{{ r.site }}</td>
+      <td>{{ r.kind }}</td>
+      <td><span class="status {{ r.status }}">{{ r.status }}</span></td>
+      <td>{% if r.last_run %}{{ "%04d"|format(r.last_run) }} · {{ r.last_status }}<div class="small">{{ r.last_at_text }}</div>{% else %}—{% endif %}</td>
+      <td class="warnings">{{ r.warnings if r.warnings is not none else "?" }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% elif q %}
+<p>No job matches “{{ q }}”.</p>
+{% else %}
+<p>No jobs yet. <a href="/jobs/new">Make the first one</a>, or look at the <a href="/examples">Examples</a>.</p>
+{% endif %}
+{% endblock %}

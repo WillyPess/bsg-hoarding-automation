@@ -1,0 +1,14 @@
+{# job.json as a table: the known fields first with their form labels, then every other key as it is. #}
+{% set est = job.get("estimated", []) %}
+<table class="inputs">
+  <tbody>
+  {% for key in ["title", "site", "date", "prefix", "by", "kiosk", "front", "return", "height", "door_width", "door_height", "door_offset", "entry_note"] if key in job %}
+    <tr><th>{{ {"door_offset": "Entry position (from the left end)", "by": "Prepared by"}.get(key, labels.get(key, key)) }}</th>
+        <td>{% if job[key] is number and job[key] is not sameas true and job[key] is not sameas false %}{{ "%g"|format(job[key]) }} m{% else %}{{ "yes" if job[key] is sameas true else job[key] }}{% endif %}
+            {% if key in est %}<span class="estimate">estimate</span>{% endif %}</td></tr>
+  {% endfor %}
+  {% for key, val in job.items() if key not in ["title", "site", "date", "prefix", "by", "kiosk", "front", "return", "height", "door_width", "door_height", "door_offset", "entry_note", "estimated", "name", "dir"] %}
+    <tr><th class="raw">{{ key }}</th><td class="raw">{{ val if val is string else val|tojson }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>

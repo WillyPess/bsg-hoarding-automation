@@ -286,7 +286,11 @@ def test_rebuild_index_from_the_folders(s, gus):
     assert jobs_after == jobs_before
     assert runs_after == [("Bikini", 1, "done"), ("Bikini", 2, "failed"), ("FRED_v2", 1, "interrupted")]
     assert runs_before[:2] == runs_after[:2]
-    assert history(s) == hist                                        # audit and approvals untouched
+    after = history(s)
+    assert after["approvals"] == hist["approvals"]                  # untouched
+    assert after["audit"][:-1] == hist["audit"]                     # every earlier entry as it was ...
+    last = after["audit"][-1]                                        # ... plus one "index rebuilt" entry (decided 2026-11-04)
+    assert last[3] == "index.rebuilt" and json.loads(last[6]) == {"jobs": 2, "runs": 3}
     assert counts == {"jobs": 2, "runs": 3}
 
 

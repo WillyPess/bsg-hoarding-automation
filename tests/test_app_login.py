@@ -1,6 +1,6 @@
 """Users and login (PLAN-app.md §3, §9; §11 step 2): two users with roles, scrypt password hashes, server-side
 sessions, a CSRF token on every form, a login rate limit, logout, and `python -m app.users`."""
-import os, sqlite3, subprocess, sys
+import os, re, sqlite3, subprocess, sys
 from contextlib import closing
 
 import pytest
@@ -210,14 +210,18 @@ def test_every_post_route_refuses_a_missing_or_wrong_csrf_token(app_and_settings
         for data in ({}, {"csrf_token": "wrong"}):
             r = c.post(path, data=data, follow_redirects=False)
             assert r.status_code == 403, (path, data, r.status_code)
-    assert c.get("/", follow_redirects=False).status_code == 200      # still logged in: nothing happened
+    assert c.get("/jobs", follow_redirects=False).status_code == 200  # still logged in: nothing happened
 
 
 def test_every_page_form_carries_the_csrf_token(app_and_settings):
+    # every POST form carries the token; a GET form (the job search) must not, or the token would end up in the URL
     c = H.logged_in(app_and_settings[0])
-    for path in ("/", "/health"):
+    for path in ("/jobs", "/jobs/new", "/health", "/examples"):
         html = c.get(path).text
-        assert html.count("<form") == html.count('name="csrf_token"'), path
+        posts = re.findall(r'<form method="post".*?</form>', html, re.S)
+        gets = re.findall(r'<form method="get".*?</form>', html, re.S)
+        assert posts and all('name="csrf_token"' in f for f in posts), path
+        assert all("csrf_token" not in f for f in gets), path
 
 
 def test_login_needs_the_token_from_the_login_page(anon):

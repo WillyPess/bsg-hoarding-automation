@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} · BSG Hoarding{% endblock %}
+{% block content %}
+<p><a href="/jobs/{{ folder }}">← {{ job.title }}</a></p>
+<h1>{{ job.title }}</h1>
+<p class="note">This is a {{ kind }} job: it can't be edited here yet. This form handles standard jobs and kiosks only; corner, U-shaped, fire-door and external jobs come in a later step (PLAN-app.md §11). Until then, edit its <code>job.json</code> by hand.</p>
+{% endblock %}

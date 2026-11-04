@@ -13,7 +13,8 @@
   locked once finished: engine.json marks the end, write_run_file refuses to write after it, and the files are made
   read-only on disk as a second lock.
 - Every change is recorded in the append-only audit table.
-- rebuild_index rebuilds the jobs and runs tables from the folders; the history tables are untouched.
+- rebuild_index rebuilds the jobs and runs tables from the folders; the history tables are untouched, and one
+  "index.rebuilt" entry is appended to the audit (decided 2026-11-04).
 
     python -m app.storage rebuild-index      (with the app stopped)"""
 import hashlib, json, os, platform, re, stat, subprocess, sys, time
@@ -136,6 +137,76 @@ def create_job(settings, job, user_id):
     return d
 
 
+def read_job(settings, folder):
+    """job.json of a job in the data folder; StorageError when there is no such job."""
+    d = job_dir(settings, folder)
+    try:
+        return json.loads((d / "job.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        raise StorageError(f"there is no job {folder!r}") from None
+
+
+def update_job(settings, folder, job, user_id):
+    """Replace job.json (the prefix, i.e. the folder, can't change), update its index row and audit the edit."""
+    old = read_job(settings, folder)
+    if job.get("prefix") != folder:
+        raise StorageError(f"the prefix of {folder!r} can't change (it is the job's folder name)")
+    changed = sorted(k for k in set(old) | set(job) if old.get(k) != job.get(k))
+    _write_json(job_dir(settings, folder) / "job.json", job)
+    conn = db.connect(settings)
+    try:
+        with conn:
+            conn.execute("UPDATE jobs SET title = ?, site = ?, kind = ?, updated_at = ? WHERE folder = ?",
+                         (job.get("title", ""), job.get("site", ""), _kind(job), now(), folder))
+            audit(conn, user_id, "job.edited", folder, changed=changed)
+    finally:
+        conn.close()
+    return changed
+
+
+def list_jobs(settings, q=""):
+    """The job list: index rows with the latest run and whether a run is approved. q filters title or site."""
+    conn = db.connect(settings)
+    try:
+        like = f"%{q.strip().lower()}%"
+        return [dict(r) for r in conn.execute(
+            """SELECT j.folder, j.title, j.site, j.kind, j.updated_at,
+                      (SELECT MAX(number) FROM runs r WHERE r.job = j.folder) AS last_run,
+                      (SELECT status FROM runs r WHERE r.job = j.folder ORDER BY number DESC LIMIT 1) AS last_status,
+                      (SELECT COALESCE(finished_at, started_at) FROM runs r WHERE r.job = j.folder ORDER BY number DESC LIMIT 1) AS last_at,
+                      EXISTS (SELECT 1 FROM runs r WHERE r.job = j.folder AND r.status = 'done') AS has_done,
+                      EXISTS (SELECT 1 FROM approvals a WHERE a.job = j.folder) AS approved
+               FROM jobs j
+               WHERE ? = '%%' OR lower(j.title) LIKE ? OR lower(j.site) LIKE ?
+               ORDER BY j.updated_at DESC""", (like, like, like))]
+    finally:
+        conn.close()
+
+
+def last_summary(settings, folder):
+    """run_summary.json of the latest finished run that has one, or {} (the engine's warnings take either)."""
+    runs = job_dir(settings, folder) / "runs"
+    for r in sorted((p for p in runs.iterdir() if RUN_DIR.match(p.name)) if runs.is_dir() else [], reverse=True):
+        f = r / "run_summary.json"
+        if (r / "engine.json").exists() and f.exists():
+            try:
+                return json.loads(f.read_text(encoding="utf-8"))
+            except ValueError:
+                continue
+    return {}
+
+
+def job_history(settings, folder):
+    """The audit entries of one job, oldest first, with the user's name."""
+    conn = db.connect(settings)
+    try:
+        return [dict(r) for r in conn.execute(
+            "SELECT a.at, a.action, a.run, a.detail, u.name AS user FROM audit a LEFT JOIN users u ON u.id = a.user_id "
+            "WHERE a.job = ? ORDER BY a.id", (folder,))]
+    finally:
+        conn.close()
+
+
 def write_job_file(settings, folder, name, data):
     """Write a file (e.g. a photo) into the job folder itself: a plain file name, nowhere else."""
     d = job_dir(settings, folder)
@@ -238,8 +309,8 @@ def finish_run(settings, run, ok, seconds, user_id, error=None):
 # --- rebuild-index ----------------------------------------------------------------------------------------------------
 
 def rebuild_index(settings, out=None):
-    """Rebuild the jobs and runs tables from the folders. History (audit, approvals, flags, ...) is untouched.
-    Returns {"jobs": n, "runs": n}. Run it with the app stopped: a run in progress would be marked interrupted."""
+    """Rebuild the jobs and runs tables from the folders. History (audit, approvals, flags, ...) is untouched; one
+    "index.rebuilt" entry is appended to the audit. Returns {"jobs": n, "runs": n}. Run it with the app stopped: a run in progress would be marked interrupted."""
     say = out or (lambda msg: None)
     root = jobs_root(settings)
     conn = db.connect(settings)
@@ -280,6 +351,7 @@ def rebuild_index(settings, out=None):
                                  (d.name, number, status, started[0] if started else r.stat().st_mtime, started[1] if started else None,
                                   (r / "engine.json").stat().st_mtime if info is not None else None, (info or {}).get("error")))
                     n_runs += 1
+            audit(conn, None, "index.rebuilt", jobs=n_jobs, runs=n_runs)
     finally:
         conn.close()
     return {"jobs": n_jobs, "runs": n_runs}
@@ -297,7 +369,7 @@ def main(argv=None):
         print(f"Error: {e}", file=sys.stderr)
         return 1
     counts = rebuild_index(st, out=print)
-    print(f"Index rebuilt from {jobs_root(st)}: {counts['jobs']} jobs, {counts['runs']} runs. History untouched.")
+    print(f"Index rebuilt from {jobs_root(st)}: {counts['jobs']} jobs, {counts['runs']} runs. History untouched; the rebuild is in the audit.")
     return 0
 
 

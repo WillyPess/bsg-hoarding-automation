@@ -32,7 +32,7 @@ The stored PNGs were made on Linux. The hashes in `baseline.json` are still the 
 
 ## Web app (in progress)
 
-The app around the engine is being built step by step from `PLAN-app.md` (§11): steps 1-3 (skeleton, users and login, storage) are in `app/`:
+The app around the engine is being built step by step from `PLAN-app.md` (§11): steps 1-4 (skeleton, users and login, storage, job list and new-job form) are in `app/`:
 
 ```bash
 pip install -r requirements.txt
@@ -42,6 +42,8 @@ python -m app.users add boss --role manager
 python -m app.users list                         # set-password <name> gives a new password and ends that user's sessions
 python -m app             # serves http://127.0.0.1:8000 (this PC only); log in, then the health page is /health
 ```
+
+After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
 
 Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins for a name in 15 minutes, that name can't log in for 15 minutes; after 20 failed logins from one address (on this PC, both users share 127.0.0.1), that address is locked for 15 minutes. So one person's typos don't lock the other out.
 
@@ -54,7 +56,7 @@ Everything lives in the data folder (PLAN-app.md §7): `bsg.sqlite` (users, the 
 If the index ever gets out of step with the folders (e.g. a job folder copied in by hand), rebuild it with the app stopped:
 
 ```bash
-python -m app.storage rebuild-index      # jobs and runs from the folders; history (audit, approvals) untouched
+python -m app.storage rebuild-index      # jobs and runs from the folders; history (audit, approvals) untouched; the rebuild itself is added to the audit
 ```
 
 ### Backups
