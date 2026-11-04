@@ -20,23 +20,31 @@ def prefix(job):
     return json.loads(Path(os.path.join(ROOT, "hoarding", job, "job.json")).read_text(encoding="utf-8"))["prefix"]
 
 
-@pytest.mark.parametrize("job", baseline.JOBS)
-def test_counts(job, reference_run):
-    """Sheets, tops, uprights, weights and quote match the numbers approved by Gus (expected_counts.json)."""
-    summary, _ = reference_run(job)
+def check_counts(job, summary):
     want = {k: v for k, v in EXPECTED[job].items() if not k.endswith("_note")}
     got = {k: summary.get(k) for k in want}
     assert got == want
 
 
 @pytest.mark.parametrize("job", baseline.JOBS)
-def test_materials_form(job, reference_run):
-    """Every cell of the materials xlsx matches the form delivered to Gus."""
-    _, work = reference_run(job)
+def test_counts(job, reference_run):
+    """Sheets, tops, uprights, weights and quote match the numbers approved by Gus (expected_counts.json)."""
+    summary, _ = reference_run(job)
+    check_counts(job, summary)
+
+
+def check_materials_form(job, work):
     P = prefix(job)
     want, got = cells(os.path.join(ROOT, "expected", job, f"{P}_materials.xlsx")), cells(os.path.join(work, f"{P}_materials.xlsx"))
     diff = {k: (want.get(k), got.get(k)) for k in sorted(set(want) | set(got)) if want.get(k) != got.get(k)}
     assert not diff, f"materials cells (row, col): (expected, got) {diff}"
+
+
+@pytest.mark.parametrize("job", baseline.JOBS)
+def test_materials_form(job, reference_run):
+    """Every cell of the materials xlsx matches the form delivered to Gus."""
+    _, work = reference_run(job)
+    check_materials_form(job, work)
 
 
 @pytest.mark.parametrize("job", baseline.JOBS)
@@ -46,6 +54,10 @@ def test_drawings_match_baseline(job, reference_run):
     With stored PNGs (expected/<Job>/png/): at most baseline.MAX_PCT % of the pixels may change (tolerant to font
     rendering on another OS). Without them: the pixel hash in baseline.json must match exactly."""
     _, work = reference_run(job)
+    check_drawings(job, work)
+
+
+def check_drawings(job, work):
     got = baseline.snapshot(work)["png"]
     store = baseline.png_dir(job)
     if not os.path.isdir(store):
@@ -79,6 +91,10 @@ def first_difference(a, b):
 def test_documents_match_baseline(job, reference_run):
     """Every PDF (package, materials, quotation) has the same pages and text as the approved baseline."""
     _, work = reference_run(job)
+    check_documents(job, work)
+
+
+def check_documents(job, work):
     want, got = baseline.load(job)["pdf"], baseline.snapshot(work)["pdf"]
     assert sorted(got) == sorted(want), f"PDF files differ: expected {sorted(want)}, got {sorted(got)}"
     problems = []

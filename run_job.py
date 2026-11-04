@@ -54,6 +54,10 @@ def run(jobdir):
         sh([PY, "markup.py"], jobdir)
     if os.path.exists(os.path.join(jobdir, "track_plan.py")):  # draws from numbers, needs no photo
         sh([PY, "track_plan.py"], jobdir)
+    markup = f"{P}_hoarding_markup.jpg"
+    if not os.path.exists(os.path.join(jobdir, markup)):   # package_gen needs it: say so now, not as its traceback at step 4
+        shutil.rmtree(tmp)
+        raise SystemExit(f"{P}: there is no marked-up photo ({markup}): the package needs it.")
     # 1. grid sheet
     sheet_png = os.path.join(jobdir, f"{P}_hoarding_sheet.png")
     if "track" in job:

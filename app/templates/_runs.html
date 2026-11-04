@@ -1,0 +1,12 @@
+{# runs: pages_jobs.runs_view; base: the job's or the example's URL #}
+<h2>Runs</h2>
+{% if runs %}
+<table class="list">
+  <thead><tr><th>Run</th><th>Status</th><th>When</th><th>Who</th></tr></thead>
+  <tbody>
+  {% for r in runs %}
+    <tr><td><a href="{{ base }}/runs/{{ r.number }}">{{ "%04d"|format(r.number) }}</a></td><td><span class="status {{ r.status }}">{{ r.status }}</span></td><td>{{ r.when }}</td><td>{{ r.who or "" }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p>Not run yet.</p>{% endif %}

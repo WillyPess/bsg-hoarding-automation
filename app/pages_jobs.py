@@ -1,8 +1,8 @@
 """Job pages (PLAN-app.md §4 screens 2-3; §11 step 4): the job list, Examples, a job's page, the new/edit form.
 
 Every number shown comes from job.json or the engine (warnings); the form's defaults, conversions and checks are
-the engine's (jobform.py). Examples are the reference jobs in hoarding/: read-only, never copied into the data
-folder, so they can't be edited, run or approved."""
+the engine's (jobform.py). Examples are the reference jobs in hoarding/: read-only, so they can't be edited or
+approved. Running one works on a copy in the data folder (storage.copy_example; pages_runs.py), never in hoarding/."""
 import json, time
 from pathlib import Path
 
@@ -49,11 +49,22 @@ def _example(name):
     raise HTTPException(status_code=404)
 
 
+def example_dir(name):
+    _example(name)       # 404 unless it is a listed example
+    return EXAMPLES / name
+
+
 def _job_or_404(settings, folder):
+    if storage.is_example(folder):      # an Example's copy isn't a job: its pages are under /examples
+        raise HTTPException(status_code=404)
     try:
         return storage.read_job(settings, folder)
     except storage.StorageError:
         raise HTTPException(status_code=404) from None
+
+
+def runs_view(settings, folder):
+    return [{**r, "when": _when(r["finished_at"] or r["started_at"])} for r in storage.list_runs(settings, folder)]
 
 
 def add_routes(app, page, settings):
@@ -101,7 +112,7 @@ def add_routes(app, page, settings):
         history = [{**h, "when": _when(h["at"]), "detail": json.loads(h["detail"] or "{}")} for h in storage.job_history(settings, folder)]
         warnings = engine.warnings(job, storage.last_summary(settings, folder))
         return page(request, "job.html", job=job, folder=folder, kind=engine.kind(job), warnings=warnings,
-                    history=history, labels=jobform.LABELS)
+                    history=history, labels=jobform.LABELS, runs=runs_view(settings, folder), base=f"/jobs/{folder}")
 
     def _editable(job):
         return engine.kind(job) == "standard"
@@ -135,4 +146,4 @@ def add_routes(app, page, settings):
     def example_page(request: Request, name: str):
         job = _example(name)
         return page(request, "example.html", job=job, example=name, kind=engine.kind(job),
-                    labels=jobform.LABELS)
+                    labels=jobform.LABELS, runs=runs_view(settings, storage.example_folder(name)), base=f"/examples/{name}")

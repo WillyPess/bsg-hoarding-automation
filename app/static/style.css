@@ -45,4 +45,13 @@ form.job label.tick { font-weight: normal; margin-right: 1rem; }
 .field-error { color: var(--fail); margin: .25rem 0 0; font-weight: 600; }
 p.field-error#err-form { margin-bottom: 1rem; }
 ul.warnings-list li { margin: .3rem 0; }
+.actions { display: flex; gap: .5rem; align-items: center; }
+.status.done { background: #dff3e4; color: var(--ok); } .status.failed, .status.interrupted { background: #fbe4e2; color: var(--fail); } .status.running { background: #e3ebfb; color: var(--brand); }
+.downloads { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0 1rem; }
+.note.running { font-weight: 600; }
+.note.failed { border-left-color: var(--fail); }
+table.counts { width: auto; min-width: min(26rem, 100%); } table.counts th { font-weight: normal; padding-right: 2rem; } table.counts td { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+table.counts tr.total th, table.counts tr.total td { font-weight: 700; background: #f6f7f9; }
+img.drawing { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); }
+pre.engine-said { background: #f6f7f9; padding: .6rem .9rem; overflow-x: auto; white-space: pre-wrap; font-size: .85rem; }
 @media print { header.top nav, form.who, footer { display: none; } }

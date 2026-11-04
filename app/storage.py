@@ -3,9 +3,12 @@
     <data>/jobs/<Job>/job.json            current inputs
                      /<P>_photo.jpg ...   photos
                      /reviews/            AI calls (from §11 step 9)
-                     /runs/0001/          one folder per engine run: job.json (the exact inputs), the outputs,
+                     /runs/0001/          one folder per engine run: its own copy of the inputs, the outputs,
                                           engine.json once it has finished
                      /runs/next           the next run number (so a number is never reused)
+    <data>/jobs/example-<Name>/           the copy an Example runs on: same layout, its inputs refreshed from
+                                          hoarding/<Name> before each run; not in the job list, no real job can use
+                                          the name
 
 - Job folder names are the job's prefix, safe on Windows: letters, digits, _ and -, at most 64, starting with a
   letter or digit, not a reserved device name (CON, PRN, AUX, NUL, COM1-9, LPT1-9), and unique ignoring case.
@@ -17,7 +20,7 @@
   "index.rebuilt" entry is appended to the audit (decided 2026-11-04).
 
     python -m app.storage rebuild-index      (with the app stopped)"""
-import hashlib, json, os, platform, re, stat, subprocess, sys, time
+import hashlib, json, os, platform, re, shutil, stat, subprocess, sys, time
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
@@ -29,6 +32,8 @@ NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 FILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_. -]{0,127}$")
 RESERVED = {"CON", "PRN", "AUX", "NUL"} | {f"COM{i}" for i in range(1, 10)} | {f"LPT{i}" for i in range(1, 10)}
 RUN_DIR = re.compile(r"^\d{4,}$")
+EXAMPLE_PREFIX = "example-"
+EXAMPLE_INPUTS = ("job.json", "quote_extras.json", "markup.py", "track_plan.py")   # + the photos, not the outputs of a run by hand
 
 
 class StorageError(ValueError):
@@ -115,6 +120,8 @@ def _write_json(path, data):
 def create_job(settings, job, user_id):
     """A new job folder jobs/<prefix>/ with job.json, reviews/ and runs/, its index row and an audit entry."""
     folder = check_folder_name(job.get("prefix"))
+    if is_example(folder):
+        raise StorageError(f"a prefix can't start with {EXAMPLE_PREFIX!r}: that is kept for the Examples")
     root = jobs_root(settings)
     root.mkdir(parents=True, exist_ok=True)
     if any(p.name.lower() == folder.lower() for p in root.iterdir()):
@@ -132,6 +139,43 @@ def create_job(settings, job, user_id):
             conn.execute("INSERT INTO jobs (folder, prefix, title, site, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                          (folder, job["prefix"], job.get("title", ""), job.get("site", ""), _kind(job), t, t))
             audit(conn, user_id, "job.created", folder, title=job.get("title", ""), site=job.get("site", ""))
+    finally:
+        conn.close()
+    return d
+
+
+def is_example(folder):
+    return folder.lower().startswith(EXAMPLE_PREFIX)
+
+
+def example_folder(name):
+    return check_folder_name(EXAMPLE_PREFIX + name)
+
+
+def copy_example(settings, name, source, user_id):
+    """Put the inputs of the reference job in source (hoarding/<name>) into its copy in the data folder, as they are
+    now, with the index row and an audit entry. Its runs stay. source is only read."""
+    folder = example_folder(name)
+    job = json.loads((source / "job.json").read_text(encoding="utf-8"))
+    d = jobs_root(settings) / folder
+    (d / "runs").mkdir(parents=True, exist_ok=True)
+    (d / "reviews").mkdir(exist_ok=True)
+    for f in d.iterdir():
+        if f.is_file():
+            f.unlink()
+    photos = (f"{job['prefix']}_hoarding_markup.", f"{job['prefix']}_photo.")
+    for f in source.iterdir():
+        if f.is_file() and (f.name in EXAMPLE_INPUTS or f.name.startswith(photos)):
+            shutil.copyfile(f, d / f.name)
+    t = now()
+    conn = db.connect(settings)
+    try:
+        with conn:
+            conn.execute("""INSERT INTO jobs (folder, prefix, title, site, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT (folder) DO UPDATE SET prefix = excluded.prefix, title = excluded.title, site = excluded.site,
+                                                               kind = excluded.kind, updated_at = excluded.updated_at""",
+                         (folder, job["prefix"], job.get("title", ""), job.get("site", ""), _kind(job), t, t))
+            audit(conn, user_id, "example.copied", folder, source=name)
     finally:
         conn.close()
     return d
@@ -177,7 +221,7 @@ def list_jobs(settings, q=""):
                       EXISTS (SELECT 1 FROM runs r WHERE r.job = j.folder AND r.status = 'done') AS has_done,
                       EXISTS (SELECT 1 FROM approvals a WHERE a.job = j.folder) AS approved
                FROM jobs j
-               WHERE ? = '%%' OR lower(j.title) LIKE ? OR lower(j.site) LIKE ?
+               WHERE j.folder NOT LIKE 'example-%' AND (? = '%%' OR lower(j.title) LIKE ? OR lower(j.site) LIKE ?)
                ORDER BY j.updated_at DESC""", (like, like, like))]
     finally:
         conn.close()
@@ -228,7 +272,7 @@ def _next_number(conn, folder, runs):
 
 
 def start_run(settings, folder, user_id):
-    """A new, empty run folder with a copy of job.json (the exact inputs of this run)."""
+    """A new run folder with a copy of the job's files (job.json, the photo: the exact inputs of this run)."""
     d = job_dir(settings, folder)
     runs = d / "runs"
     conn = db.connect(settings)
@@ -242,7 +286,9 @@ def start_run(settings, folder, user_id):
             except FileExistsError:
                 n += 1
         (runs / "next").write_text(str(n + 1), encoding="utf-8")
-        (path / "job.json").write_bytes((d / "job.json").read_bytes())
+        for f in d.iterdir():
+            if f.is_file():
+                shutil.copyfile(f, path / f.name)
         with conn:
             conn.execute("INSERT INTO runs (job, number, status, started_at, started_by) VALUES (?, ?, 'running', ?, ?)",
                          (folder, n, now(), user_id))
@@ -250,6 +296,49 @@ def start_run(settings, folder, user_id):
     finally:
         conn.close()
     return Run(folder, n, path)
+
+
+def get_run(settings, folder, number):
+    """One run's index row with the name of who started it, or None."""
+    runs = _run_rows(settings, folder, number)
+    return runs[0] if runs else None
+
+
+def list_runs(settings, folder):
+    """Every run of a job, newest first, with the name of who started it."""
+    return _run_rows(settings, folder)
+
+
+def _run_rows(settings, folder, number=None):
+    conn = db.connect(settings)
+    try:
+        return [dict(r) for r in conn.execute(
+            "SELECT r.number, r.status, r.started_at, r.finished_at, r.error, u.name AS who FROM runs r LEFT JOIN users u ON u.id = r.started_by "
+            "WHERE r.job = ? AND (? IS NULL OR r.number = ?) ORDER BY r.number DESC", (folder, number, number))]
+    finally:
+        conn.close()
+
+
+def running_run(settings, folder):
+    """The number of the job's run in progress, or None."""
+    conn = db.connect(settings)
+    try:
+        row = conn.execute("SELECT MAX(number) FROM runs WHERE job = ? AND status = 'running'", (folder,)).fetchone()
+    finally:
+        conn.close()
+    return row[0]
+
+
+def interrupt_unfinished(settings):
+    """At start-up: no worker survives a restart, so a run still marked running was cut off. Its folder stays unfinished."""
+    conn = db.connect(settings)
+    try:
+        with conn:
+            for r in conn.execute("SELECT job, number FROM runs WHERE status = 'running'").fetchall():
+                conn.execute("UPDATE runs SET status = 'interrupted' WHERE job = ? AND number = ?", (r["job"], r["number"]))
+                audit(conn, None, "run.interrupted", r["job"], r["number"])
+    finally:
+        conn.close()
 
 
 def is_finished(run):

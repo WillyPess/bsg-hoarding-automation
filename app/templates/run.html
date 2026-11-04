@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} · run {{ "%04d"|format(number) }} · BSG Hoarding{% endblock %}
+{% block head %}{% if row.status == "running" %}<meta http-equiv="refresh" content="2">{% endif %}{% endblock %}
+{% block content %}
+<p><a href="{{ base }}">← {{ job.title }}</a></p>
+<div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% include "_run_button.html" %}</div></div>
+<p class="small">Run {{ "%04d"|format(number) }} · <span class="status {{ row.status }}">{{ row.status }}</span>{% if row.who %} · by {{ row.who }}{% endif %} · {{ when }}{% if seconds is not none %} · took {{ seconds }} s{% endif %}</p>
+<div data-status="{{ row.status }}">
+{% if row.status == "running" %}
+  <p class="note running">Running... started {{ elapsed }} s ago. This page updates by itself.</p>
+{% elif row.status == "failed" %}
+  <p class="note failed"><strong>This run failed.</strong> What the engine said:</p>
+  <pre class="engine-said">{{ row.error }}</pre>
+{% elif row.status == "interrupted" %}
+  <p class="note failed"><strong>This run was interrupted</strong> when the app stopped. Run the job again.</p>
+{% else %}
+  <div class="downloads">
+  {% for label, name in downloads %}<a class="button" href="{{ run_url }}/files/{{ name }}">{{ label }}</a>{% endfor %}
+  </div>
+  <h2>Summary</h2>
+  <table class="counts">
+    <tbody>
+    {% for r in materials %}<tr data-key="{{ r.key }}"{% if r.total %} class="total"{% endif %}><th>{{ r.label }}</th><td>{{ r.value }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if quote %}
+  <h2>Quote</h2>
+  <table class="counts">
+    <tbody>
+    {% for r in quote %}<tr data-key="{{ r.key }}"{% if r.total %} class="total"{% endif %}><th>{{ r.label }}</th><td>{{ r.value }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <h2>Warnings</h2>
+  {% if warnings %}
+  <ul class="warnings-list">{% for w in warnings %}<li>{{ w.message }} <span class="small">({{ w.rule }})</span></li>{% endfor %}</ul>
+  {% else %}<p>None.</p>{% endif %}
+  {% for label, name in drawings %}
+  <h2>{{ label }}</h2>
+  <a href="{{ run_url }}/files/{{ name }}"><img class="drawing" src="{{ run_url }}/files/{{ name }}" alt="{{ label }} of {{ job.title }}"></a>
+  {% endfor %}
+{% endif %}
+</div>
+{% endblock %}
