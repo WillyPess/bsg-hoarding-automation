@@ -1,8 +1,28 @@
-# BSG Hoarding App – plan (v1, 2026-11-02)
+# BSG Hoarding App – plan (v1, 2026-11-02; demo scope added 2026-11-04)
+
+## Demo scope (until the client's presentation)
+
+Until the client's presentation, the app is a simple demo that covers the jobs already shown, nothing more. Features come after the client decides. The code already merged stays (§11, steps 1-4).
+
+Three PRs, one at a time, each from main, test first:
+
+- **PR A, run + results.**
+  - A **Run** button on any job, Examples included. An example runs on a copy in the data folder, never in `hoarding/`. It goes through `run_job`, into a new run folder.
+  - A simple "running..." state.
+  - The results page: grid sheet, melamine layout, the summary counts, the engine warnings, and download links for the package PDF, the materials xlsx/PDF and the quote PDF (Pacific Fair).
+  - Test: each of the 10 reference jobs run through the app matches `expected/`.
+- **PR B, photo upload for new jobs, minimal.**
+  - The marked-up photo only, JPG/PNG, EXIF rotation applied, replace.
+  - Stored as `package_gen` expects.
+- **PR C, start and demo notes.** `start-bsg.bat` (venv, `python -m app`, opens the browser) and a short "Demo" section in the README: create the user, start, open an example, run it, download the package.
+
+Everything else is under **After the client decides** (§11). The rest of this plan describes the full app; where it differs from this section, this section wins until the client decides.
+
+## The full app
 
 A web app around the existing engine. Gus or his boss enters a job and uploads the photo. An AI reviewer checks the inputs, the engine computes everything, and the AI reviewer checks the outputs. A person answers every flag, approves the run, and downloads the package and quote PDFs.
 
-**Plan only; nothing is built yet.** v0 of this plan (2026-11-01) had no AI. This version adds the AI reviewer (§8) and records your answers to the v0 questions (§13) and to the v1 questions (§14, 2026-11-02).
+v0 of this plan (2026-11-01) had no AI. v1 adds the AI reviewer (§8) and records your answers to the v0 questions (§13) and to the v1 questions (§14, 2026-11-02).
 
 ## 1. Principles
 
@@ -116,7 +136,7 @@ C:\BSG\data\
 - **Drafts:** downloads of an unapproved run are stamped **"DRAFT - not approved"** on every PDF page (a stamp added when the file is downloaded; the run folder stays as the engine wrote it) and get `DRAFT_` in the file name.
 - **SQLite holds the index and the history.** The files stay the truth for inputs and outputs; flags, answers, AI calls and approvals live in SQLite and are also written to `audit` (append-only). A "rebuild index" command can rebuild the job index from the folders.
 - **Daily backup** to another drive: a Windows scheduled task copies `C:\BSG\data` (SQLite through its backup API, so the copy is consistent) to the backup drive and keeps 30 days. The app shows the time of the last backup and warns when it's older than 2 days.
-- **Examples:** the reference jobs in `hoarding/` stay in the repo for the tests. The app lists them read-only under **Examples**; they can't be edited, run or approved.
+- **Examples:** the reference jobs in `hoarding/` stay in the repo for the tests. The app lists them read-only under **Examples**; they can't be edited or approved. Run works on a copy in the data folder, `jobs/example-<Name>/`, which never shows in the job list (changed for the demo, 2026-11-04).
 - **The API key** is not in the data folder or the repo: it comes from the `ANTHROPIC_API_KEY` environment variable (set once on the PC).
 
 ## 8. The AI reviewer
@@ -279,15 +299,22 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 
 **Done:** engine `validate.check` (#20), `jobs.normalize` + `jobs.warnings` (#21), rules 6 and 7 (#22, #23).
 
-**App core (standard jobs, no AI):**
+**App core, merged (standard jobs, no AI):**
 1. **App skeleton:** `app/` package, FastAPI, base template, static files, settings (`BSG_DATA`, `config.toml`), `python -m app`, a health page.
 2. **Users and login:** two users with roles, sessions, CSRF, rate limit, logout.
-3. **Storage:** data folder, SQLite schema (incl. `flags`, `escalations`, `ai_calls`, `audit` tables, empty for now), job and run folders, rebuild-index, daily backup task + last-backup check.
+3. **Storage:** data folder, SQLite schema (incl. `flags`, `escalations`, `ai_calls`, `audit` tables, empty for now), job and run folders, rebuild-index, daily backup command + last-backup check.
 4. **Job list + Examples + new job form (standard jobs)**, through `normalize` and `validate`, with the estimate ticks.
-5. **Photo upload:** type and size checks, preview, replace.
-6. **Run:** worker, lock, status page, engine errors shown.
-7. **Review screen:** images, materials table, quote, summary, engine warnings, changes since the last run.
-8. **Approve, downloads (DRAFT stamping), job history.**
+
+**Demo:** PR A, PR B and PR C (see Demo scope at the top). They take the place of old steps 5 and 6 and the demo part of old step 7.
+
+### After the client decides
+
+Nothing below is built until the client decides. The numbers are kept so the rest of this plan still points to the right step.
+
+**App core:**
+- **Step 5, photo upload, the rest:** clean photos, size checks, preview, the link to the Hoarding Planner.
+- **Step 7, review screen, the rest:** materials table from the xlsx cells, changes since the last run.
+- **Step 8, approve, DRAFT stamping on downloads, job history screen.** Also the backup task setup (the Windows scheduled task; the backup command itself is merged).
 
 **AI reviewer (each its own PR):**
 9. **AI client layer:**
@@ -304,8 +331,8 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 **Remaining:**
 14. **Corner, U, fire-door and external forms** (faces editor, track section, extra weight question).
 15. **Rules page** (read-only, provisional highlighted).
-16. **Playwright end-to-end suite** + `start-bsg.bat` + README section.
-17. **Later:** Cloudflare Tunnel + Access (its own PR and checklist).
+16. **Playwright end-to-end suite.**
+17. **Cloudflare Tunnel + Access** (its own PR and checklist).
 
 ## 12. What could go wrong (and what the plan does about it)
 
@@ -332,4 +359,4 @@ The photos, job titles and site names go to the Claude API, under Anthropic's co
 3. **Output review:** **starts by itself after every engine run** (§5).
 4. **Refusal fallback:** **off, strictly one model.** It's a beta feature, and one pinned model keeps the reviews predictable and matching the recorded tests. A refusal shows "AI review not done" (§8.7).
 
-The plan was approved on 2026-11-02. The app core (§11, steps 1-8) starts after this PR is merged.
+The plan was approved on 2026-11-02. On 2026-11-04 the scope until the client's presentation was cut to the Demo scope at the top.
