@@ -43,8 +43,8 @@ MATERIALS = [("Run", "run_m", _metres), ("Height", "height_m", _metres),
              ("Extra counterweights", "extra_weights", _value), ("Counterweights to send", "total_weights_to_send", _value),
              ("White tape rolls", "white_tape_rolls", _value), ("Black tape rolls", "black_tape_rolls", _value)]
 QUOTE = [("Length charged", "quote_lm", _lm), ("Rate per lm", "quote_rate", _money), ("Total ex GST", "quote_ex_gst", _money),
-         ("GST", "quote_gst", _money), ("Total inc GST", "quote_total", _money), ("Lines at POA, not in the total", "quote_poa_lines", _value)]
-HIDDEN_AT_ZERO = {"extra_uprights", "quote_poa_lines"}    # nothing to say on most jobs
+         ("GST", "quote_gst", _money), ("Total inc GST", "quote_total", _money)]
+HIDDEN_AT_ZERO = {"extra_uprights"}    # nothing to say on most jobs
 TOTALS = {"sheets_to_send", "uprights_to_send", "total_weights_to_send", "quote_total"}
 
 
@@ -56,6 +56,18 @@ def _rows(table, summary):
             continue
         out.append({"key": key, "label": label, "value": fmt(v), "total": key in TOTALS})
     return out
+
+
+def _quote_rows(summary):
+    """The quote's rows, then one row per POA line, by the engine's own name (quote_poa_names). A run made before
+    the names were in run_summary.json shows the count it has."""
+    rows = _rows(QUOTE, summary)
+    if not rows:
+        return rows
+    names = summary.get("quote_poa_names")
+    if names is None and summary.get("quote_poa_lines"):
+        return rows + [{"key": "quote_poa_lines", "label": "Lines at POA, not in the total", "value": _value(summary["quote_poa_lines"]), "total": False}]
+    return rows + [{"key": "quote_poa", "label": n, "value": "POA", "total": False} for n in names or []]
 
 
 def _drawings(job):
@@ -92,7 +104,7 @@ def add_routes(app, page, settings):
             ctx["elapsed"] = max(0, int(storage.now() - row["started_at"]))
         elif row["status"] == "done":
             summary = _read_json(path / "run_summary.json")
-            ctx.update(materials=_rows(MATERIALS, summary), quote=_rows(QUOTE, summary), warnings=engine.warnings(job, summary),
+            ctx.update(materials=_rows(MATERIALS, summary), quote=_quote_rows(summary), warnings=engine.warnings(job, summary),
                        drawings=[(label, name) for label, name in _drawings(job) if (path / name).is_file()],
                        downloads=[(label, name) for label, name in _downloads(job) if (path / name).is_file()])
         return page(request, "run.html", **ctx)
