@@ -51,22 +51,18 @@ def test_materials_form(job, reference_run):
 def test_drawings_match_baseline(job, reference_run):
     """Every PNG (grid sheet, melamine layout, check plans) matches the approved baseline.
 
-    With stored PNGs (expected/<Job>/png/): at most baseline.MAX_PCT % of the pixels may change (tolerant to font
-    rendering on another OS). Without them: the pixel hash in baseline.json must match exactly."""
+    Compared with the images stored for this OS (expected/<Job>/png/<os>/): at most baseline.MAX_PCT % of the pixels
+    may change. A job with no folder for this OS fails and says how to create it."""
     _, work = reference_run(job)
     check_drawings(job, work)
 
 
 def check_drawings(job, work):
-    got = baseline.snapshot(work)["png"]
     store = baseline.png_dir(job)
-    if not os.path.isdir(store):
-        want = baseline.load(job)["png"]
-        assert sorted(got) == sorted(want), f"PNG files differ: expected {sorted(want)}, got {sorted(got)}"
-        changed = [n for n in want if got[n] != want[n]]
-        assert not changed, f"drawings changed: {changed}. " + UPDATE.format(work=work, job=job)
-        return
-    want = sorted(n for n in os.listdir(store) if n.endswith(".png"))
+    want = sorted(n for n in os.listdir(store) if n.endswith(".png")) if os.path.isdir(store) else []
+    assert want, (f"No stored drawings for {job} on {baseline.OS}: {store} does not exist. "
+                  f"Create it with: python tests/update_baseline.py --store-pngs {job}")
+    got = baseline.snapshot(work)["png"]
     assert sorted(got) == want, f"PNG files differ: expected {want}, got {sorted(got)}"
     report, changed = [], []
     for n in want:

@@ -8,11 +8,11 @@ the new outputs are checked and the baseline is updated with tests/update_baseli
 PNG hashes depend on the pinned Pillow version and the DejaVu fonts in fonts/; PDF text on reportlab,
 pypdf and LibreOffice (the materials PDF).
 
-Drawings across environments: text renders slightly differently on Windows and Linux, so an exact hash only
-holds on the machine that made it. When expected/<Job>/png/ holds the approved PNGs, the drawings are compared
-with a tolerance instead (drawing_diff); the hash is only used for jobs without stored PNGs.
+Drawings across environments: text renders differently on Windows and Linux, so each OS has its own approved
+images in expected/<Job>/png/<os>/, and a run is compared with the folder for the OS it runs on, with a tolerance
+(drawing_diff). The hash in baseline.json is only the check made by update_baseline.py --store-pngs.
 """
-import hashlib, json, os, shutil, sys
+import hashlib, json, os, platform, shutil, sys
 from pathlib import Path
 
 from PIL import Image, ImageChops
@@ -23,6 +23,7 @@ import run_job
 from check_fixtures import pdf_text
 
 JOBS = list(json.loads(Path(os.path.join(ROOT, "expected", "expected_counts.json")).read_text(encoding="utf-8"))["jobs"])
+OS = platform.system().lower()   # the folder name in expected/<Job>/png/: linux, windows
 
 
 def path(job):
@@ -38,12 +39,12 @@ def png_hash(p):
 # Tolerant drawing comparison. A pixel counts as changed when no pixel within RADIUS px of it in the baseline
 # has every channel within CHANNEL_TOL: a glyph moved by 1 px or anti-aliased a bit differently is not a change,
 # a line or text in another colour or another place is. The test fails when more than MAX_PCT % of the pixels changed.
-# MAX_PCT is provisional until measured on the Windows baselines (see README, Tests).
+# This only has to absorb differences within one OS: Windows against Linux measures far above MAX_PCT (see README, Tests).
 RADIUS, CHANNEL_TOL, MAX_PCT = 1, 24, 0.02
 
 
 def png_dir(job):
-    return os.path.join(ROOT, "expected", job, "png")
+    return os.path.join(ROOT, "expected", job, "png", OS)
 
 
 def drawing_diff(base, new, mask_out=None):
