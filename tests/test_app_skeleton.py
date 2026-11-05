@@ -95,7 +95,24 @@ def test_home_page_uses_the_base_template(client):
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
     assert "<title>" in r.text and "BSG Hoarding" in r.text
     assert '/static/style.css' in r.text
-    assert 'href="/health"' in r.text
+
+
+def test_footer_and_menu_keep_internals_on_the_health_page(client, data):
+    gus = client
+    html = gus.get("/jobs").text
+    nav = re.search(r"<nav>(.*?)</nav>", html, re.S).group(1)
+    assert 'href="/jobs"' in nav and 'href="/examples"' in nav and "/health" not in nav     # Demo PR C
+    footer = re.search(r"<footer>(.*?)</footer>", html, re.S).group(1)
+    assert str(data) not in footer and "AI reviewer" not in footer and "Data folder" not in footer
+    health = gus.get("/health").text                                     # still there, by its address
+    assert str(data) in health and "AI reviewer: off" in health
+
+
+def test_start_script():
+    bat = (Path(__file__).resolve().parent.parent / "start-bsg.bat").read_bytes()
+    assert b"\r\n" in bat and b"\n" not in bat.replace(b"\r\n", b"")                 # CRLF (.gitattributes)
+    text = bat.decode("ascii")
+    assert "-m app" in text and "127.0.0.1" in text and ".venv" in text and "start " in text
 
 
 def test_static_files(client):
