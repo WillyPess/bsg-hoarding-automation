@@ -50,7 +50,7 @@ def test_materials_form(job, app_run):
 @pytest.mark.parametrize("job", baseline.JOBS)
 def test_drawings_are_the_same_as_a_run_by_hand(job, app_run, reference_run):
     """PLAN-app.md §1, same engine, same outputs: pixel for pixel, on any machine. (test_drawings_match_baseline
-    compares with PNGs stored on another machine; a failed one leaves _DIFF.png files behind, hence the filter.)"""
+    compares with the stored PNGs for this OS; a failed one leaves _DIFF.png files behind, hence the filter.)"""
     _, _, _, work = app_run(job)
     _, by_hand = reference_run(job)
     drawings = lambda folder: {n: h for n, h in baseline.snapshot(folder)["png"].items() if not n.endswith("_DIFF.png")}
