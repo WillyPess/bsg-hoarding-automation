@@ -146,11 +146,18 @@ async def require_user(request: Request):
 
 
 async def csrf_guard(request: Request):
-    """Refuses (403) any POST whose csrf_token isn't this session's token (the login page's cookie token on /login)."""
+    """Refuses (403) any POST whose csrf_token isn't this session's token (the login page's cookie token on /login).
+    It reads the form (the route gets the same, cached), and closes it after the response, or when it refuses:
+    an uploaded file is a temporary file that must not be left open."""
     if request.method in ("GET", "HEAD", "OPTIONS"):
+        yield
         return
     form = await request.form()
-    sent = form.get("csrf_token") or ""
-    expected = request.cookies.get(CSRF_COOKIE) if request.url.path == "/login" else request.state.csrf
-    if not (isinstance(sent, str) and expected and hmac.compare_digest(sent, expected)):
-        raise HTTPException(status_code=403, detail="This form has expired or did not come from this app. Go back, reload the page and try again.")
+    try:
+        sent = form.get("csrf_token") or ""
+        expected = request.cookies.get(CSRF_COOKIE) if request.url.path == "/login" else request.state.csrf
+        if not (isinstance(sent, str) and expected and hmac.compare_digest(sent, expected)):
+            raise HTTPException(status_code=403, detail="This form has expired or did not come from this app. Go back, reload the page and try again.")
+        yield
+    finally:
+        await form.close()
