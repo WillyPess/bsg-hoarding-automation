@@ -27,7 +27,7 @@ MAX_FAILURES_PER_ADDRESS = 20     # per address (both users share 127.0.0.1 on t
 LOCKOUT = 15 * 60
 SESSION_COOKIE = "bsg_session"
 CSRF_COOKIE = "bsg_csrf"
-PUBLIC = ("/login",)
+PUBLIC = ("/login", "/healthz")
 SCRYPT_N, SCRYPT_R, SCRYPT_P = 2 ** 14, 8, 1
 
 
@@ -117,8 +117,15 @@ def record_attempt(conn, name, ip, ok):
 
 
 def client_ip(request):
-    """The socket address. Correct while the app is reached on this PC only; the Cloudflare Tunnel step must
-    replace it with Cloudflare's client-address header (cloudflared connects from 127.0.0.1), PLAN-app.md §9."""
+    """The client's address for the login limit. On this PC: the socket address. Deployed (settings.deploy), every
+    request comes through the server's proxy, so the socket is the proxy: the first address in the proxy's header
+    (settings.client_ip_header, X-Forwarded-For by default). A client can put its own value there, which only lets it
+    get round the per-address limit; the per-name limit (5) still holds."""
+    s = request.app.state.settings
+    if s.deploy:
+        sent = request.headers.get(s.client_ip_header, "").split(",")[0].strip()
+        if sent:
+            return sent[:64]
     return request.client.host if request.client else "unknown"
 
 

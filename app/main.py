@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import auth, db, health, pages_jobs, pages_runs, settings as S, storage, users
+from app import auth, db, health, pages_dash, pages_jobs, pages_runs, settings as S, storage, users
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SECURITY_HEADERS = {"X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}
@@ -32,6 +32,8 @@ def create_app(settings=None):
         response = await call_next(request)
         for k, v in SECURITY_HEADERS.items():
             response.headers.setdefault(k, v)
+        if settings.deploy:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
         return response
 
     def page(request, name, status_code=200, **ctx):
@@ -44,7 +46,7 @@ def create_app(settings=None):
         token = request.cookies.get(auth.CSRF_COOKIE) or secrets.token_urlsafe(32)
         has_users = bool(users.all_users(settings))
         r = page(request, "login.html", status_code, login_csrf=token, message=message, next_=auth.safe_next(next_), has_users=has_users)
-        r.set_cookie(auth.CSRF_COOKIE, token, httponly=True, samesite="strict", path="/login")
+        r.set_cookie(auth.CSRF_COOKIE, token, httponly=True, samesite="strict", path="/login", secure=settings.deploy)
         return r
 
     @app.get("/login", response_class=HTMLResponse)
@@ -70,10 +72,12 @@ def create_app(settings=None):
             if not ok:
                 return login_page(request, 401, "Wrong name or password.", next_)
             token = auth.start_session(conn, found[0].id)
+            with conn:
+                storage.audit(conn, found[0].id, "login")      # every sign-in is recorded (Activity)
         finally:
             conn.close()
         r = RedirectResponse(next_, status_code=303)
-        r.set_cookie(auth.SESSION_COOKIE, token, httponly=True, samesite="lax", path="/")   # Secure comes with the tunnel (§9)
+        r.set_cookie(auth.SESSION_COOKIE, token, httponly=True, samesite="lax", path="/", secure=settings.deploy)   # Secure when deployed (HTTPS)
         r.delete_cookie(auth.CSRF_COOKIE, path="/login")
         return r
 
@@ -96,6 +100,7 @@ def create_app(settings=None):
 
     pages_jobs.add_routes(app, page, settings)
     pages_runs.add_routes(app, page, settings)
+    pages_dash.add_routes(app, page, settings)
 
     def report():
         cs = health.checks(settings)
@@ -105,6 +110,11 @@ def create_app(settings=None):
     def health_page(request: Request):
         cs, ok = report()
         return page(request, "health.html", 200 if ok else 503, checks=cs, ok=ok)
+
+    @app.get("/healthz")
+    def healthz():
+        """For the server's health check (Render): public, so it says only that the app answers."""
+        return JSONResponse({"status": "ok"})
 
     @app.get("/health.json")
     def health_json():

@@ -97,6 +97,13 @@ def check(job):
 
     if "uprights" in job:
         _whole(out, job, "uprights")
+    for key in ("extra_doors", "extra_doors_after", "passage_sets"):     # quote extras: 0 or more sets
+        v = job.get(key, 0)
+        if not (isinstance(v, int) and not isinstance(v, bool) and v >= 0):
+            out.append(Problem(key, f"must be a whole number, 0 or more, not {v!r}"))
+    for key in ("dust_suppression", "ladder"):                           # ticks only, no calculation
+        if key in job and not isinstance(job[key], bool):
+            out.append(Problem(key, f"must be true or false, not {job[key]!r}"))
 
     k = kind(job)
     dw = L["door_width"]

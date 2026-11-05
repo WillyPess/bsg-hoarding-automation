@@ -10,13 +10,19 @@ from app import engine
 
 SITES = ("Pacific Fair", "Hyperdome")   # the known sites (CLAUDE.md §12); anything else is "Other"
 LENGTHS = ("front", "return", "height", "door_width", "door_height", "entry_offset")
-LABELS = {"title": "Job title", "site": "Site", "date": "Date", "prefix": "Prefix", "front": "Front",
-          "return": "Returns", "height": "Height", "door_width": "Entry width", "door_height": "Entry height",
-          "entry_from": "Entry measured from", "entry_offset": "Entry position", "entry_note": "Entry note",
-          "kiosk": "Kiosk"}
+LABELS = {"title": "Job title", "site": "Site", "date": "Date", "prefix": "Prefix", "front": "Front width",
+          "return": "Returns (each side)", "height": "Height", "door_width": "Entry width", "door_height": "Entry height",
+          "entry_from": "Measured from", "entry_offset": "Entry position", "entry_note": "Entry note",
+          "kiosk": "Kiosk", "client": "Client", "drawings_sent_by": "Drawings sent by", "extra_doors": "Extra door sets",
+          "passage_sets": "Passage sets", "photo_note": "Notes for the job sheet", "dust_suppression": "Dust suppression",
+          "ladder": "Ladder", "photo": "Marked-up photo", "note": "What was wrong"}
+CLIENT = "GPT - Pacific Fair"           # the form's default client (Pacific Fair quotes are addressed to GPT, §12)
+COUNTS = ("extra_doors", "passage_sets")
+TICKS = ("dust_suppression", "ladder")  # markers only: job.json + a line on the materials form, no calculation
 # job.json keys the form manages; on an edit, every other key in job.json is kept as it was
 FORM_KEYS = {"title", "name", "site", "date", "prefix", "front", "return", "height", "door_width", "door_height",
-             "door_offset", "entry_note", "kiosk", "estimated"}
+             "door_offset", "entry_note", "kiosk", "estimated", "client", "drawings_sent_by", "extra_doors", "passage_sets",
+             "photo_note", "dust_suppression", "ladder"}
 TO_FIELD = {"door_offset": "entry_offset", "name": "title"}       # validate's job.json field -> the form field
 TO_JOB = {"entry_offset": "door_offset"}                          # estimate ticks: form field -> job.json field
 
@@ -28,7 +34,9 @@ def fmt(x):
 def blank(user):
     """Values for an empty new-job form: nothing pre-selected, today's date, prepared by the logged-in user."""
     return {"title": "", "site": "", "site_other": "", "date": time.strftime("%d/%m/%Y"), "prefix": "", "entry_from": "",
-            "kiosk": False, "estimates": set(), "by": user.name, **{f: "" for f in LENGTHS}, "entry_note": ""}
+            "kiosk": False, "estimates": set(), "by": user.name, **{f: "" for f in LENGTHS}, "entry_note": "",
+            "client": CLIENT, "drawings_sent_by": "", "extra_doors": "0", "passage_sets": "0", "photo_note": "",
+            "dust_suppression": False, "ladder": False}
 
 
 def from_job(job):
@@ -37,7 +45,9 @@ def from_job(job):
     v = {"title": job.get("title", ""), "site": site if site in SITES else ("other" if site else ""),
          "site_other": "" if site in SITES else site, "date": job.get("date", ""), "prefix": job.get("prefix", ""),
          "entry_from": "left", "kiosk": bool(job.get("kiosk")), "entry_note": job.get("entry_note", ""),
-         "by": job.get("by", "")}
+         "by": job.get("by", ""), "client": job.get("client", ""), "drawings_sent_by": job.get("drawings_sent_by", ""),
+         "extra_doors": fmt(job.get("extra_doors", 0)), "passage_sets": fmt(job.get("passage_sets", 0)),
+         "photo_note": job.get("photo_note", ""), **{t: job.get(t) is True for t in TICKS}}
     for f in LENGTHS:
         v[f] = fmt(job.get(TO_JOB.get(f, f)))
     est = set(job.get("estimated", []))
@@ -56,7 +66,9 @@ def read(form, user, prefix=None, by=None):
          "prefix": prefix if prefix is not None else g("prefix"), "entry_from": g("entry_from"),
          "kiosk": form.get("kiosk") is not None, "entry_note": str(form.get("entry_note") or ""),
          "estimates": {f for f in LENGTHS if form.get(f"estimate_{f}") is not None}, "by": by or user.name,
-         **{f: g(f) for f in LENGTHS}}
+         **{f: g(f) for f in LENGTHS}, "client": g("client"), "drawings_sent_by": g("drawings_sent_by"),
+         **{c: g(c) for c in COUNTS}, "photo_note": str(form.get("photo_note") or "").strip(),
+         **{t: form.get(t) is not None for t in TICKS}}
     problems = {}
     inputs = {"kind": "standard", "title": v["title"], "date": v["date"], "by": v["by"]}
     if v["site"] == "other":
@@ -91,6 +103,19 @@ def read(form, user, prefix=None, by=None):
         inputs["entry_note"] = v["entry_note"]
     if v["kiosk"]:
         inputs["kiosk"] = True
+    for k in ("client", "drawings_sent_by", "photo_note"):
+        if v[k]:
+            inputs[k] = v[k]
+    for c in COUNTS:
+        text = v[c] or "0"
+        if text.isdigit():
+            if int(text):
+                inputs[c] = int(text)
+        else:
+            problems[c] = f"must be a whole number, 0 or more, not {v[c]!r}"
+    for t in TICKS:
+        if v[t]:
+            inputs[t] = True
     if v["estimates"]:
         inputs["estimated"] = [TO_JOB.get(f, f) for f in LENGTHS if f in v["estimates"]]
     return v, inputs, problems

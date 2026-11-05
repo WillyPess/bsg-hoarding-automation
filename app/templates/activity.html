@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Activity · BSG Hoarding{% endblock %}
+{% block content %}
+<header class="page"><div><h1>Activity</h1><p class="sub">Who did what, and when. Latest first.</p></div></header>
+<div class="body">
+  <div class="tablebox">
+  <table class="list activity">
+    <thead><tr><th>When</th><th>Who</th><th>What</th><th>Job</th><th>Note</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr><td class="mono">{{ r.when }}</td><td>{{ r.user|capitalize if r.user else "the app" }}</td><td>{{ r.text }}</td>
+          <td>{% if r.url %}<a href="{{ r.url }}">{{ r.job }}</a>{% endif %}</td><td class="small">{{ r.note }}</td></tr>
+    {% else %}<tr><td colspan="5">Nothing yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

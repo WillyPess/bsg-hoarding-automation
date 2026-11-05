@@ -1,36 +1,108 @@
 {% extends "base.html" %}
 {% block title %}{{ job.title }} · BSG Hoarding{% endblock %}
+{% block head %}{% if status.key == "running" %}<meta http-equiv="refresh" content="2">{% endif %}{% endblock %}
 {% block content %}
-<p><a href="/jobs">← Jobs</a></p>
-<div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% if kind == "standard" %}<a class="button" href="/jobs/{{ folder }}/edit">Edit</a>{% endif %}{% include "_run_button.html" %}</div></div>
-<p class="small">{{ folder }} · {{ kind }}{{ " (kiosk)" if job.kiosk }}</p>
-{% include "_runs.html" %}
-<h2>Marked-up photo</h2>
-{% if photo_error %}<p class="fail" role="alert">{{ photo_error }}</p>{% endif %}
-{% if has_photo %}
-<a href="/jobs/{{ folder }}/photo"><img class="photo" src="/jobs/{{ folder }}/photo?v={{ photo_v }}" alt="Marked-up photo of {{ job.title }}"></a>
-{% else %}
-<p class="note">No photo yet. Upload the photo of the shopfront with the hoarding limit and the entry marked on it: it goes on the first page of the package.</p>
-{% endif %}
-<form method="post" action="/jobs/{{ folder }}/photo" enctype="multipart/form-data">
-  <input type="hidden" name="csrf_token" value="{{ csrf }}">
-  <input type="file" name="photo" accept="image/jpeg,image/png" aria-label="Marked-up photo">
-  <button type="submit">{{ "Replace the photo" if has_photo else "Upload the photo" }}</button>
-  <span class="small">JPG or PNG, up to {{ max_mb }} MB. It is turned upright as the phone took it.</span>
-</form>
-<h2>Inputs</h2>
-{% include "_inputs.html" %}
-<h2>To confirm</h2>
-{% if warnings %}
-<ul class="warnings-list">{% for w in warnings %}<li title="{{ w.rule }}">{{ w.message }}</li>{% endfor %}</ul>
-{% else %}<p>Nothing to confirm.</p>{% endif %}
-<h2>History</h2>
-<table class="list">
-  <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
-  <tbody>
-  {% for h in history %}
-    <tr><td>{{ h.when }}</td><td>{{ h.user or "the app" }}</td><td>{{ h.action }}{% if h.detail.changed %}: {{ h.detail.changed|join(", ") }}{% endif %}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<header class="page">
+  <div>
+    <h1>{{ job.title }}</h1>
+    <p class="sub">{{ job.site }}{% if job.client %} · {{ job.client }}{% endif %}{% if version %} · version {{ version }}{% endif %}{% if example %} · example, read-only{% endif %}</p>
+  </div>
+  <div class="actions" data-status="{{ status.run }}">
+    <span class="chip {{ status.key }}">{{ status.label }}</span>
+    {% if editable %}<a class="button ghost" href="{{ base }}/edit">Fix job</a>{% endif %}
+    {% if not version %}{% include "_run_button.html" %}{% endif %}
+  </div>
+</header>
+<div class="body">
+  <div class="info">
+    <span>Created by <b>{{ created_by|capitalize if created_by else "—" }}</b></span>
+    <span>Drawings sent by <b>{{ job.drawings_sent_by or "—" }}</b></span>
+    <span>Front <span class="mono">{{ "%g"|format(job.front) }} m</span></span>
+    <span>Height <span class="mono">{{ "%g"|format(job.height) }} m</span></span>
+    <span>Returns <span class="mono">{{ "%g"|format(job["return"]) }} m</span></span>
+    <span>Entry <span class="mono">{{ "%g"|format(job.door_offset) }} m</span> from the left end</span>
+    {% if job.dust_suppression %}<span><b>Dust suppression</b></span>{% endif %}
+    {% if job.ladder %}<span><b>Ladder</b></span>{% endif %}
+  </div>
+  {% if status.key == "running" %}<p class="note running">Generating the PDFs (version {{ status.number }})... This page updates by itself.</p>{% endif %}
+  {% if status.key == "failed" %}<p class="note failed"><strong>The last run failed.</strong> <a href="{{ base }}/runs/{{ status.number }}">See what the engine said</a>.</p>{% endif %}
+  {% if stats %}
+  <div class="stats">
+    {% for s in stats %}<div data-stat="{{ s.key }}"><div class="v">{{ s.value }}</div><div class="k">{{ s.label }}</div></div>{% endfor %}
+  </div>
+  {% endif %}
+  <div class="split">
+    <div>
+      <div class="tabs">
+        <input type="radio" name="tab" id="tab1" checked><input type="radio" name="tab" id="tab2"><input type="radio" name="tab" id="tab3"><input type="radio" name="tab" id="tab4">
+        <div class="tabbar">
+          <label for="tab1">Hoarding limit</label>
+          {% if drawings %}<label for="tab2">Plan and elevation</label><label for="tab3">Melamine layout</label>{% endif %}
+          {% if materials %}<label for="tab4">Materials</label>{% endif %}
+        </div>
+        <section class="pane p1">
+          {% if photo_error %}<p class="alert" role="alert">{{ photo_error }}</p>{% endif %}
+          {% if has_photo %}
+          <a href="{{ base }}/photo"><img class="photo" src="{{ base }}/photo?v={{ photo_v }}" alt="Marked-up photo of {{ job.title }}"></a>
+          {% else %}
+          <p class="note">No photo yet. Upload the photo of the shopfront with the hoarding limit and the entry marked on it: it goes on the first page of the package.</p>
+          {% endif %}
+          {% if not example %}
+          <form method="post" action="/jobs/{{ folder }}/photo" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <input type="file" name="photo" accept="image/jpeg,image/png" aria-label="Marked-up photo">
+            <button type="submit" class="ghost">{{ "Replace the photo" if has_photo else "Upload the photo" }}</button>
+            <span class="small">JPG or PNG, up to {{ max_mb }} MB.</span>
+          </form>
+          {% endif %}
+        </section>
+        {% for label, url in drawings %}
+        <section class="pane p{{ loop.index + 1 }}"><a href="{{ url }}"><img class="drawing" src="{{ url }}" alt="{{ label }} of {{ job.title }}"></a></section>
+        {% endfor %}
+        {% if materials %}
+        <section class="pane p4">
+          <table class="counts"><tbody>
+          {% for r in materials %}<tr data-key="{{ r.key }}"{% if r.total %} class="total"{% endif %}><th>{{ r.label }}</th><td>{{ r.value }}</td></tr>
+          {% endfor %}
+          {% for r in quote %}<tr data-key="{{ r.key }}"{% if r.total %} class="total"{% endif %}><th>{{ r.label }}</th><td>{{ r.value }}</td></tr>
+          {% endfor %}
+          </tbody></table>
+          <p class="small">From the engine's run summary of version {{ version }}.</p>
+        </section>
+        {% endif %}
+      </div>
+      <details class="panel inputs"><summary>All inputs (job.json)</summary>{% include "_inputs.html" %}</details>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>Download</h2>
+        {% if downloads %}
+        <div class="downloads">
+          {% for d in downloads %}<a href="{{ d.url }}"{% if loop.first %} class="primary"{% endif %}{% if d.title %} title="{{ d.title }}"{% endif %}>{{ d.label }}</a>{% endfor %}
+        </div>
+        <p class="small">Email the package to the boss yourself. Downloads are recorded.</p>
+        <div class="actions">{% include "_run_button.html" %}</div>
+        {% else %}
+        <p class="small">No PDFs yet.</p>
+        {% endif %}
+      </div>
+      <div class="panel">
+        <h2>To confirm</h2>
+        {% if warnings %}
+        <ul class="warnings-list">{% for w in warnings %}<li title="{{ w.rule }}">{{ w.message }}</li>{% endfor %}</ul>
+        {% else %}<p class="small">Nothing to confirm.</p>{% endif %}
+      </div>
+      <div class="panel">
+        <h2>History</h2>
+        <ul class="history">
+        {% for h in history %}
+          <li><span class="what">{% if h.run_url %}<a href="{{ h.run_url }}">{{ h.text }}</a>{% else %}{{ h.text }}{% endif %}</span>{% if h.user %} · {{ h.user|capitalize }}{% endif %}
+            <span class="when">{{ h.when }}</span>{% if h.note %}<span class="note-text">“{{ h.note }}”</span>{% endif %}{% if h.changed %}<span class="note-text">changed: {{ h.changed|join(", ") }}</span>{% endif %}</li>
+        {% else %}<li>Nothing yet.</li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

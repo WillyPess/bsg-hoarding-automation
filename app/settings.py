@@ -32,6 +32,8 @@ class Settings:
     port: int = 8000
     ai: AISettings = field(default_factory=AISettings)
     backup_dir: Path | None = None   # [backup] folder; None = not set (the health page warns)
+    deploy: bool = False             # on a server (Render): listen on 0.0.0.0, Secure cookies (README, "Deploy on Render")
+    client_ip_header: str = "X-Forwarded-For"   # deploy only: where the proxy puts the client's address (login limit)
 
     @property
     def config_path(self):
@@ -46,9 +48,14 @@ DEFAULT_TOML = f'''# BSG Hoarding app settings (PLAN-app.md). No secrets here:
 # the Claude API key comes from the ANTHROPIC_API_KEY environment variable.
 
 [server]
-# v1 listens on this PC only (127.0.0.1); Cloudflare Tunnel comes later (PLAN-app.md §9).
+# On this PC the app listens on this PC only (127.0.0.1).
 host = "127.0.0.1"
 port = 8000
+# deploy = true (or the BSG_DEPLOY=1 environment variable) is for a server such as Render: the app then listens on
+# 0.0.0.0, on the PORT environment variable when set, with Secure cookies, and takes the client's address from
+# client_ip_header (set by the server's proxy) for the login limit.
+deploy = false
+client_ip_header = "X-Forwarded-For"
 
 [ai]
 # The AI reviewer (PLAN-app.md §8). Off until it is built.
@@ -98,21 +105,33 @@ def load(data_dir=None):
         raise ConfigError(f"config.toml ({path}) is not valid TOML: {e}") from None
     _check_keys(raw, ("server", "ai", "backup"), "top level")
     srv, ai = raw.get("server", {}), raw.get("ai", {})
-    _check_keys(srv, ("host", "port"), "server")
+    _check_keys(srv, ("host", "port", "deploy", "client_ip_header"), "server")
     _check_keys(ai, ("enabled", "model", "effort", "cap_per_job_usd", "cap_per_month_usd"), "ai")
     bk = raw.get("backup", {})
     _check_keys(bk, ("folder",), "backup")
 
+    deploy = srv.get("deploy", False)
+    if not isinstance(deploy, bool):
+        raise ConfigError(f"config.toml: server.deploy must be true or false, not {deploy!r}")
+    deploy = deploy or os.environ.get("BSG_DEPLOY", "").strip().lower() in ("1", "true", "yes", "on")
+    ip_header = srv.get("client_ip_header", "X-Forwarded-For")
+    if not isinstance(ip_header, str) or not ip_header.strip() or not all(c.isalnum() or c == "-" for c in ip_header):
+        raise ConfigError(f"config.toml: server.client_ip_header must be a header name, not {ip_header!r}")
     host = srv.get("host", "127.0.0.1")
     try:
         loopback = host == "localhost" or ipaddress.ip_address(host).is_loopback
     except ValueError:
         loopback = False
     if not loopback:
-        raise ConfigError(f"config.toml: server.host must be 127.0.0.1 (this PC only, PLAN-app.md §9), not {host!r}")
+        raise ConfigError(f"config.toml: server.host must be 127.0.0.1 (this PC only); a server uses deploy = true instead, not {host!r}")
     port = srv.get("port", 8000)
+    if deploy and os.environ.get("PORT", "").strip():
+        port = os.environ["PORT"].strip()
+        port = int(port) if port.isdigit() else port
     if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
-        raise ConfigError(f"config.toml: server.port must be a whole number from 1 to 65535, not {port!r}")
+        raise ConfigError(f"config.toml: server.port (or PORT) must be a whole number from 1 to 65535, not {port!r}")
+    if deploy:
+        host = "0.0.0.0"         # only here: deploy is on (a server behind its own proxy, with HTTPS)
 
     enabled = ai.get("enabled", False)
     if not isinstance(enabled, bool):
@@ -133,7 +152,7 @@ def load(data_dir=None):
         b, d = backup_dir.resolve(), data_dir.resolve()
         if b == d or d in b.parents:
             raise ConfigError(f"config.toml: backup.folder {folder!r} is inside the data folder; put it on another drive")
-    return Settings(data_dir=data_dir, host=host, port=port, backup_dir=backup_dir, ai=AISettings(
+    return Settings(data_dir=data_dir, host=host, port=port, backup_dir=backup_dir, deploy=deploy, client_ip_header=ip_header, ai=AISettings(
         enabled=enabled, model=model, effort=effort,
         cap_per_job_usd=_number(ai.get("cap_per_job_usd", 1.0), "ai.cap_per_job_usd"),
         cap_per_month_usd=_number(ai.get("cap_per_month_usd", 60.0), "ai.cap_per_month_usd")))

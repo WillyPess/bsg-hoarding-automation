@@ -23,7 +23,8 @@ PASS = {   # job.json keys copied as given (see CLAUDE.md, "job.json")
     "external", "extra_weight_pct", "extra_uprights", "weights_per_upright", "uprights",
     "track", "shopfront", "step", "push", "no_corner_uprights",
     "quote_no", "quote_date", "quote_file", "valid_days", "kiosk", "extra_doors", "extra_doors_after", "passage_sets",
-    "scope", "extra_lines", "price_notes", "terms_notes"}
+    "scope", "extra_lines", "price_notes", "terms_notes",
+    "client", "drawings_sent_by", "dust_suppression", "ladder"}   # shown by the app; the two ticks add a line to the materials form
 FACE_KEYS = {"name", "len", "cut", "entry_from", "entry_offset"}
 
 
