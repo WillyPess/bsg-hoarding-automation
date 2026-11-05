@@ -105,7 +105,10 @@
    "uprights_at_joins": 24,
    "extra_uprights": 10,
    "weights_per_upright": 8,
-   "quote_poa_lines": 1
+   "quote_poa_lines": 1,
+   "quote_poa_names": [
+    "Wind loading for external install: 10 extra uprights (34 in total) and 8 counterweights per upright"
+   ]
   },
   "Bikini_3000": {
    "run_m": 10.4,

@@ -17,7 +17,8 @@ SUMMARY = {"run_m": 9981.5, "height_m": 9982.5, "layout_sheets": 9983, "sheets_t
            "tops": 9985, "tops_from_offcuts": "99 x 1200 x 900", "uprights_at_joins": 9986, "extra_uprights": 0, "spare_uprights": 9987,
            "uprights_to_send": 9992, "anti_tampers_to_send": 9993, "weights_per_upright": 9988, "weights_to_send": 9994,
            "white_tape_rolls": 9995, "black_tape_rolls": 9996, "total_weights_to_send": 9997}
-QUOTE = {"quote_lm": 9971.5, "quote_rate": 9972, "quote_ex_gst": 9973.25, "quote_gst": 9974.5, "quote_total": 9975.75, "quote_poa_lines": 2}
+QUOTE = {"quote_lm": 9971.5, "quote_rate": 9972, "quote_ex_gst": 9973.25, "quote_gst": 9974.5, "quote_total": 9975.75, "quote_poa_lines": 2,
+         "quote_poa_names": ["Wind-rated <design>", "Public holiday work"]}
 OUTPUTS = ("_hoarding_sheet.png", "_melamine_layout.png", "_materials.xlsx", "_materials.pdf", "_Hoarding_Package.pdf")
 
 
@@ -330,8 +331,22 @@ def test_the_quote_is_offered_on_pacific_fair(app_s, gus):
     assert f'href="{url}"' in html
     assert gus.get(url).content == b"quote"
     for key, value in {"quote_lm": "9971.5 lm", "quote_rate": "$9,972.00", "quote_ex_gst": "$9,973.25", "quote_gst": "$9,974.50",
-                       "quote_total": "$9,975.75", "quote_poa_lines": "2"}.items():
+                       "quote_total": "$9,975.75"}.items():
         assert count(html, key) == value, key
+
+
+def test_the_quote_lists_each_poa_line_by_name(app_s, gus):
+    html = results(gus, app_s[1], site="Pacific Fair")
+    rows = re.findall(r'<tr data-key="quote_poa"[^>]*><th>(.*?)</th><td>(.*?)</td></tr>', html)
+    assert rows == [("Wind-rated &lt;design&gt;", "POA"), ("Public holiday work", "POA")]     # the engine's text, escaped
+    assert 'data-key="quote_poa_lines"' not in html                                          # no count any more
+
+
+def test_a_run_from_before_the_names_still_shows_its_poa_count(app_s, gus, monkeypatch):
+    import test_app_runs as me
+    monkeypatch.setattr(me, "QUOTE", {k: v for k, v in QUOTE.items() if k != "quote_poa_names"})
+    html = results(gus, app_s[1], site="Pacific Fair")
+    assert count(html, "quote_poa_lines") == "2" and 'data-key="quote_poa"' not in html
 
 
 def test_the_quote_keeps_its_own_file_name(app_s, gus):

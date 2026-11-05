@@ -26,5 +26,8 @@
  "quote_ex_gst": 5412.0,
  "quote_gst": 541.2,
  "quote_total": 5953.2,
- "quote_poa_lines": 1
+ "quote_poa_lines": 1,
+ "quote_poa_names": [
+  "Wind loading for external install: 10 extra uprights (34 in total) and 8 counterweights per upright"
+ ]
 }

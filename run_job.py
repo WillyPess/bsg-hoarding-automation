@@ -127,7 +127,8 @@ def counts(job):
             q.update(json.loads(Path(qe).read_text(encoding="utf-8")))
         r = quote_gen.compute(q)
         out.update(quote_lm=r["charged"], quote_rate=r["rate"], quote_ex_gst=float(r["sub"]), quote_gst=float(r["gst"]),   # Decimal -> JSON number
-                   quote_total=float(r["total"]), quote_poa_lines=sum(1 for l in r["lines"] if l[4] is None))
+                   quote_total=float(r["total"]), quote_poa_lines=sum(1 for l in r["lines"] if l[4] is None),
+                   quote_poa_names=[l[0] for l in r["lines"] if l[4] is None])   # the quote line text, as on the quote PDF
     return out
 
 
