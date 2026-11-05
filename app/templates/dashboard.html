@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · BSG Hoarding{% endblock %}
+{% block content %}
+<header class="page"><div><h1>Dashboard</h1><p class="sub">All shopfront jobs with PDFs</p></div></header>
+<div class="body">
+  <div class="tiles">
+    <div class="tile" data-tile="jobs"><div class="k">Jobs</div><div class="v">{{ n }}</div></div>
+    <div class="tile" data-tile="lm"><div class="k">Lineal metres</div><div class="v">{{ lm }}</div></div>
+    <div class="tile" data-tile="quoted"><div class="k">Quoted ex GST</div><div class="v">{{ quoted }}</div></div>
+    <div class="tile" data-tile="corrections"><div class="k">Corrections</div><div class="v">{{ n_corrections }}</div></div>
+  </div>
+  <div class="dash">
+    <div>
+      <div class="panel">
+        <h3>Lineal metres per month, by site</h3>
+        {% if chart.bars %}
+        <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" width="100%" role="img" aria-label="Lineal metres per month, by site">
+          {% for t in chart.ticks %}<line class="grid" x1="{{ chart.left }}" x2="{{ chart.right }}" y1="{{ t.y }}" y2="{{ t.y }}"/><text x="{{ chart.left - 12 }}" y="{{ t.y + 4 }}" text-anchor="end">{{ t.label }}</text>{% endfor %}
+          {% for b in chart.bars %}<rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="3" fill="{{ b.fill }}"><title>{{ b.title }}</title></rect>{% endfor %}
+          {% for l in chart.labels %}<text x="{{ l.x }}" y="{{ chart.base + 26 }}" text-anchor="middle">{{ l.label }}</text>{% endfor %}
+        </svg>
+        <div class="legend">{% for s, c in chart.sites %}<span><i style="background: {{ c }}"></i>{{ s }}</span>{% endfor %}</div>
+        {% else %}<p class="small">No PDFs yet.</p>{% endif %}
+      </div>
+      <div class="panel">
+        <h3>Materials sent (incl. spares)</h3>
+        <div class="mat">{% for label, v in materials %}<div data-mat="{{ label|lower }}"><div class="k">{{ label }}</div><div class="v">{{ v }}</div></div>{% endfor %}</div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>Jobs per person</h3>
+        {% for who, k in people %}
+        <div class="person"><span>{{ who|capitalize }}</span><span class="barl" style="width: {{ (100 * k / most)|round(1) }}%"></span><span class="mono">{{ k }}</span></div>
+        {% else %}<p class="small">No jobs yet.</p>{% endfor %}
+      </div>
+      <div class="panel">
+        <h3>Latest corrections</h3>
+        {% if corrections %}
+        <ul class="corr">{% for c in corrections %}<li><a href="{{ c.url }}">{{ c.title }}</a> · {{ c.user|capitalize }} <span class="small mono">{{ c.when }}</span><div class="small">“{{ c.note }}”</div></li>{% endfor %}</ul>
+        {% else %}<p class="small">No corrections yet.</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

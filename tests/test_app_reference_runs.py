@@ -86,3 +86,16 @@ def test_results_page(job, app_run):
         r = client.get(base + name)
         assert r.status_code == 200 and r.content == (Path(work) / name).read_bytes() and "attachment" in r.headers["content-disposition"]
         assert r.content[:4] == (b"PK\x03\x04" if name.endswith(".xlsx") else b"%PDF")
+
+
+def test_david_jones_ground_on_its_job_page(app_run):
+    """engenai UI: the job page of the David Jones Ground example shows the engine's numbers, with the real engine:
+    21 sheets (19 + 2), 20 tops, 25 uprights, 175 weights and a $7,656 quote (CLAUDE.md, reference results)."""
+    client, _, summary, _ = app_run("DavidJones")
+    html = client.get("/examples/DavidJones").text
+    stat = lambda k: re.search(rf'data-stat="{k}"><div class="v">(.*?)</div>', html).group(1)
+    assert (summary["layout_sheets"], summary["sheets_to_send"]) == (19, 21)
+    assert (stat("run_m"), stat("sheets"), stat("tops"), stat("uprights"), stat("weights")) == ("23.2", "19 + 2", "20", "25", "175")
+    assert "Quotation · $7,656</a>" in html
+    row = re.search(r'<tr data-example="DavidJones">(.*?)</tr>', client.get("/jobs").text, re.S).group(1)
+    assert "4.5 m · 23.2 lm" in row and "$7,656" in row and "PDFs ready" in row

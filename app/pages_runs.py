@@ -107,9 +107,9 @@ def add_routes(app, page, settings):
             ctx.update(materials=_rows(MATERIALS, summary), quote=_quote_rows(summary), warnings=engine.warnings(job, summary),
                        drawings=[(label, name) for label, name in _drawings(job) if (path / name).is_file()],
                        downloads=[(label, name) for label, name in _downloads(job) if (path / name).is_file()])
-        return page(request, "run.html", **ctx)
+        return page(request, "run.html", tab="jobs", **ctx)
 
-    def send_file(folder, number, name):
+    def send_file(request, folder, number, name):
         row = storage.get_run(settings, folder, number)
         if row is None or row["status"] != "done":
             raise HTTPException(status_code=404)
@@ -124,6 +124,7 @@ def add_routes(app, page, settings):
         if name in [n for _, n in _drawings(job)]:
             return FileResponse(path / name, media_type="image/png")     # shown on the page
         if name in [n for _, n in _downloads(job)]:
+            storage.record(settings, request.state.user.id, "file.downloaded", folder, number, file=name)   # downloads are recorded
             return FileResponse(path / name, filename=name)              # saved by the browser
         raise HTTPException(status_code=404)                             # only the results: not job.json, engine.json, ...
 
@@ -132,33 +133,33 @@ def add_routes(app, page, settings):
         pages_jobs._job_or_404(settings, folder)
         if not storage.has_photo(settings, folder):        # the button is disabled; this is for a stale page or a script
             raise HTTPException(status_code=409, detail=NO_PHOTO)
-        number = runner.start(settings, folder, request.state.user.id)
-        return RedirectResponse(f"/jobs/{folder}/runs/{number}", status_code=303)
+        runner.start(settings, folder, request.state.user.id)
+        return RedirectResponse(f"/jobs/{folder}", status_code=303)       # the job page says "Generating PDFs" until it is done
 
     @app.get("/jobs/{folder}/runs/{number}", response_class=HTMLResponse)
     def job_run_page(request: Request, folder: str, number: int):
         pages_jobs._job_or_404(settings, folder)
-        return run_page(request, folder, number, f"/jobs/{folder}", "/jobs", can_run=storage.has_photo(settings, folder))
+        return run_page(request, folder, number, f"/jobs/{folder}", f"/jobs/{folder}", can_run=storage.has_photo(settings, folder))
 
     @app.get("/jobs/{folder}/runs/{number}/files/{name}")
-    def job_run_file(folder: str, number: int, name: str):
+    def job_run_file(request: Request, folder: str, number: int, name: str):
         pages_jobs._job_or_404(settings, folder)
-        return send_file(folder, number, name)
+        return send_file(request, folder, number, name)
 
     @app.post("/examples/{name}/run")
     def run_an_example(request: Request, name: str):
         source = pages_jobs.example_dir(name)
         user = request.state.user
-        number = runner.start(settings, storage.example_folder(name), user.id,
-                              prepare=lambda: storage.copy_example(settings, name, source, user.id))
-        return RedirectResponse(f"/examples/{name}/runs/{number}", status_code=303)
+        runner.start(settings, storage.example_folder(name), user.id,
+                     prepare=lambda: storage.copy_example(settings, name, source, user.id))
+        return RedirectResponse(f"/examples/{name}", status_code=303)
 
     @app.get("/examples/{name}/runs/{number}", response_class=HTMLResponse)
     def example_run_page(request: Request, name: str, number: int):
         pages_jobs.example_dir(name)
-        return run_page(request, storage.example_folder(name), number, f"/examples/{name}", "/examples")
+        return run_page(request, storage.example_folder(name), number, f"/examples/{name}", f"/examples/{name}")
 
     @app.get("/examples/{name}/runs/{number}/files/{file}")
-    def example_run_file(name: str, number: int, file: str):
+    def example_run_file(request: Request, name: str, number: int, file: str):
         pages_jobs.example_dir(name)
-        return send_file(storage.example_folder(name), number, file)
+        return send_file(request, storage.example_folder(name), number, file)

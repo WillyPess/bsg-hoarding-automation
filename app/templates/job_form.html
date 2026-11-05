@@ -1,88 +1,143 @@
 {% extends "base.html" %}
-{% block title %}{{ "New job" if mode == "new" else "Edit " ~ v.title }} · BSG Hoarding{% endblock %}
+{% block title %}{{ "New job" if mode == "new" else "Fix job: " ~ v.title }} · BSG Hoarding{% endblock %}
 {% macro err(f) %}{% if problems.get(f) %}<p class="field-error" id="err-{{ f }}">{{ problems[f]|join("; ") }}</p>{% endif %}{% endmacro %}
 {% macro length(f, hint="", unit="m") %}
   <div class="field{{ ' has-error' if problems.get(f) }}">
-    <label for="f-{{ f }}">{{ labels[f] }} <span class="small">({{ unit }})</span></label>
-    <div class="row">
-      <input id="f-{{ f }}" type="text" inputmode="decimal" name="{{ f }}" value="{{ v[f] }}"{% if hint %} placeholder="{{ hint }}"{% endif %} size="8">
-      <label class="tick"><input type="checkbox" name="estimate_{{ f }}"{% if f in v.estimates %} checked{% endif %}> estimate</label>
-    </div>
+    <label for="f-{{ f }}">{{ labels[f] }}</label>
+    <div class="unit" data-unit="{{ unit }}"><input id="f-{{ f }}" type="text" inputmode="decimal" name="{{ f }}" value="{{ v[f] }}"{% if hint %} placeholder="{{ hint }}"{% endif %}></div>
+    {{ err(f) }}
+  </div>
+{% endmacro %}
+{% macro text(f, placeholder="") %}
+  <div class="field{{ ' has-error' if problems.get(f) }}">
+    <label for="f-{{ f }}">{{ labels[f] }}</label>
+    <input id="f-{{ f }}" name="{{ f }}" value="{{ v[f] }}"{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}>
     {{ err(f) }}
   </div>
 {% endmacro %}
 {% block content %}
-<p><a href="{{ '/jobs' if mode == 'new' else '/jobs/' ~ folder }}">← {{ "Jobs" if mode == "new" else v.title }}</a></p>
-<h1>{{ "New job" if mode == "new" else "Edit job" }}</h1>
-<p class="note">This form is for <strong>standard jobs</strong> (left return, front, right return), with a tick box for a 1.2 m <strong>kiosk</strong>.
-Corner, U-shaped, fire-door and external jobs can't be entered here yet: they come in a later step (PLAN-app.md §11).
-Until then, they are made as <code>job.json</code> by hand (CLAUDE.md).</p>
-{% if problems %}<p class="fail" role="alert">Nothing was saved: {{ problems|length }} thing{{ "s" if problems|length != 1 }} to fix below.</p>{% endif %}
+<header class="page">
+  <div>
+    <h1>{{ "New job" if mode == "new" else "Fix job: " ~ v.title }}</h1>
+    <p class="sub">Standard shopfront: return | front with entry | return</p>
+  </div>
+</header>
+<div class="body">
+{% if problems %}<p class="alert" role="alert">Nothing was saved: {{ problems|length }} thing{{ "s" if problems|length != 1 }} to fix below.</p>{% endif %}
 {{ err("form") }}
-<form method="post" action="{{ '/jobs/new' if mode == 'new' else '/jobs/' ~ folder ~ '/edit' }}" class="job">
+<form method="post" action="{{ '/jobs/new' if mode == 'new' else '/jobs/' ~ folder ~ '/edit' }}" class="job" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
-  <fieldset>
-    <legend>The job</legend>
-    <div class="field{{ ' has-error' if problems.get('title') }}">
-      <label for="f-title">{{ labels.title }}</label>
-      <input id="f-title" name="title" value="{{ v.title }}" size="40" placeholder="exactly as Gus writes it">
-      {{ err("title") }}
+  {% if mode != "new" %}
+  <div class="fixbox field{{ ' has-error' if problems.get('note') }}">
+    <label class="label" for="f-note">What was wrong</label>
+    <textarea id="f-note" name="note" placeholder="e.g. Entry was measured from the wrong end">{{ v.note or "" }}</textarea>
+    {{ err("note") }}
+    <p class="small">Saved in the job's history with your name. The old version is kept.</p>
+  </div>
+  {% endif %}
+  <div class="cols">
+    <div class="panel">
+      <h2>Marked-up photo</h2>
+      <label class="drop{{ ' has' if photo_url }}">
+        <input type="file" name="photo" accept="image/jpeg,image/png" aria-label="Marked-up photo">
+        <img src="{{ photo_url or '' }}" alt="">
+        <span class="empty"><b>Tap to add the photo</b>Upload the photo with the red hoarding limit and the entry box already drawn.</span>
+      </label>
+      {{ err("photo") }}
+      {% if mode != "new" %}<p class="small">Choose another photo only to replace it.</p>{% endif %}
     </div>
-    <div class="field{{ ' has-error' if problems.get('site') }}">
-      <label for="f-site">{{ labels.site }}</label>
-      <div class="row">
-        <select name="site" id="f-site">
-          <option value="">— choose the site —</option>
-          {% for s in sites %}<option value="{{ s }}"{% if v.site == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
-          <option value="other"{% if v.site == "other" %} selected{% endif %}>Other…</option>
-        </select>
-        <input name="site_other" value="{{ v.site_other }}" placeholder="other site's name" aria-label="Other site">
+    <div class="panel">
+      <p class="section">Job</p>
+      <div class="grid2">
+        {{ text("title", "As the client writes it") }}
+        <div class="field{{ ' has-error' if problems.get('site') }}">
+          <label for="f-site">{{ labels.site }}</label>
+          <select name="site" id="f-site">
+            <option value="">Choose the site</option>
+            {% for s in sites %}<option value="{{ s }}"{% if v.site == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+            <option value="other"{% if v.site == "other" %} selected{% endif %}>Other…</option>
+          </select>
+          <input name="site_other" value="{{ v.site_other }}" placeholder="Other site's name" aria-label="Other site"{% if v.site != "other" %} hidden{% endif %} style="margin-top:8px">
+          {{ err("site") }}
+        </div>
+        {{ text("client", "Who the quote is for") }}
+        {{ text("drawings_sent_by", "Who sent the drawings") }}
       </div>
-      {{ err("site") }}
+      <p class="section">Measurements</p>
+      <div class="grid3">
+        {{ length("front") }}
+        {{ length("height") }}
+        {{ length("return", "%g"|format(defaults["return"])) }}
+        {{ length("entry_offset") }}
+        <div class="field{{ ' has-error' if problems.get('entry_from') }}">
+          <span class="label">{{ labels.entry_from }}</span>
+          <div class="seg" role="radiogroup" aria-label="Entry measured from">
+            <label><input type="radio" name="entry_from" value="left"{% if v.entry_from == "left" %} checked{% endif %}><span>Left</span></label>
+            <label><input type="radio" name="entry_from" value="right"{% if v.entry_from == "right" %} checked{% endif %}><span>Right</span></label>
+          </div>
+          {{ err("entry_from") }}
+        </div>
+        <div></div>
+        {{ length("door_width", "%g"|format(defaults["door_width"])) }}
+        {{ length("door_height", "%g"|format(defaults["door_height"])) }}
+      </div>
+      <p class="section">Extras</p>
+      <label class="tickbox"><input type="checkbox" name="dust_suppression"{% if v.dust_suppression %} checked{% endif %}>
+        <span><b>Dust suppression</b><small>Added to the materials form. The price does not change.</small></span></label>
+      <label class="tickbox"><input type="checkbox" name="ladder"{% if v.ladder %} checked{% endif %}>
+        <span><b>Ladder</b><small>Added to the materials form. The price does not change.</small></span></label>
+      <div class="grid2" style="margin-top:18px">
+        {{ text("extra_doors") }}
+        {{ text("passage_sets") }}
+      </div>
+      <div class="field" style="margin-top:18px">
+        <label for="f-photo_note">{{ labels.photo_note }}</label>
+        <textarea id="f-photo_note" name="photo_note" rows="3" placeholder="Cameras for centre management, access, anything special">{{ v.photo_note }}</textarea>
+      </div>
+      {% set more_open = problems.get("prefix") or problems.get("date") or problems.get("kiosk") or v.kiosk or v.estimates or v.entry_note %}
+      <details class="more"{% if more_open %} open{% endif %}>
+        <summary>More: folder name, date, kiosk, estimates</summary>
+        <p class="small">This form is for standard shopfronts (left return, front, right return) and 1.2 m kiosks.
+        Corner, U-shaped, fire-door and external jobs can't be entered here yet: they are made as <code>job.json</code> by hand (CLAUDE.md).</p>
+        <div class="grid2" style="margin-top:14px">
+          <div class="field{{ ' has-error' if problems.get('prefix') }}">
+            <label for="f-prefix">{{ labels.prefix }}</label>
+            {% if mode == "new" %}
+            <input id="f-prefix" name="prefix" value="{{ v.prefix }}" placeholder="{{ suggestion or 'made from the title' }}">
+            <p class="small">The job's folder and file names. Empty: made from the title{% if suggestion %} ({{ suggestion }}){% endif %}. Letters, digits, _ and - only.</p>
+            {% else %}
+            <p><code>{{ folder }}</code> <span class="small">(can't change: it is the job's folder)</span></p>
+            {% endif %}
+            {{ err("prefix") }}
+          </div>
+          {{ text("date", "dd/mm/yyyy") }}
+        </div>
+        <label class="tick"><input type="checkbox" name="kiosk"{% if v.kiosk %} checked{% endif %}> 1.2 m <strong>kiosk</strong> (sheets laid horizontally, one door cut in half, kiosk rate)</label>
+        {{ err("kiosk") }}
+        <div class="field" style="margin-top:10px">
+          <label for="f-entry_note">{{ labels.entry_note }} <span class="small">(optional, e.g. ", set to use full sheets")</span></label>
+          <input id="f-entry_note" name="entry_note" value="{{ v.entry_note }}">
+        </div>
+        <p class="small" style="margin-bottom:4px">Read from the photo (an estimate, marked in the package until a site measurement replaces it):</p>
+        {% for f in ["front", "return", "height", "door_width", "door_height", "entry_offset"] %}
+        <label class="tick"><input type="checkbox" name="estimate_{{ f }}"{% if f in v.estimates %} checked{% endif %}> {{ labels[f] }}</label>
+        {% endfor %}
+        <p class="small">Prepared by: <strong>{{ v.by }}</strong>. Empty sizes use the defaults: entry {{ "%g"|format(defaults["door_width"]) }} × {{ "%g"|format(defaults["door_height"]) }} m ({{ "%g"|format(kiosk_door) }} m high on a kiosk), returns {{ "%g"|format(defaults["return"]) }} m.</p>
+      </details>
     </div>
-    <div class="field{{ ' has-error' if problems.get('date') }}">
-      <label for="f-date">{{ labels.date }}</label>
-      <input id="f-date" name="date" value="{{ v.date }}" size="12" placeholder="dd/mm/yyyy">
-      {{ err("date") }}
+  </div>
+  <div class="barbottom" aria-live="polite">
+    <div><div class="v" data-est="run">–</div><div class="k">Run incl. returns</div></div>
+    <div><div class="v" data-est="entry">–</div><div class="k">Entry from left</div></div>
+    <div><div class="v" data-est="ladder">{{ "Yes" if v.ladder else "No" }}</div><div class="k">Ladder</div></div>
+    <div><div class="v" data-est="weights">–</div><div class="k">Weights / upright</div></div>
+    <div><div class="v" data-est="quote">–</div><div class="k">Quote ex GST (est.)</div></div>
+    <div class="go">
+      {% if mode != "new" %}<a class="button ghost" href="/jobs/{{ folder }}">Cancel</a>{% endif %}
+      <button type="submit">{{ "Generate PDFs" if mode == "new" else "Fix and regenerate" }}</button>
     </div>
-    <div class="field{{ ' has-error' if problems.get('prefix') }}">
-      <label for="f-prefix">{{ labels.prefix }} <span class="small">(the job's folder and file names)</span></label>
-      {% if mode == "new" %}
-      <input id="f-prefix" name="prefix" value="{{ v.prefix }}" size="24" placeholder="{{ suggestion or 'leave empty: made from the title' }}">
-      <p class="small">Leave it empty to use the suggestion made from the title{% if suggestion %} ({{ suggestion }}){% endif %}. Letters, digits, _ and - only.</p>
-      {% else %}
-      <p><code>{{ folder }}</code> <span class="small">(can't change: it is the job's folder)</span></p>
-      {% endif %}
-      {{ err("prefix") }}
-    </div>
-    <p>Prepared by: <strong>{{ v.by }}</strong></p>
-  </fieldset>
-  <fieldset>
-    <legend>Sizes, in metres</legend>
-    <label class="tick"><input type="checkbox" name="kiosk"{% if v.kiosk %} checked{% endif %}> 1.2 m <strong>kiosk</strong> (sheets laid horizontally, one door cut in half, kiosk rate)</label>
-    {{ err("kiosk") }}
-    {{ length("front") }}
-    {{ length("return", "%g"|format(defaults["return"])) }}
-    {{ length("height") }}
-    <p class="small">Tick “estimate” for any size read from a photo: it is marked in the package until a site measurement replaces it.</p>
-  </fieldset>
-  <fieldset>
-    <legend>Entry</legend>
-    {{ length("door_width", "%g"|format(defaults["door_width"])) }}
-    {{ length("door_height", "%g"|format(defaults["door_height"])) }}
-    <p class="small">Empty sizes use the defaults from rules.json: entry {{ "%g"|format(defaults["door_width"]) }} × {{ "%g"|format(defaults["door_height"]) }} m ({{ "%g"|format(kiosk_door) }} m high on a kiosk), returns {{ "%g"|format(defaults["return"]) }} m.</p>
-    <div class="field{{ ' has-error' if problems.get('entry_from') }}">
-      <span class="label">{{ labels.entry_from }}</span>
-      <label class="tick"><input type="radio" name="entry_from" value="left"{% if v.entry_from == "left" %} checked{% endif %}> the left end of the front</label>
-      <label class="tick"><input type="radio" name="entry_from" value="right"{% if v.entry_from == "right" %} checked{% endif %}> the right end</label>
-      {{ err("entry_from") }}
-    </div>
-    {{ length("entry_offset") }}
-    <div class="field">
-      <label for="f-entry_note">{{ labels.entry_note }} <span class="small">(optional, e.g. ", set to use full sheets")</span></label>
-      <input id="f-entry_note" name="entry_note" value="{{ v.entry_note }}" size="50">
-    </div>
-  </fieldset>
-  <button type="submit">{{ "Save job" if mode == "new" else "Save changes" }}</button>
+  </div>
 </form>
+</div>
+<script src="/static/form.js"></script>
 {% endblock %}

@@ -101,9 +101,9 @@ def test_footer_and_menu_keep_internals_on_the_health_page(client, data):
     gus = client
     html = gus.get("/jobs").text
     nav = re.search(r"<nav>(.*?)</nav>", html, re.S).group(1)
-    assert 'href="/jobs"' in nav and 'href="/examples"' in nav and "/health" not in nav     # Demo PR C
-    footer = re.search(r"<footer>(.*?)</footer>", html, re.S).group(1)
-    assert str(data) not in footer and "AI reviewer" not in footer and "Data folder" not in footer
+    assert re.findall(r'href="([^"]+)"', nav) == ["/jobs", "/jobs/new", "/dashboard", "/activity"]   # the engenai sidebar
+    assert "/health" not in html and "/examples" not in nav                                        # Health: by its address
+    assert str(data) not in html and "AI reviewer" not in html and "<footer>" not in html
     health = gus.get("/health").text                                     # still there, by its address
     assert str(data) in health and "AI reviewer: off" in health
 

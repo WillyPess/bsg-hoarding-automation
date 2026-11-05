@@ -65,7 +65,7 @@ def audit(s, action):
 def test_run_is_disabled_until_the_photo_is_there(bikini, gus):
     html = gus.get("/jobs/Bikini").text
     assert "Upload the marked-up photo to run" in html
-    assert re.search(r'<button type="submit" disabled[^>]*>Run</button>', html)
+    assert re.search(r'<button type="submit" disabled[^>]*>Generate PDFs</button>', html)
 
 
 def test_run_without_the_photo_is_refused_on_the_server_too(bikini, gus):
@@ -80,7 +80,7 @@ def test_upload_then_run(bikini, gus):
     assert r.status_code == 303 and r.headers["location"] == "/jobs/Bikini"
     html = gus.get("/jobs/Bikini").text
     assert "Upload the marked-up photo to run" not in html
-    assert re.search(r'<button type="submit">Run</button>', html)
+    assert re.search(r'<button type="submit">Generate PDFs</button>', html)
     run = R.press_run(gus, "/jobs/Bikini")
     page = R.finished(gus, run.headers["location"])
     assert 'data-status="done"' in page.text
@@ -176,7 +176,7 @@ def test_examples_have_no_photo_upload(gus):
     html = gus.get("/examples/Bikini").text
     assert 'enctype="multipart/form-data"' not in html
     assert "Upload the marked-up photo" not in html                              # their photo is there: Run works
-    assert re.search(r'<button type="submit">Run</button>', html)
+    assert re.search(r'<button type="submit">Generate PDFs</button>', html)
     for path in ("/examples/Bikini/photo", "/jobs/example-Bikini/photo"):
         r = gus.post(path, data={}, files={"photo": ("p.jpg", image_bytes(), "image/jpeg")})
         assert r.status_code in (403, 404, 405), path

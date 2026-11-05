@@ -1,7 +1,7 @@
 {# base: the job's or the example's URL. can_run: false while a job has no marked-up photo (Examples always have one). #}
 {% if can_run is defined and not can_run %}
-<form method="post" action="{{ base }}/run"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button type="submit" disabled title="Upload the marked-up photo to run">Run</button></form>
+<form method="post" action="{{ base }}/run"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button type="submit" disabled title="Upload the marked-up photo to run">Generate PDFs</button></form>
 <span class="hint">Upload the marked-up photo to run</span>
 {% else %}
-<form method="post" action="{{ base }}/run"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button type="submit">Run</button></form>
+<form method="post" action="{{ base }}/run"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button type="submit"{% if version %} class="ghost"{% endif %}>{{ "Generate again" if version else "Generate PDFs" }}</button></form>
 {% endif %}

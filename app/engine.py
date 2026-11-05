@@ -14,6 +14,10 @@ import jobs as _jobs        # noqa: E402  hoarding/jobs.py
 import validate as _validate  # noqa: E402  hoarding/validate.py
 from rules import RULES     # noqa: E402  hoarding/rules.json (read-only here: shown as hints, never applied by the app)
 
+if health.ROOT not in sys.path:
+    sys.path.insert(0, health.ROOT)
+import run_job as _run_job   # noqa: E402  run_job.counts: the engine's key numbers, the same as run_summary.json
+
 normalize = _jobs.normalize
 suggest_prefix = _jobs.suggest_prefix
 warnings = _jobs.warnings
@@ -23,6 +27,16 @@ Problem = _validate.Problem
 
 RUN_TIMEOUT = 300    # seconds: a stuck LibreOffice must not hold the other runs back for ever
 ERROR_TAIL = 4000    # characters of the engine's output shown when a run fails
+
+
+def estimate(job, folder):
+    """The key numbers of a job.json not saved yet (the form's bottom bar): run_job.counts, in this process, with
+    no files written. folder = where the job would live (for its quote_extras.json, if any). None when the engine
+    can't work it out from these inputs (the form then says what is wrong)."""
+    try:
+        return _run_job.counts({**job, "dir": str(folder)})
+    except Exception:      # half-typed inputs: the bar shows dashes, the save says what is wrong
+        return None
 
 
 def run_job(folder, timeout=RUN_TIMEOUT):
@@ -41,4 +55,4 @@ def run_job(folder, timeout=RUN_TIMEOUT):
     return said[-ERROR_TAIL:] or f"The engine stopped with exit code {done.returncode}."
 
 
-__all__ = ["normalize", "suggest_prefix", "warnings", "check", "kind", "Problem", "RULES", "run_job"]
+__all__ = ["normalize", "suggest_prefix", "warnings", "check", "kind", "Problem", "RULES", "run_job", "estimate"]

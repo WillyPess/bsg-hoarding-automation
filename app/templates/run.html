@@ -1,22 +1,27 @@
 {% extends "base.html" %}
-{% block title %}{{ job.title }} · run {{ "%04d"|format(number) }} · BSG Hoarding{% endblock %}
+{% block title %}{{ job.title }} · version {{ number }} · BSG Hoarding{% endblock %}
 {% block head %}{% if row.status == "running" %}<meta http-equiv="refresh" content="2">{% endif %}{% endblock %}
 {% block content %}
-<p><a href="{{ base }}">← {{ job.title }}</a></p>
-<div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% include "_run_button.html" %}</div></div>
-<p class="small">Run {{ "%04d"|format(number) }} · <span class="status {{ row.status }}">{{ row.status }}</span>{% if row.who %} · by {{ row.who }}{% endif %} · {{ when }}{% if seconds is not none %} · took {{ seconds }} s{% endif %}</p>
+<header class="page">
+  <div>
+    <h1>{{ job.title }} · version {{ number }}</h1>
+    <p class="sub">Run {{ "%04d"|format(number) }} · <span class="status {{ row.status }}">{{ row.status }}</span>{% if row.who %} · by {{ row.who|capitalize }}{% endif %} · {{ when }}{% if seconds is not none %} · took {{ seconds }} s{% endif %}</p>
+  </div>
+  <div class="actions"><a class="button ghost" href="{{ base }}">Back to the job</a>{% if row.status in ("failed", "interrupted") %}{% include "_run_button.html" %}{% endif %}</div>
+</header>
+<div class="body">
 <div data-status="{{ row.status }}">
 {% if row.status == "running" %}
-  <p class="note running">Running... started {{ elapsed }} s ago. This page updates by itself.</p>
+  <p class="note running">Running: generating the PDFs... started {{ elapsed }} s ago. This page updates by itself.</p>
 {% elif row.status == "failed" %}
   <p class="note failed"><strong>This run failed.</strong> What the engine said:</p>
   <pre class="engine-said">{{ row.error }}</pre>
 {% elif row.status == "interrupted" %}
-  <p class="note failed"><strong>This run was interrupted</strong> when the app stopped. Run the job again.</p>
+  <p class="note failed"><strong>This run was interrupted</strong> when the app stopped. Generate the PDFs again.</p>
 {% else %}
-  <div class="downloads">
-  {% for label, name in downloads %}<a class="button" href="{{ run_url }}/files/{{ name }}">{{ label }}</a>{% endfor %}
-  </div>
+  <div class="split">
+  <div>
+  <div class="panel">
   <h2>Summary</h2>
   <table class="counts">
     <tbody>
@@ -24,7 +29,9 @@
     {% endfor %}
     </tbody>
   </table>
+  </div>
   {% if quote %}
+  <div class="panel">
   <h2>Quote</h2>
   <table class="counts">
     <tbody>
@@ -32,15 +39,31 @@
     {% endfor %}
     </tbody>
   </table>
+  </div>
   {% endif %}
+  {% for label, name in drawings %}
+  <div class="panel">
+  <h2>{{ label }}</h2>
+  <a href="{{ run_url }}/files/{{ name }}"><img class="drawing" src="{{ run_url }}/files/{{ name }}" alt="{{ label }} of {{ job.title }}"></a>
+  </div>
+  {% endfor %}
+  </div>
+  <div>
+  <div class="panel">
+  <h2>Download</h2>
+  <div class="downloads">
+  {% for label, name in downloads %}<a class="button" href="{{ run_url }}/files/{{ name }}">{{ label }}</a>{% endfor %}
+  </div>
+  </div>
+  <div class="panel">
   <h2>To confirm</h2>
   {% if warnings %}
   <ul class="warnings-list">{% for w in warnings %}<li title="{{ w.rule }}">{{ w.message }}</li>{% endfor %}</ul>
-  {% else %}<p>Nothing to confirm.</p>{% endif %}
-  {% for label, name in drawings %}
-  <h2>{{ label }}</h2>
-  <a href="{{ run_url }}/files/{{ name }}"><img class="drawing" src="{{ run_url }}/files/{{ name }}" alt="{{ label }} of {{ job.title }}"></a>
-  {% endfor %}
+  {% else %}<p class="small">Nothing to confirm.</p>{% endif %}
+  </div>
+  </div>
+  </div>
 {% endif %}
+</div>
 </div>
 {% endblock %}
