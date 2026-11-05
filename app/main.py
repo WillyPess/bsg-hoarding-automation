@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import auth, db, health, pages_jobs, settings as S, users
+from app import auth, db, health, pages_jobs, pages_runs, settings as S, storage, users
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SECURITY_HEADERS = {"X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin"}
@@ -20,6 +20,7 @@ SECURITY_HEADERS = {"X-Frame-Options": "DENY", "X-Content-Type-Options": "nosnif
 def create_app(settings=None):
     settings = settings or S.load()
     db.connect(settings).close()   # create or update the database before the first request
+    storage.interrupt_unfinished(settings)
     app = FastAPI(title="BSG Hoarding", docs_url=None, redoc_url=None, openapi_url=None,   # an app, not an API
                   dependencies=[Depends(auth.require_user), Depends(auth.csrf_guard)])
     app.state.settings = settings
@@ -94,6 +95,7 @@ def create_app(settings=None):
         return RedirectResponse("/jobs", status_code=303)
 
     pages_jobs.add_routes(app, page, settings)
+    pages_runs.add_routes(app, page, settings)
 
     def report():
         cs = health.checks(settings)

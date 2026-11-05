@@ -43,7 +43,7 @@ python -m app.users list                         # set-password <name> gives a n
 python -m app             # serves http://127.0.0.1:8000 (this PC only); log in, then the health page is /health
 ```
 
-After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
+After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. **Run**, on a job or an example, runs the engine (`run_job.py`, in its own process, one run at a time) into a new run folder; an example runs on a copy in the data folder, never in `hoarding/`. The page says "running..." and updates by itself, then shows the results: the summary counts, the engine's warnings, the grid sheet, the melamine layout and the downloads (package PDF, materials PDF and xlsx, quote PDF on Pacific Fair jobs). A failed run shows what the engine said. A job needs its marked-up photo, `<prefix>_hoarding_markup.jpg`, to run. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
 
 Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins for a name in 15 minutes, that name can't log in for 15 minutes; after 20 failed logins from one address (on this PC, both users share 127.0.0.1), that address is locked for 15 minutes. So one person's typos don't lock the other out.
 
@@ -51,7 +51,7 @@ The data folder is `C:\BSG\data` on Windows (`~/BSG/data` elsewhere), or `BSG_DA
 
 ### Storage
 
-Everything lives in the data folder (PLAN-app.md §7): `bsg.sqlite` (users, the job and run index, approvals, the AI tables, and the **append-only audit**: the database itself refuses to change or delete an audit entry), `config.toml`, `last_backup.json`, and `jobs/<Job>/` with `job.json`, the photos, `reviews/` and `runs/0001/`, `runs/0002/`, ... Run numbers are never reused. A finished run (it has `engine.json`: engine commit, `rules.json` hash, versions, time taken) can't be written again, and its files are read-only.
+Everything lives in the data folder (PLAN-app.md §7): `bsg.sqlite` (users, the job and run index, approvals, the AI tables, and the **append-only audit**: the database itself refuses to change or delete an audit entry), `config.toml`, `last_backup.json`, and `jobs/<Job>/` with `job.json`, the photos, `reviews/` and `runs/0001/`, `runs/0002/`, ... The copy an example runs on is `jobs/example-<Name>/`; it isn't in the job list. Run numbers are never reused. A finished run (it has `engine.json`: engine commit, `rules.json` hash, versions, time taken) can't be written again, and its files are read-only.
 
 If the index ever gets out of step with the folders (e.g. a job folder copied in by hand), rebuild it with the app stopped:
 

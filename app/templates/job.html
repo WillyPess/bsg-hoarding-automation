@@ -2,14 +2,16 @@
 {% block title %}{{ job.title }} · BSG Hoarding{% endblock %}
 {% block content %}
 <p><a href="/jobs">← Jobs</a></p>
-<div class="bar"><h1>{{ job.title }}</h1>{% if kind == "standard" %}<a class="button" href="/jobs/{{ folder }}/edit">Edit</a>{% endif %}</div>
+<div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% if kind == "standard" %}<a class="button" href="/jobs/{{ folder }}/edit">Edit</a>{% endif %}{% include "_run_button.html" %}</div></div>
 <p class="small">{{ folder }} · {{ kind }}{{ " (kiosk)" if job.kiosk }}</p>
+{% include "_runs.html" %}
+<h2>Inputs</h2>
 {% include "_inputs.html" %}
 <h2>Warnings</h2>
 {% if warnings %}
 <ul class="warnings-list">{% for w in warnings %}<li>{{ w.message }} <span class="small">({{ w.rule }})</span></li>{% endfor %}</ul>
 {% else %}<p>None.</p>{% endif %}
-<p class="small">From the engine (<code>jobs.warnings</code>). Running the engine comes in a later step.</p>
+<p class="small">From the engine (<code>jobs.warnings</code>).</p>
 <h2>History</h2>
 <table class="list">
   <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>

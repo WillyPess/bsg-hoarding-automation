@@ -2,7 +2,9 @@
 {% block title %}{{ job.title }} (example) · BSG Hoarding{% endblock %}
 {% block content %}
 <p><a href="/examples">← Examples</a></p>
-<h1>{{ job.title }}</h1>
-<p class="note">Example, read-only: the reference job <code>hoarding/{{ example }}</code>. It can't be edited, run or approved here. Type: {{ kind }}.</p>
+<div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% include "_run_button.html" %}</div></div>
+<p class="note">Example, read-only: the reference job <code>hoarding/{{ example }}</code>. It can't be edited or approved here. Run works on a copy in the data folder. Type: {{ kind }}.</p>
+{% include "_runs.html" %}
+<h2>Inputs</h2>
 {% include "_inputs.html" %}
 {% endblock %}

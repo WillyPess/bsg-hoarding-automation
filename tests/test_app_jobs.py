@@ -114,9 +114,9 @@ def test_an_example_is_read_only(gus):
     r = gus.get("/examples/Medibank")
     assert r.status_code == 200 and "Medibank" in r.text and "read-only" in r.text.lower()
     posts = re.findall(r'<form method="post" action="([^"]*)"', r.text)
-    assert posts == ["/logout"]                                        # no form on the page but logout
+    assert posts == ["/logout", "/examples/Medibank/run"]              # no form on the page but logout and Run (on a copy)
     assert gus.post("/examples/Medibank", data={}).status_code in (403, 405)
-    for path in ("/jobs/Medibank", "/jobs/Medibank/edit"):              # not a job of the app: can't be edited, run or approved
+    for path in ("/jobs/Medibank", "/jobs/Medibank/edit"):              # not a job of the app: can't be edited or approved
         assert gus.get(path).status_code == 404
 
 
