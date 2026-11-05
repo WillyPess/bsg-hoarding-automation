@@ -294,6 +294,18 @@ def test_results_show_the_engine_warnings(app_s, gus):
     assert "set &lt;here&gt;" in html
 
 
+def test_warnings_are_a_to_confirm_section_with_the_rule_in_a_tooltip(app_s, gus):
+    html = results(gus, app_s[1], estimated=["front"])                  # Demo PR C: client-facing words
+    assert "<h2>To confirm</h2>" in html and "<h2>Warnings</h2>" not in html
+    section = re.search(r'<ul class="warnings-list">(.*?)</ul>', html, re.S).group(1)
+    text = re.sub(r'title="[^"]*"', "", section)                         # the rule only in the tooltip
+    for w in engine.warnings(job(estimated=["front"]), SUMMARY):
+        assert f'title="{w.rule}"' in section and w.rule not in text
+    for page in (html, gus.get("/jobs/Bikini").text):
+        visible = re.sub(r'title="[^"]*"', "", page)
+        assert "rules.json" not in visible and "CLAUDE.md" not in visible and "jobs.warnings" not in visible
+
+
 def test_the_warnings_are_for_the_inputs_of_this_run(app_s, gus):
     s = app_s[1]
     results(gus, s)

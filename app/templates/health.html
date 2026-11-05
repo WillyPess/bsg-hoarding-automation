@@ -11,5 +11,5 @@
   {% endfor %}
   </tbody>
 </table>
-<p class="small">Model: {{ settings.ai.model }} · Caps: ${{ "%.2f"|format(settings.ai.cap_per_job_usd) }} per job, ${{ "%.2f"|format(settings.ai.cap_per_month_usd) }} per month · <a href="/health.json">JSON</a></p>
+<p class="small">Data folder: {{ settings.data_dir }} · AI reviewer: {{ "on" if settings.ai.enabled else "off" }} · Model: {{ settings.ai.model }} · Caps: ${{ "%.2f"|format(settings.ai.cap_per_job_usd) }} per job, ${{ "%.2f"|format(settings.ai.cap_per_month_usd) }} per month · <a href="/health.json">JSON</a></p>
 {% endblock %}

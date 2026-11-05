@@ -40,14 +40,26 @@ python -m app --check     # settings + health checks (data folder, config.toml, 
 python -m app.users add gus --role estimator     # asks for the password twice (at least 10 characters)
 python -m app.users add boss --role manager
 python -m app.users list                         # set-password <name> gives a new password and ends that user's sessions
-python -m app             # serves http://127.0.0.1:8000 (this PC only); log in, then the health page is /health
+python -m app             # serves http://127.0.0.1:8000 (this PC only); the health page is /health (not in the menu)
 ```
 
-After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. **Run**, on a job or an example, runs the engine (`run_job.py`, in its own process, one run at a time) into a new run folder; an example runs on a copy in the data folder, never in `hoarding/`. The page says "running..." and updates by itself, then shows the results: the summary counts, the engine's warnings, the grid sheet, the melamine layout and the downloads (package PDF, materials PDF and xlsx, quote PDF on Pacific Fair jobs). A failed run shows what the engine said. A job needs its marked-up photo, `<prefix>_hoarding_markup.jpg`, to run. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
+After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. **Run**, on a job or an example, runs the engine (`run_job.py`, in its own process, one run at a time) into a new run folder; an example runs on a copy in the data folder, never in `hoarding/`. The page says "running..." and updates by itself, then shows the results: the summary counts, what is still to confirm (the engine's warnings), the grid sheet, the melamine layout and the downloads (package PDF, materials PDF and xlsx, quote PDF on Pacific Fair jobs). A failed run shows what the engine said. A job needs its marked-up photo, `<prefix>_hoarding_markup.jpg`, to run. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
 
 Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins for a name in 15 minutes, that name can't log in for 15 minutes; after 20 failed logins from one address (on this PC, both users share 127.0.0.1), that address is locked for 15 minutes. So one person's typos don't lock the other out.
 
 The data folder is `C:\BSG\data` on Windows (`~/BSG/data` elsewhere), or `BSG_DATA` when set. The first start writes `config.toml` there with every setting and its default (server address, AI model and cost caps); no secrets go in it. The AI reviewer stays off until it is built.
+
+### Demo
+
+On the Windows PC, from the repository folder:
+
+1. Start: double-click `start-bsg.bat`. The first time it makes `.venv` and installs `requirements.txt`; then it starts the app and opens http://127.0.0.1:8000 in the browser. Close its window to stop the app.
+2. The first time only, create the user in another window, in the repository folder: `.venv\Scripts\python.exe -m app.users add gus --role estimator` (it asks for the password twice).
+3. Log in, open **Examples**, then an example (e.g. Bikini on the Beach).
+4. Press **Run**. The page shows "running..." and then the results: the counts, what is still to confirm, the drawings.
+5. Download the **package PDF** (and the materials form, or the quote on Pacific Fair jobs).
+
+The **Health** page is no longer in the menu: open http://127.0.0.1:8000/health. It shows the checks, the data folder and whether the AI reviewer is on.
 
 ### Storage
 

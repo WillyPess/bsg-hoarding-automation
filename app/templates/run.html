@@ -33,10 +33,10 @@
     </tbody>
   </table>
   {% endif %}
-  <h2>Warnings</h2>
+  <h2>To confirm</h2>
   {% if warnings %}
-  <ul class="warnings-list">{% for w in warnings %}<li>{{ w.message }} <span class="small">({{ w.rule }})</span></li>{% endfor %}</ul>
-  {% else %}<p>None.</p>{% endif %}
+  <ul class="warnings-list">{% for w in warnings %}<li title="{{ w.rule }}">{{ w.message }}</li>{% endfor %}</ul>
+  {% else %}<p>Nothing to confirm.</p>{% endif %}
   {% for label, name in drawings %}
   <h2>{{ label }}</h2>
   <a href="{{ run_url }}/files/{{ name }}"><img class="drawing" src="{{ run_url }}/files/{{ name }}" alt="{{ label }} of {{ job.title }}"></a>

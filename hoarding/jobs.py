@@ -120,39 +120,39 @@ def warnings(job, summary):
     out = []
     w = lambda rule, msg: out.append(JobWarning(rule, msg))
     # provisional rules every job uses
-    w("materials.studs", f"Studs: {M['studs']} per {M['per_length']:g} m of run, inferred from Just Cuts, not formally confirmed.")
+    w("materials.studs", f"Studs: {M['studs']} per {M['per_length']:g} m of run, taken from an earlier job; to be confirmed.")
     ds = R["door_set"]
-    w("door_set.studs_short_length", f"Door studs: {ds['studs_short']} x {ds['studs_short_length']:g} m, purpose still unknown (Gus is asking his boss)."
-      + (f" On this {job['height']:g} m kiosk the {ds['studs_short_length']:g} m studs may not be needed at all." if job.get("kiosk") else ""))
+    w("door_set.studs_short_length", f"Door studs: {ds['studs_short']} x {ds['studs_short_length']:g} m are included; what they are for is to be confirmed."
+      + (f" On this {job['height']:g} m kiosk they may not be needed at all." if job.get("kiosk") else ""))
     KH = R["kiosk"]["height"]
     if not job.get("kiosk") and abs(job.get("height", 0) - KH) < 1e-9:
-        w("CLAUDE.md §12", f"This job is {KH:g} m high but not marked as a kiosk: is it a kiosk? A kiosk uses sheets laid horizontally and the kiosk rate (\"kiosk\": true).")
+        w("CLAUDE.md §12", f"This job is {KH:g} m high but not marked as a kiosk: is it a kiosk? A kiosk uses sheets laid horizontally and the kiosk rate.")
     if R["tape"]["tape_rule"] == "joints":
-        w("tape.spare", f"White tape: joint length + {R['tape']['spare']:.0%} spare; the spare is provisional until Gus's boss confirms it.")
+        w("tape.spare", f"White tape: joint length + {R['tape']['spare']:.0%} spare; the spare is to be confirmed.")
     else:
-        w("materials.white_tape", f"White tape: v1 rule, {M['white_tape']} rolls per {M['per_length']:g} m (tape.tape_rule = \"v1\").")
+        w("materials.white_tape", f"White tape: {M['white_tape']} rolls per {M['per_length']:g} m of run (the earlier rule); to be confirmed.")
     b = R["black_tape"]
-    w("black_tape.spare", f"Black tape: full run x {1 + b['spare']:g} / {b['roll_length']:g} m rolls, provisional (Gus, 2026-11-02).")
+    w("black_tape.spare", f"Black tape: full run x {1 + b['spare']:g} in {b['roll_length']:g} m rolls; the spare is to be confirmed.")
     # job features
     if job.get("external"):
         e = R["external"]
-        w("external.extra_uprights", f"External job: {job.get('extra_uprights', e['extra_uprights']):.0%} extra uprights for wind, provisional (no official table yet).")
-        w("external.weights_per_upright", f"External job: {job.get('weights_per_upright') or e['weights_per_upright']} counterweights per upright, provisional (no official table yet).")
+        w("external.extra_uprights", f"External job: {job.get('extra_uprights', e['extra_uprights']):.0%} extra uprights for wind (no official table for outdoor hoardings yet).")
+        w("external.weights_per_upright", f"External job: {job.get('weights_per_upright') or e['weights_per_upright']} counterweights per upright (no official table for outdoor hoardings yet).")
     kind = _kind(job)
     if kind == "corner":
-        w("CLAUDE.md §8", "Outside corner = a normal joint with one upright, provisional until Gus's boss confirms.")
+        w("CLAUDE.md §8", "Outside corner: a normal joint with one upright; to be confirmed.")
     if kind == "fire door":
-        w("CLAUDE.md §10", "Track + timbers is a suggestion only; BSG is still learning this method.")
+        w("CLAUDE.md §10", "Track + timbers in the narrow section is a suggestion only; BSG is still learning this method.")
     if "uprights" in job:
         w("CLAUDE.md §5", f"Uprights at the joins set by hand ({job['uprights']}), not from the layout; the 10% spare is added on top.")
     if job.get("entry_note"):
         w("CLAUDE.md §1", f"Entry: {job['entry_note'].lstrip(', ').rstrip('.')}. Check it still lines up with the shop entrance.")
     if job.get("estimated"):
-        w("CLAUDE.md §1", f"Sizes read from the photo are estimates ({', '.join(job['estimated'])}): ask Gus for the site measurements.")
+        w("CLAUDE.md §1", f"Sizes read from the photo are estimates ({', '.join(job['estimated'])}): confirm them with site measurements.")
     if summary.get("tops"):
         w("CLAUDE.md §3", f"{summary['tops']} tops to cut from offcuts ({summary.get('tops_from_offcuts', '')}): the loader adds a sheet for each size not in stock.")
     if job.get("site") == "Pacific Fair":
-        w("rate_card.bands", f"Quote from \"{R['rate_card']['name']}\": its printed validity has ended; Gus keeps using it until a new card comes.")
+        w("rate_card.bands", f"Quote from the rate card \"{R['rate_card']['name']}\": its printed dates have passed; it stays in use until a new card is issued.")
         if summary.get("quote_poa_lines"):
-            w("CLAUDE.md §12", f"The quote has {summary['quote_poa_lines']} POA line(s) (price on application), not in the total.")
+            w("CLAUDE.md §12", f"The quote has {summary['quote_poa_lines']} line(s) at POA (price on application), not in the total.")
     return out

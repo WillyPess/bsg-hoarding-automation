@@ -179,3 +179,28 @@ def test_warnings_do_not_change_the_job_or_summary():
     j0, s0 = copy.deepcopy(j), copy.deepcopy(s)
     jobs.warnings(j, s)
     assert (j, s) == (j0, s0)
+
+
+# --- wording: the warnings are shown to clients as "To confirm" (Demo PR C) --------------------------------------------
+
+INTERNAL = ("Gus", "boss", "Just Cuts", "rules.json", "CLAUDE.md", "tape_rule", '"kiosk"', "provisional")
+
+
+def every_warning():
+    variants = [{**ref("Bikini"), "estimated": ["front"], "uprights": 9}, {**ref("Bikini"), "height": 1.2}]
+    out = [w for n in baseline.JOBS for w in jobs.warnings(ref(n), summary(n))]
+    return out + [w for j in variants for w in jobs.warnings(j, summary("Bikini"))]
+
+
+def test_warnings_are_in_neutral_words():
+    ws = every_warning()
+    keys = {w.rule for w in ws if not w.rule.startswith("CLAUDE.md")}
+    for w in ws:
+        for word in INTERNAL + tuple(keys):
+            assert word not in w.message, (word, w.message)
+
+
+def test_warnings_on_v1_tape_are_neutral_too(monkeypatch):
+    monkeypatch.setitem(jobs.RULES["tape"], "tape_rule", "v1")
+    for w in jobs.warnings(ref("Bikini"), summary("Bikini")):
+        assert not any(word in w.message for word in INTERNAL + ("materials.white_tape",)), w.message

@@ -20,11 +20,10 @@
 </form>
 <h2>Inputs</h2>
 {% include "_inputs.html" %}
-<h2>Warnings</h2>
+<h2>To confirm</h2>
 {% if warnings %}
-<ul class="warnings-list">{% for w in warnings %}<li>{{ w.message }} <span class="small">({{ w.rule }})</span></li>{% endfor %}</ul>
-{% else %}<p>None.</p>{% endif %}
-<p class="small">From the engine (<code>jobs.warnings</code>).</p>
+<ul class="warnings-list">{% for w in warnings %}<li title="{{ w.rule }}">{{ w.message }}</li>{% endfor %}</ul>
+{% else %}<p>Nothing to confirm.</p>{% endif %}
 <h2>History</h2>
 <table class="list">
   <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
