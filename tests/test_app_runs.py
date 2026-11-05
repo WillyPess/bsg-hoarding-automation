@@ -54,8 +54,11 @@ def gus(app_s):
     return H.logged_in(app_s[0], "gus")
 
 
-def make(s, prefix="Bikini", **kw):
+def make(s, prefix="Bikini", photo=True, **kw):
+    """A job, with its marked-up photo (since demo PR B, Run waits for it; test_app_photo.py covers the job without)."""
     storage.create_job(s, job(prefix, **kw), storage.user_id(s, "gus"))
+    if photo:
+        storage.write_job_file(s, prefix, f"{prefix}_hoarding_markup.jpg", b"the photo")
 
 
 def press_run(client, page_url):
@@ -137,6 +140,7 @@ def test_every_kind_of_job_has_the_button(app_s, gus):
     s = app_s[1]
     j = json.loads((HOARDING / "Shrungaar" / "job.json").read_text(encoding="utf-8")); j.pop("dir")
     storage.create_job(s, j, storage.user_id(s, "gus"))       # a corner job: no form for it yet, but it can run
+    storage.write_job_file(s, "Shrungaar", "Shrungaar_hoarding_markup.jpg", b"the photo")
     assert press_run(gus, "/jobs/Shrungaar").status_code == 303
     finished(gus, "/jobs/Shrungaar/runs/1")
 

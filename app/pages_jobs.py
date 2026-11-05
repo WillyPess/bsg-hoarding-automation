@@ -7,9 +7,9 @@ import json, time
 from pathlib import Path
 
 from fastapi import HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
-from app import engine, jobform, storage
+from app import engine, jobform, photos, storage
 
 ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES = ROOT / "hoarding"
@@ -106,13 +106,41 @@ def add_routes(app, page, settings):
             return form_page(request, v, problems, "new", status_code=422)
         return RedirectResponse(f"/jobs/{job['prefix']}", status_code=303)
 
-    @app.get("/jobs/{folder}", response_class=HTMLResponse)
-    def job_page(request: Request, folder: str):
+    def render_job(request, folder, status_code=200, photo_error=""):
         job = _job_or_404(settings, folder)
         history = [{**h, "when": _when(h["at"]), "detail": json.loads(h["detail"] or "{}")} for h in storage.job_history(settings, folder)]
         warnings = engine.warnings(job, storage.last_summary(settings, folder))
-        return page(request, "job.html", job=job, folder=folder, kind=engine.kind(job), warnings=warnings,
-                    history=history, labels=jobform.LABELS, runs=runs_view(settings, folder), base=f"/jobs/{folder}")
+        has_photo = storage.has_photo(settings, folder)
+        photo_v = int(storage.photo_path(settings, folder).stat().st_mtime) if has_photo else 0   # a replaced photo isn't shown from the cache
+        return page(request, "job.html", status_code, job=job, folder=folder, kind=engine.kind(job), warnings=warnings,
+                    history=history, labels=jobform.LABELS, runs=runs_view(settings, folder), base=f"/jobs/{folder}",
+                    has_photo=has_photo, can_run=has_photo, photo_v=photo_v, photo_error=photo_error,
+                    max_mb=photos.MAX_BYTES // (1024 * 1024))
+
+    @app.get("/jobs/{folder}", response_class=HTMLResponse)
+    def job_page(request: Request, folder: str):
+        return render_job(request, folder)
+
+    @app.post("/jobs/{folder}/photo", response_class=HTMLResponse)
+    async def upload_photo(request: Request, folder: str):
+        _job_or_404(settings, folder)
+        up = (await request.form()).get("photo")
+        if up is None or isinstance(up, str) or not getattr(up, "filename", ""):
+            return render_job(request, folder, 422, "Choose the marked-up photo (JPG or PNG) first.")
+        data = await up.read(photos.MAX_BYTES + 1)
+        try:
+            storage.save_photo(settings, folder, data, request.state.user.id, up.filename)
+        except photos.PhotoError as e:
+            return render_job(request, folder, e.status, str(e))
+        return RedirectResponse(f"/jobs/{folder}", status_code=303)
+
+    @app.get("/jobs/{folder}/photo")
+    def show_photo(folder: str):
+        _job_or_404(settings, folder)
+        path = storage.photo_path(settings, folder)
+        if not path.is_file():
+            raise HTTPException(status_code=404)
+        return FileResponse(path, media_type="image/jpeg")
 
     def _editable(job):
         return engine.kind(job) == "standard"
