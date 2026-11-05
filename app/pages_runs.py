@@ -76,14 +76,17 @@ def _read_json(path):
         return {}
 
 
+NO_PHOTO = "Upload the marked-up photo to run."   # the package needs it on its first page
+
+
 def add_routes(app, page, settings):
-    def run_page(request, folder, number, base, title_link):
+    def run_page(request, folder, number, base, title_link, can_run=True):
         row = storage.get_run(settings, folder, number)
         if row is None:
             raise HTTPException(status_code=404)
         path = storage.run_dir(settings, folder, number)
         job = _read_json(path / "job.json")
-        ctx = {"job": job, "folder": folder, "base": base, "run_url": f"{base}/runs/{number}", "title_link": title_link, "number": number,
+        ctx = {"can_run": can_run, "job": job, "folder": folder, "base": base, "run_url": f"{base}/runs/{number}", "title_link": title_link, "number": number,
                "row": row, "when": pages_jobs._when(row["finished_at"] or row["started_at"]), "seconds": _read_json(path / "engine.json").get("seconds")}
         if row["status"] == "running":
             ctx["elapsed"] = max(0, int(storage.now() - row["started_at"]))
@@ -115,13 +118,15 @@ def add_routes(app, page, settings):
     @app.post("/jobs/{folder}/run")
     def run_a_job(request: Request, folder: str):
         pages_jobs._job_or_404(settings, folder)
+        if not storage.has_photo(settings, folder):        # the button is disabled; this is for a stale page or a script
+            raise HTTPException(status_code=409, detail=NO_PHOTO)
         number = runner.start(settings, folder, request.state.user.id)
         return RedirectResponse(f"/jobs/{folder}/runs/{number}", status_code=303)
 
     @app.get("/jobs/{folder}/runs/{number}", response_class=HTMLResponse)
     def job_run_page(request: Request, folder: str, number: int):
         pages_jobs._job_or_404(settings, folder)
-        return run_page(request, folder, number, f"/jobs/{folder}", "/jobs")
+        return run_page(request, folder, number, f"/jobs/{folder}", "/jobs", can_run=storage.has_photo(settings, folder))
 
     @app.get("/jobs/{folder}/runs/{number}/files/{name}")
     def job_run_file(folder: str, number: int, name: str):

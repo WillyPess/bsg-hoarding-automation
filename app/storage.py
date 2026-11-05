@@ -261,6 +261,40 @@ def write_job_file(settings, folder, name, data):
     return path
 
 
+def photo_path(settings, folder):
+    """Where the marked-up photo of a job is (package_gen's name for it), whether or not it is there yet."""
+    from app import photos
+    return job_dir(settings, folder) / photos.markup_name(read_job(settings, folder)["prefix"])
+
+
+def has_photo(settings, folder):
+    try:
+        return photo_path(settings, folder).is_file()
+    except StorageError:
+        return False
+
+
+def save_photo(settings, folder, data, user_id, original_name=""):
+    """Store an upload as the job's marked-up photo (photos.prepare: JPG or PNG, upright, as a JPEG), replacing the
+    one before. photos.PhotoError when the upload can't be used; then nothing changes. Not for the Examples."""
+    from app import photos
+    if is_example(folder):
+        raise StorageError("the Examples are read-only")
+    path = photo_path(settings, folder)
+    jpeg, size = photos.prepare(data)
+    replaced = path.exists()
+    tmp = path.with_name(path.name + ".upload")
+    tmp.write_bytes(jpeg)
+    os.replace(tmp, path)                       # whole or not at all: a run starting now copies the old or the new one
+    conn = db.connect(settings)
+    try:
+        with conn:
+            audit(conn, user_id, "photo.uploaded", folder, replaced=replaced, size=list(size), original=original_name[:200])
+    finally:
+        conn.close()
+    return path
+
+
 # --- runs -------------------------------------------------------------------------------------------------------------
 
 def _next_number(conn, folder, runs):

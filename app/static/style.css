@@ -54,4 +54,8 @@ table.counts { width: auto; min-width: min(26rem, 100%); } table.counts th { fon
 table.counts tr.total th, table.counts tr.total td { font-weight: 700; background: #f6f7f9; }
 img.drawing { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); }
 pre.engine-said { background: #f6f7f9; padding: .6rem .9rem; overflow-x: auto; white-space: pre-wrap; font-size: .85rem; }
+img.photo { max-width: 100%; max-height: 420px; border: 1px solid var(--line); display: block; margin: .25rem 0 .75rem; }
+form[enctype="multipart/form-data"] { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+button[disabled] { background: #c9ced6; border-color: #c9ced6; color: #fff; cursor: not-allowed; }
+.actions .hint { font-size: .85rem; color: var(--muted); }
 @media print { header.top nav, form.who, footer { display: none; } }

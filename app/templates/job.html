@@ -5,6 +5,19 @@
 <div class="bar"><h1>{{ job.title }}</h1><div class="actions">{% if kind == "standard" %}<a class="button" href="/jobs/{{ folder }}/edit">Edit</a>{% endif %}{% include "_run_button.html" %}</div></div>
 <p class="small">{{ folder }} · {{ kind }}{{ " (kiosk)" if job.kiosk }}</p>
 {% include "_runs.html" %}
+<h2>Marked-up photo</h2>
+{% if photo_error %}<p class="fail" role="alert">{{ photo_error }}</p>{% endif %}
+{% if has_photo %}
+<a href="/jobs/{{ folder }}/photo"><img class="photo" src="/jobs/{{ folder }}/photo?v={{ photo_v }}" alt="Marked-up photo of {{ job.title }}"></a>
+{% else %}
+<p class="note">No photo yet. Upload the photo of the shopfront with the hoarding limit and the entry marked on it: it goes on the first page of the package.</p>
+{% endif %}
+<form method="post" action="/jobs/{{ folder }}/photo" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <input type="file" name="photo" accept="image/jpeg,image/png" aria-label="Marked-up photo">
+  <button type="submit">{{ "Replace the photo" if has_photo else "Upload the photo" }}</button>
+  <span class="small">JPG or PNG, up to {{ max_mb }} MB. It is turned upright as the phone took it.</span>
+</form>
 <h2>Inputs</h2>
 {% include "_inputs.html" %}
 <h2>Warnings</h2>
