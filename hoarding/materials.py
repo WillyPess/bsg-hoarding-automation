@@ -86,6 +86,15 @@ for rr in (r, r + 1):
 if TR:
     ws.merge_cells(start_row=r + 3, start_column=1, end_row=r + 3, end_column=6)
     ws.cell(r + 3, 1, "Note: track + timbers is a suggestion only; BSG is still learning this method.").font = Font(bold=True, color="CD6E00")
+# Ticks on the job (app form): a line each below the paper form, no quantity, nothing else changes (Gus, 2026-11-06)
+TICKS = [name for key, name in (("dust_suppression", "Dust suppression"), ("ladder", "Ladder")) if _p.get(key) is True]
+if TICKS:
+    rr = r + (5 if TR else 3)
+    for name in TICKS:
+        ws.cell(rr, 2, name).font = Font(bold=True)
+        ws.cell(rr, 4, "Ticked on this job").font = hand
+        for col in range(1, 7): ws.cell(rr, col).border = B
+        rr += 1
 for col, w in zip("ABCDEF", [6, 26, 12, 34, 8, 8]): ws.column_dimensions[col].width = w
 ws.row_dimensions[2].height = 30
 ws.page_setup.orientation = "portrait"; ws.sheet_properties.pageSetUpPr.fitToPage = True; ws.page_setup.fitToWidth = 1; ws.page_setup.fitToHeight = 1

@@ -1,33 +1,40 @@
 {% extends "base.html" %}
 {% block title %}Jobs · BSG Hoarding{% endblock %}
 {% block content %}
-<div class="tabs"><a class="on" href="/jobs">Jobs</a><a href="/examples">Examples</a></div>
-<div class="bar">
-  <form method="get" action="/jobs" class="search">
-    <input name="q" value="{{ q }}" placeholder="Search title or site" aria-label="Search title or site">
-    <button type="submit">Search</button>{% if q %} <a href="/jobs">Clear</a>{% endif %}
+<header class="page">
+  <div><h1>Jobs</h1><p class="sub">{{ rows|length }} shopfront job{{ "s" if rows|length != 1 }}</p></div>
+  <div class="actions"><a class="button" href="/jobs/new">+ New job</a></div>
+</header>
+<div class="body">
+  <form method="get" action="/jobs" class="filters">
+    <input name="q" value="{{ q }}" placeholder="Search job, client or person" aria-label="Search job, client or person">
+    <select name="site" aria-label="Site"><option value="">All sites</option>{% for s in sites %}<option{% if s == site %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+    <select name="who" aria-label="Created by"><option value="">Anyone</option>{% for p in people %}<option value="{{ p }}"{% if p == who %} selected{% endif %}>{{ p|capitalize }}</option>{% endfor %}</select>
+    <button type="submit">Search</button>
   </form>
-  <a class="button" href="/jobs/new">New job</a>
+  {% if rows %}
+  <div class="tablebox">
+  <table class="list">
+    <thead><tr><th>Job</th><th>Site</th><th class="r">Height · Run</th><th class="r">Quote ex GST</th><th>Created by</th><th>Sent by</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr {% if r.example %}data-example="{{ r.example }}"{% else %}data-job="{{ r.folder }}"{% endif %}>
+        <td><a class="job" href="{{ r.url }}">{{ r.title }}</a>{% if r.example %} <span class="tag">· example</span>{% endif %}{% if r.kind != "standard" %} <span class="tag">· {{ r.kind }}</span>{% endif %}</td>
+        <td>{{ r.site }}</td>
+        <td class="r mono">{{ r.height }} · {{ r.run }}</td>
+        <td class="r mono">{{ r.quote }}</td>
+        <td>{{ r.created_by|capitalize if r.created_by else "—" }}</td>
+        <td class="small">{{ r.sent_by or "—" }}</td>
+        <td><span class="chip {{ r.status.key }}">{{ r.status.label }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% elif q or site or who %}
+  <p>No job matches.</p>
+  {% else %}
+  <p>No jobs yet. <a href="/jobs/new">Make the first one</a>.</p>
+  {% endif %}
 </div>
-{% if rows %}
-<table class="list">
-  <thead><tr><th>Title</th><th>Site</th><th>Type</th><th>Status</th><th>Last run</th><th>To confirm</th></tr></thead>
-  <tbody>
-  {% for r in rows %}
-    <tr data-job="{{ r.folder }}">
-      <td><a href="/jobs/{{ r.folder }}">{{ r.title }}</a><div class="small">{{ r.folder }}</div></td>
-      <td>{{ r.site }}</td>
-      <td>{{ r.kind }}</td>
-      <td><span class="status {{ r.status }}">{{ r.status }}</span></td>
-      <td>{% if r.last_run %}{{ "%04d"|format(r.last_run) }} · {{ r.last_status }}<div class="small">{{ r.last_at_text }}</div>{% else %}—{% endif %}</td>
-      <td class="warnings">{{ r.warnings if r.warnings is not none else "?" }}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-{% elif q %}
-<p>No job matches “{{ q }}”.</p>
-{% else %}
-<p>No jobs yet. <a href="/jobs/new">Make the first one</a>, or look at the <a href="/examples">Examples</a>.</p>
-{% endif %}
 {% endblock %}

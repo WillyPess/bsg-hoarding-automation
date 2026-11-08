@@ -190,8 +190,9 @@ def read_job(settings, folder):
         raise StorageError(f"there is no job {folder!r}") from None
 
 
-def update_job(settings, folder, job, user_id):
-    """Replace job.json (the prefix, i.e. the folder, can't change), update its index row and audit the edit."""
+def update_job(settings, folder, job, user_id, note=None):
+    """Replace job.json (the prefix, i.e. the folder, can't change), update its index row and audit the edit.
+    With a note (Fix job: what was wrong), it is recorded as a correction (job.corrected), with the note."""
     old = read_job(settings, folder)
     if job.get("prefix") != folder:
         raise StorageError(f"the prefix of {folder!r} can't change (it is the job's folder name)")
@@ -202,7 +203,10 @@ def update_job(settings, folder, job, user_id):
         with conn:
             conn.execute("UPDATE jobs SET title = ?, site = ?, kind = ?, updated_at = ? WHERE folder = ?",
                          (job.get("title", ""), job.get("site", ""), _kind(job), now(), folder))
-            audit(conn, user_id, "job.edited", folder, changed=changed)
+            if note is not None:
+                audit(conn, user_id, "job.corrected", folder, changed=changed, note=note)
+            else:
+                audit(conn, user_id, "job.edited", folder, changed=changed)
     finally:
         conn.close()
     return changed
@@ -425,6 +429,70 @@ def finish_run(settings, run, ok, seconds, user_id, error=None):
             conn.execute("UPDATE runs SET status = ?, finished_at = ?, error = ? WHERE job = ? AND number = ?",
                          ("done" if ok else "failed", t, error, run.job, run.number))
             audit(conn, user_id, "run.finished", run.job, run.number, ok=bool(ok), seconds=seconds, error=error)
+    finally:
+        conn.close()
+
+
+# --- what the screens show (engenai UI): read from the index and the audit, nothing computed -------------------------
+
+def latest_done(settings, folder):
+    """(run number, finished_at, run_summary.json) of the job's latest finished run, or None. Its summary is the
+    engine's: every number a screen shows about a job comes from it."""
+    conn = db.connect(settings)
+    try:
+        rows = conn.execute("SELECT number, finished_at FROM runs WHERE job = ? AND status = 'done' ORDER BY number DESC", (folder,)).fetchall()
+    finally:
+        conn.close()
+    for number, at in rows:
+        f = run_dir(settings, folder, number) / "run_summary.json"
+        try:
+            return number, at, json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+    return None
+
+
+def creators(settings):
+    """{job folder: name of who created it} (an Example's copy: who first ran it), from the audit."""
+    conn = db.connect(settings)
+    try:
+        return {r["job"]: r["name"] for r in conn.execute(
+            """SELECT a.job, u.name FROM audit a JOIN users u ON u.id = a.user_id
+               WHERE a.id IN (SELECT MIN(id) FROM audit WHERE action IN ('job.created', 'example.copied') AND job IS NOT NULL GROUP BY job)""")}
+    finally:
+        conn.close()
+
+
+def activity(settings, limit=200, actions=None):
+    """The audit, latest first, with the user's name and the job's title: [{at, user, action, job, title, run, detail}]."""
+    conn = db.connect(settings)
+    try:
+        where, args = "", []
+        if actions:
+            where = f"WHERE a.action IN ({', '.join('?' * len(actions))})"
+            args = list(actions)
+        return [{**dict(r), "detail": json.loads(r["detail"] or "{}")} for r in conn.execute(
+            f"""SELECT a.at, a.action, a.job, a.run, a.detail, u.name AS user, j.title FROM audit a
+                LEFT JOIN users u ON u.id = a.user_id LEFT JOIN jobs j ON j.folder = a.job
+                {where} ORDER BY a.id DESC LIMIT ?""", args + [limit])]
+    finally:
+        conn.close()
+
+
+def count_actions(settings, action):
+    conn = db.connect(settings)
+    try:
+        return conn.execute("SELECT COUNT(*) FROM audit WHERE action = ?", (action,)).fetchone()[0]
+    finally:
+        conn.close()
+
+
+def record(settings, user_id, action, job=None, run=None, **detail):
+    """One audit entry (a sign-in, a download)."""
+    conn = db.connect(settings)
+    try:
+        with conn:
+            audit(conn, user_id, action, job, run, **detail)
     finally:
         conn.close()
 

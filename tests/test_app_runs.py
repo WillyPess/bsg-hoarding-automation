@@ -63,20 +63,25 @@ def make(s, prefix="Bikini", photo=True, **kw):
 
 
 def press_run(client, page_url):
-    """Press the Run button on a page: the form must be there, with its CSRF token."""
+    """Press the Generate PDFs button on a page: the form must be there, with its CSRF token. It goes back to the
+    job's page, which says "Generating PDFs" until the run is over."""
     html = client.get(page_url).text
     m = re.search(r'<form method="post" action="([^"]+/run)">(.*?)</form>', html, re.S)
-    assert m, f"no Run button on {page_url}"
-    assert ">Run<" in m.group(2)
+    assert m, f"no Generate PDFs button on {page_url}"
+    assert re.search(r">Generate (PDFs|again)<", m.group(2))
     return client.post(m.group(1), data={"csrf_token": H.csrf_from(m.group(2))}, follow_redirects=False)
 
 
 def finished(client, url, seconds=60):
-    """The run page once the run is over."""
+    """The run page once the run is over. url: a run page, or a job's page (then: its latest run's page)."""
     end = time.monotonic() + seconds
     while time.monotonic() < end:
         r = client.get(url)
         if r.status_code != 200 or 'data-status="running"' not in r.text:
+            if r.status_code == 200 and "/runs/" not in url:
+                runs = re.findall(r'href="(' + re.escape(url) + r'/runs/(\d+))"', r.text)
+                if runs:
+                    return client.get(max(runs, key=lambda x: int(x[1]))[0])
             return r
         time.sleep(0.02)
     raise AssertionError(f"{url} still running after {seconds} s")
@@ -108,10 +113,10 @@ def test_run_on_a_job_goes_into_a_new_run_folder(app_s, gus):
     make(s)
     storage.write_job_file(s, "Bikini", "Bikini_hoarding_markup.jpg", b"the photo")
     r = press_run(gus, "/jobs/Bikini")
-    assert r.status_code == 303 and r.headers["location"] == "/jobs/Bikini/runs/1"
+    assert r.status_code == 303 and r.headers["location"] == "/jobs/Bikini"
     assert finished(gus, "/jobs/Bikini/runs/1").status_code == 200
     r2 = press_run(gus, "/jobs/Bikini")
-    assert r2.headers["location"] == "/jobs/Bikini/runs/2"
+    assert r2.headers["location"] == "/jobs/Bikini"
     finished(gus, "/jobs/Bikini/runs/2")
     runs = s.data_dir / "jobs" / "Bikini" / "runs"
     assert (runs / "0001" / "Bikini_Hoarding_Package.pdf").exists() and (runs / "0002" / "Bikini_Hoarding_Package.pdf").exists()
@@ -134,7 +139,7 @@ def test_the_job_list_shows_the_run(app_s, gus):
     press_run(gus, "/jobs/Bikini")
     finished(gus, "/jobs/Bikini/runs/1")
     row = re.search(r'<tr data-job="Bikini">(.*?)</tr>', gus.get("/jobs").text, re.S).group(1)
-    assert '"status run"' in row
+    assert '<span class="chip done">PDFs ready</span>' in row
 
 
 def test_every_kind_of_job_has_the_button(app_s, gus):
@@ -194,9 +199,10 @@ def test_running_state_then_results(app_s, gus, blocked):
 def test_a_second_press_goes_to_the_run_in_progress(app_s, gus, blocked):
     go, started = blocked
     make(app_s[1])
-    assert press_run(gus, "/jobs/Bikini").headers["location"] == "/jobs/Bikini/runs/1"
+    assert press_run(gus, "/jobs/Bikini").headers["location"] == "/jobs/Bikini"
     assert started.wait(10)
-    assert press_run(gus, "/jobs/Bikini").headers["location"] == "/jobs/Bikini/runs/1"
+    assert 'data-status="running"' in gus.get("/jobs/Bikini").text and "Generating PDFs" in gus.get("/jobs/Bikini").text
+    gus.post("/jobs/Bikini/run", data={"csrf_token": H.csrf_from(gus.get("/jobs/Bikini/runs/1").text)})   # a second press
     go.set()
     finished(gus, "/jobs/Bikini/runs/1")
     assert [n for _, n, *_ in run_rows(app_s[1])] == [1]
@@ -393,7 +399,7 @@ def test_an_example_runs_on_a_copy_in_the_data_folder(app_s, gus, monkeypatch):
     monkeypatch.setattr(engine, "run_job", run)
     before = tree(HOARDING / "DavidJonesLift")
     r = press_run(gus, "/examples/DavidJonesLift")
-    assert r.status_code == 303 and r.headers["location"] == "/examples/DavidJonesLift/runs/1"
+    assert r.status_code == 303 and r.headers["location"] == "/examples/DavidJonesLift"
     html = finished(gus, "/examples/DavidJonesLift/runs/1").text
     assert seen == [(s.data_dir / "jobs" / "example-DavidJonesLift" / "runs" / "0001").resolve()]
     assert tree(HOARDING / "DavidJonesLift") == before                          # hoarding/ untouched
@@ -403,7 +409,7 @@ def test_an_example_runs_on_a_copy_in_the_data_folder(app_s, gus, monkeypatch):
     assert 'href="/examples/DavidJonesLift/runs/1/files/DavidJonesLift_Hoarding_Package.pdf"' in html
     assert gus.get("/examples/DavidJonesLift/runs/1/files/DavidJonesLift_Quotation.pdf").content == b"quote"
     assert 'href="/examples/DavidJonesLift/runs/1"' in gus.get("/examples/DavidJonesLift").text
-    assert press_run(gus, "/examples/DavidJonesLift").headers["location"] == "/examples/DavidJonesLift/runs/2"
+    assert press_run(gus, "/examples/DavidJonesLift").headers["location"] == "/examples/DavidJonesLift"
     finished(gus, "/examples/DavidJonesLift/runs/2")
 
 
@@ -466,7 +472,7 @@ def test_a_job_and_an_example_can_share_a_name(app_s, gus):
     press_run(gus, "/examples/Bikini")
     finished(gus, "/examples/Bikini/runs/1")
     assert gus.get("/jobs/Bikini/runs/1").status_code == 404
-    assert press_run(gus, "/jobs/Bikini").headers["location"] == "/jobs/Bikini/runs/1"
+    assert press_run(gus, "/jobs/Bikini").headers["location"] == "/jobs/Bikini"
     finished(gus, "/jobs/Bikini/runs/1")
 
 

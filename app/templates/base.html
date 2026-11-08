@@ -7,24 +7,27 @@
   <link rel="stylesheet" href="/static/style.css">
   {% block head %}{% endblock %}
 </head>
-<body>
-  <header class="top">
-    <a class="brand" href="/">BSG Hoarding</a>
-    {% if user %}
+<body class="{{ 'shell' if user else 'bare' }}">
+  {% if user %}
+  <aside class="side">
+    <div class="logo">LOGO</div>
     <nav>
-      <a href="/jobs">Jobs</a>
-      <a href="/examples">Examples</a>
+      <a href="/jobs"{% if tab == "jobs" %} class="on"{% endif %}><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Jobs</a>
+      <a href="/jobs/new"{% if tab == "new" %} class="on"{% endif %}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New job</a>
+      <a href="/dashboard"{% if tab == "dashboard" %} class="on"{% endif %}><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>Dashboard</a>
+      <a href="/activity"{% if tab == "activity" %} class="on"{% endif %}><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Activity</a>
     </nav>
-    <form method="post" action="/logout" class="who">
-      <input type="hidden" name="csrf_token" value="{{ csrf }}">
-      <span>{{ user.name }} ({{ user.role }})</span>
-      <button type="submit">Log out</button>
-    </form>
-    {% endif %}
-  </header>
+    <div class="me">
+      <strong title="{{ user.name }} ({{ user.role }})">{{ user.name|capitalize }}</strong>
+      <form method="post" action="/logout" class="who">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button type="submit">Sign out</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
   <main>
     {% block content %}{% endblock %}
   </main>
-  <footer>BSG Hoarding</footer>
 </body>
 </html>

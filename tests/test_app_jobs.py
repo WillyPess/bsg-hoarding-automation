@@ -33,7 +33,10 @@ def gus(app_s):
 
 
 def post_form(client, url, fields):
+    """Post the form on url. Fix job (/edit) needs a note saying what was wrong: a test one unless the test gives it."""
     page = client.get(url)
+    if url.endswith("/edit"):
+        fields = {"note": "test: what was wrong", **fields}
     return client.post(url, data={**fields, "csrf_token": H.csrf_from(page.text)}, follow_redirects=False)
 
 
@@ -60,7 +63,8 @@ def test_home_is_the_job_list(gus):
 
 def test_empty_job_list(gus):
     r = gus.get("/jobs")
-    assert r.status_code == 200 and "No jobs yet" in r.text and 'href="/jobs/new"' in r.text
+    assert r.status_code == 200 and 'href="/jobs/new"' in r.text
+    assert "data-job=" not in r.text and "data-example=" in r.text      # no jobs yet: only the Examples
 
 
 def make(s, prefix, **kw):
@@ -76,10 +80,9 @@ def test_job_list_columns(app_s, gus):
     j = make(s, "FRED_v2", title="FRED", site="Pacific Fair")
     html = gus.get("/jobs").text
     row = re.search(r'<tr data-job="FRED_v2">(.*?)</tr>', html, re.S).group(1)
-    assert "FRED" in row and "Pacific Fair" in row and "standard" in row and "draft" in row
-    assert "—" in row                                                  # no run yet
-    n = len(engine_jobs.warnings(j, {}))                               # the engine counts the warnings, not the app
-    assert f'<td class="warnings">{n}</td>' in row
+    assert "FRED" in row and "Pacific Fair" in row and "No PDFs yet" in row and "Gus" in row
+    assert re.search(r'<td class="r mono">4.5 m · — </td>|<td class="r mono">4.5 m · —</td>', row)   # no run yet: no run length
+    assert "· example" not in row
 
 
 def test_job_list_search_by_title_or_site(app_s, gus):
@@ -104,8 +107,10 @@ def test_both_users_see_every_job(app_s, gus):
 # --- Examples ---------------------------------------------------------------------------------------------------------
 
 def test_examples_list_the_reference_jobs(gus):
-    html = gus.get("/examples").text
+    assert gus.get("/examples", follow_redirects=False).headers["location"] == "/jobs"    # no Examples tab: they are in the list
+    html = gus.get("/jobs").text
     names = set(re.findall(r'data-example="([^"]+)"', html))
+    assert re.search(r'<tr data-example="DavidJones">.*?David Jones - Ground Level</a> <span class="tag">· example</span>', html, re.S)
     assert {"Bikini", "FRED_v2", "DavidJones", "Shrungaar", "Medibank", "DavidJonesLift", "Kiosk_PF"} <= names
     assert "FRED" not in names                                         # the legacy FRED job (old scripts) is not an example
 
@@ -114,7 +119,8 @@ def test_an_example_is_read_only(gus):
     r = gus.get("/examples/Medibank")
     assert r.status_code == 200 and "Medibank" in r.text and "read-only" in r.text.lower()
     posts = re.findall(r'<form method="post" action="([^"]*)"', r.text)
-    assert posts == ["/logout", "/examples/Medibank/run"]              # no form on the page but logout and Run (on a copy)
+    assert posts == ["/logout", "/examples/Medibank/run"]              # no form on the page but logout and Generate (on a copy)
+    assert "Fix job" not in r.text
     assert gus.post("/examples/Medibank", data={}).status_code in (403, 405)
     for path in ("/jobs/Medibank", "/jobs/Medibank/edit"):              # not a job of the app: can't be edited or approved
         assert gus.get(path).status_code == 404
@@ -271,8 +277,9 @@ def test_edit_a_job(app_s, gus):
     r = post_form(boss, "/jobs/Bikini/edit", {**GOOD, "height": "4.2"})
     assert r.status_code == 303 and r.headers["location"] == "/jobs/Bikini"
     assert job_json(s, "Bikini")["height"] == 4.2
-    [(action, job, who, at, detail)] = [r for r in audit_rows(s) if r[0] == "job.edited"]
+    [(action, job, who, at, detail)] = [r for r in audit_rows(s) if r[0] == "job.corrected"]
     assert (job, who) == ("Bikini", "boss") and at > 0 and "height" in json.loads(detail)["changed"]
+    assert json.loads(detail)["note"] == "test: what was wrong"                 # Fix job: recorded as a correction
 
 
 def test_edit_keeps_the_prefix_and_the_keys_the_form_doesnt_show(app_s, gus):
@@ -293,7 +300,7 @@ def test_a_bad_edit_changes_nothing(app_s, gus):
     r = post_form(gus, "/jobs/Bikini/edit", {**GOOD, "height": "9"})
     assert r.status_code == 422 and field_error(r.text, "height")
     assert job_json(s, "Bikini") == before
-    assert not [x for x in audit_rows(s) if x[0] == "job.edited"]
+    assert not [x for x in audit_rows(s) if x[0] in ("job.edited", "job.corrected")]
 
 
 def test_no_edit_form_for_job_types_not_built_yet(app_s, gus):
@@ -322,4 +329,4 @@ def test_no_message_from_stand_in_values(app_s, gus):
 def test_kiosk_shows_as_kiosk_in_the_list(app_s, gus):
     post_form(gus, "/jobs/new", {**GOOD, "kiosk": "on", "height": "1.2", "door_height": "", "front": "6.0", "entry_offset": "2.4"})
     row = re.search(r'<tr data-job="Bikini">(.*?)</tr>', gus.get("/jobs").text, re.S).group(1)
-    assert "<td>kiosk</td>" in row
+    assert '<span class="tag">· kiosk</span>' in row

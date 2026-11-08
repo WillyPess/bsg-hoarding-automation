@@ -56,6 +56,7 @@ The numbers in these rules (sizes, spares, matrix, external values, defaults, ra
 - **Door set (normal job):** 1 double door = 2 leaves, each **0.8 m wide x 2.4 m high** (1.6 m total opening; form lists 2 doors 2340), deadbolt, 4 hinges, 4 metal plates. Door studs: **2 x full height + 4 x 2.3** (purpose of the 2.3 m studs still unknown).
 - **Door set (1.2 m kiosk):** leaves are **0.8 m wide x 1.2 m high**; one normal door cut in half makes both leaves, so the form lists **1 door**. Rule 7, done: the form shows "Doors 1 | 2340 cut in half: 2 leaves 800 x 1200"; the 4 x 2.3 m door studs stay, with a note in the package (on the boss's list).
 - Studs scale with run length (14 per 8.8 m, rounded up) – inferred from Just Cuts, not formally confirmed.
+- **Dust suppression / Ladder ticks** (app form, Gus 2026-11-06): markers only, no calculation. `"dust_suppression": true` / `"ladder": true` in job.json add a line each ("Dust suppression" / "Ladder", "Ticked on this job", no quantity) below the paper form; the paper form's own Tools rows stay as they are. Unticked or absent, the form is exactly as before (test `tests/test_job_markers.py`). `client` and `drawings_sent_by` are kept for the app only.
 
 ### 4. Melamine sheet layout
 - Melamine comes in **only two sizes: 2.4 m high x 1.2 m wide, and 3.6 m high x 1.2 m wide.** Sheets are cut or joined to make smaller or taller hoardings.

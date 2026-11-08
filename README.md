@@ -40,10 +40,10 @@ python -m app --check     # settings + health checks (data folder, config.toml, 
 python -m app.users add gus --role estimator     # asks for the password twice (at least 10 characters)
 python -m app.users add boss --role manager
 python -m app.users list                         # set-password <name> gives a new password and ends that user's sessions
-python -m app             # serves http://127.0.0.1:8000 (this PC only); the health page is /health (not in the menu)
+python -m app             # serves http://127.0.0.1:8000 (this PC only; a server uses BSG_DEPLOY, see "Deploy on Render"); the health page is /health (not in the menu)
 ```
 
-After logging in, **Jobs** lists the jobs (search by title or site) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Examples** shows the reference jobs in `hoarding/`, read-only. **Run**, on a job or an example, runs the engine (`run_job.py`, in its own process, one run at a time) into a new run folder; an example runs on a copy in the data folder, never in `hoarding/`. The page says "running..." and updates by itself, then shows the results: the summary counts, what is still to confirm (the engine's warnings), the grid sheet, the melamine layout and the downloads (package PDF, materials PDF and xlsx, quote PDF on Pacific Fair jobs). A failed run shows what the engine said. A job needs its marked-up photo, `<prefix>_hoarding_markup.jpg`, to run. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create and edit is in the job's history.
+After signing in, **Jobs** lists the jobs and the reference jobs in `hoarding/` (tagged "example", read-only) and **New job** opens the form for standard jobs and 1.2 m kiosks; corner, U-shaped, fire-door and external jobs aren't in the form yet. **Generate PDFs**, on a job or an example, runs the engine (`run_job.py`, in its own process, one run at a time) into a new run folder; an example runs on a copy in the data folder, never in `hoarding/`. The job page says "Generating PDFs" and updates by itself, then shows the engine's numbers, the drawings and the downloads (package PDF, materials PDF and xlsx, quote PDF on Pacific Fair jobs); each version's own page (from the history) has the full summary. A failed run shows what the engine said. A job needs its marked-up photo, `<prefix>_hoarding_markup.jpg`, to run. The form only collects inputs: the engine's `jobs.normalize` and `validate.check` fill the defaults and say what's wrong, next to each field, and nothing is saved until it's right. Every create, fix and download is in the audit (Activity).
 
 Every page needs a login. Sessions end at logout, after 12 hours without use, or after 7 days. After 5 failed logins for a name in 15 minutes, that name can't log in for 15 minutes; after 20 failed logins from one address (on this PC, both users share 127.0.0.1), that address is locked for 15 minutes. So one person's typos don't lock the other out.
 
@@ -55,11 +55,43 @@ On the Windows PC, from the repository folder:
 
 1. Start: double-click `start-bsg.bat`. The first time it makes `.venv` and installs `requirements.txt`; then it starts the app and opens http://127.0.0.1:8000 in the browser. Close its window to stop the app.
 2. The first time only, create the user in another window, in the repository folder: `.venv\Scripts\python.exe -m app.users add gus --role estimator` (it asks for the password twice).
-3. Log in, open **Examples**, then an example (e.g. Bikini on the Beach).
-4. Press **Run**. The page shows "running..." and then the results: the counts, what is still to confirm, the drawings.
+3. Sign in; in **Jobs**, open an example (e.g. Bikini on the Beach, tagged "example").
+4. Press **Generate PDFs**. The page says "Generating PDFs" and then shows the numbers, the tabs with the drawings and what is still to confirm.
 5. Download the **package PDF** (and the materials form, or the quote on Pacific Fair jobs).
 
 The **Health** page is no longer in the menu: open http://127.0.0.1:8000/health. It shows the checks, the data folder and whether the AI reviewer is on.
+
+### Screens
+
+The look follows Gus's engenai app (with his OK): a left sidebar with **Jobs**, **New job**, **Dashboard** and **Activity**, and the user's name and Sign out at the bottom.
+
+- **Jobs**: every job and the reference jobs (tagged "example", read-only), with search and the All sites / Anyone filters. Height · Run, Quote ex GST and the status come from the latest run.
+- **New job** (standard shopfront: return | front with entry | return): the marked-up photo on the left, the inputs on the right, and a bottom bar with Run incl. returns, Entry from left, Ladder, Weights / upright and Quote ex GST (est.). The bar asks the engine as you type (`POST /jobs/estimate`, `run_job.counts`); the page computes nothing. **Generate PDFs** saves the job and, with the photo, runs it. Dust suppression and Ladder are ticks only: kept in job.json and added as a line under the materials form, with no quantity and no price change.
+- **Job page**: version N (the latest run), stat cards, tabs (Hoarding limit, Plan and elevation, Melamine layout, Materials), downloads (each one recorded), what is still to confirm, and the history. **Fix job** opens the inputs pre-filled with a "What was wrong" note: saving records a correction with the note and runs version N+1 (the old version is kept).
+- **Dashboard**: sums of the latest run summaries of every job with PDFs (jobs, lineal metres, quoted ex GST, materials sent), corrections, jobs per person, lineal metres per month by site.
+- **Activity**: the audit, latest first (sign-ins, jobs, photos, runs, downloads, corrections).
+
+### Deploy on Render
+
+The repository has a `Dockerfile` (Python 3.13, LibreOffice for xlsx → pdf, the DejaVu fonts). In the image `BSG_DEPLOY=1`: the app listens on `0.0.0.0` on Render's `PORT`, its cookies are Secure (HTTPS only), and the login limit takes the client's address from the proxy's `X-Forwarded-For` header (`client_ip_header` in `config.toml`). Without `BSG_DEPLOY` (on the PC) the app stays on 127.0.0.1 and refuses any other address. The data folder is `/var/data`: a Render disk, so users, jobs and runs survive a deploy.
+
+Steps, once:
+
+1. On <https://dashboard.render.com>: **New** → **Web Service** → connect GitHub and pick `WillyPess/bsg-hoarding-automation`, branch `main`.
+2. **Language / Runtime: Docker** (Render finds the `Dockerfile` at the root). Region: the one nearest (e.g. Singapore or Sydney, if offered).
+3. **Instance type**: a paid one (a disk needs a paid instance; the smallest is enough for two users).
+4. **Advanced** → **Add disk**: name `bsg-data`, mount path **`/var/data`**, size 1 GB.
+5. **Health check path**: `/healthz` (public, it only says the app answers; the full checks stay on `/health` after signing in).
+6. No environment variables are needed (the `Dockerfile` sets `BSG_DEPLOY` and `BSG_DATA`; Render sets `PORT`). Don't add `ANTHROPIC_API_KEY`: the AI reviewer is off.
+7. **Create Web Service** and wait for "Live" (the first build takes a few minutes: LibreOffice is large).
+8. Create the users in the service's **Shell** tab:
+   ```bash
+   python -m app.users add gus --role estimator     # asks for the password twice (at least 10 characters)
+   python -m app.users add boss --role manager
+   ```
+9. Open `https://<service-name>.onrender.com` and sign in. Every push to `main` deploys again; the disk keeps the data.
+
+Keep it to one instance (a disk belongs to one). The daily Windows backup task doesn't run there, so the health page warns about backups: use Render's disk snapshots, or copy `/var/data` from the Shell, until a backup for the server is set up.
 
 ### Storage
 
